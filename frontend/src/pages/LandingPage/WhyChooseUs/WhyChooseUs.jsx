@@ -26,7 +26,7 @@ const features = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="py-14 bg-gray-50">
+    <section className="py-14 mt-5 bg-gray-50">
       <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
         Why Choose Us
       </h1>
