@@ -13,7 +13,7 @@ const Navbar = () => {
   ];
 
   return (
-    <div className="navbar bg-white shadow-sm px-4 md:px-10 sticky top-0 z-50">
+    <div className="navbar bg-white shadow-sm px-4 md:px-10">
       {/* Mobile View */}
       <div className="navbar-start">
         <div className="dropdown">
@@ -76,9 +76,6 @@ const Navbar = () => {
                 }
               >
                 {link.name}
-                {link.name === "About" && (
-                  <ChevronDown size={22} className="ml-1" />
-                )}
               </NavLink>
             </li>
           ))}
