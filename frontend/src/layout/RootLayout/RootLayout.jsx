@@ -14,7 +14,6 @@ const RootLayout = () => {
             </section>
             <footer>
                 <Footer></Footer>
-                {/* Footer component goes here */}
             </footer>
         </>
     );
