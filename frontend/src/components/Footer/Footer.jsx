@@ -24,20 +24,31 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#202c33] text-white mt-10">
-    
+ 
+      <div className="max-w-7xl mx-auto px-20 sm:px-10 md:px-10 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
       <div className="max-w-7xl mx-auto px-4 md:px-10 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+
 
         
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Logo />
           </div>
+
+          <p className="text-gray-300 text-sm sm:text-base">
+
           <p className="text-gray-300 text-[14px] md:text-[16px]">
+
             Connect instantly with friends and family. Simple, reliable, and secure messaging.
           </p>
 
         
+
+          <div className="flex gap-4 mt-2 justify-center md:justify-start">
+
           <div className="flex gap-4 mt-2">
+
             <a href="#" className="text-gray-300 border-b border-transparent hover:border-gray-300 transition pb-1">
               <Facebook size={22} />
             </a>
@@ -70,7 +81,11 @@ const Footer = () => {
         </div>
 
        
+
+        <div className="flex flex-col gap-3 sm:block md:flex mt-4">
+
         <div className="flex flex-col gap-3">
+
           <h3 className="text-green-500 font-semibold text-[16px] md:text-[18px]">Use Chat App</h3>
           <ul className="flex flex-col gap-2">
             {appPlatforms.map((platform) => (
@@ -86,13 +101,19 @@ const Footer = () => {
           </ul>
         </div>
 
-      
+     
+        <div className="flex flex-col gap-4 sm:block md:flex">
+          <h3 className="text-green-500 font-semibold text-[16px] md:text-[18px]">Send us a message</h3>
+          <p className="text-gray-300 text-sm sm:text-base">
+            Have a question or feedback? Drop us a message and we will get back to you.
+          </p>
+
         <div className="flex flex-col gap-4">
           <h3 className="text-green-500 font-semibold text-[16px] md:text-[18px]">Send us a message</h3>
           <p className="text-gray-300 text-[14px] md:text-[16px]">
             Have a question or feedback? Drop us a message and we will get back to you.
           </p>
-          <div className="flex gap-3 mt-2">
+
             <input
               type="text"
               value={message}
@@ -102,7 +123,11 @@ const Footer = () => {
             />
             <button
               onClick={handleSend}
+
+              className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center gap-2 transition shadow-md hover:shadow-lg w-full md:w-auto"
+
               className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center gap-2 transition shadow-md hover:shadow-lg"
+
             >
               <Send size={20} />
               Send
