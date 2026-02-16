@@ -2,9 +2,11 @@ import express from 'express'
 import 'dotenv/config'
 import testRouter from './routes/test.routes.js'
 import { connectDb } from './lib/connection.js'
+import authRouter from './routes/auth.route.js'
 const app = express()
 const port = process.env.PORT || 3000
 
+app.use(express.json())
 
 //general route
 app.get('/', (req, res) => {
@@ -17,6 +19,9 @@ app.get('/', (req, res) => {
 
 //test route
 app.use('/api/test', testRouter)
+
+//auth route
+app.use('/api/auth', authRouter)
 
 
 //server connecting function
