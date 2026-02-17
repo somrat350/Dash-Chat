@@ -1,4 +1,3 @@
-import React from "react";
 import { ShieldCheck, Clock, Users, Star } from "lucide-react";
 
 const features = [
@@ -39,7 +38,9 @@ const WhyChooseUs = () => {
           >
             <div className="text-green-500 mb-4">{feature.icon}</div>
             <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-            <p className="text-gray-500 text-sm md:text-[14px]">{feature.desc}</p>
+            <p className="text-gray-500 text-sm md:text-[14px]">
+              {feature.desc}
+            </p>
           </div>
         ))}
       </div>

@@ -1,7 +1,6 @@
-import React from "react";
 import { Link, NavLink } from "react-router";
-import { ChevronDown, MessageCircle } from "lucide-react";
-import Logo from "../Logo/Logo";
+import { MessageCircle } from "lucide-react";
+import Logo from "./Logo";
 
 const Navbar = () => {
   const navLinks = [
@@ -35,14 +34,14 @@ const Navbar = () => {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-white rounded-box w-52"
+            className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-white rounded-box w-52"
           >
             {navLinks.map((link) => (
               <li key={link.name}>
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                  isActive
+                    isActive
                       ? "bg-green-100 text-green-700"
                       : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
                   }
@@ -84,7 +83,10 @@ const Navbar = () => {
 
       {/* Right Side - Button */}
       <div className="navbar-end">
-        <Link to="/#" className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px]">
+        <Link
+          to="/#"
+          className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px]"
+        >
           <MessageCircle size={24} />
           Log in
         </Link>

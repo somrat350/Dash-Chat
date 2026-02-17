@@ -1,15 +1,15 @@
-import React from "react";
 import BannerImg from "../../../assets/Hero-image.jpg";
 import { ArrowRight, MessageCircle } from "lucide-react";
+import { Link } from "react-router";
 
 const Hero = () => {
   return (
-    <div className="relative w-full">
+    <section className="relative w-full">
       {/* Image */}
       <img
         src={BannerImg}
         alt="Hero Banner"
-        className="w-full h-[600px] object-cover rounded-3xl"
+        className="w-full h-150 object-cover rounded-3xl"
       />
 
       {/* Overlay */}
@@ -29,17 +29,23 @@ const Hero = () => {
         </p>
 
         {/* Buttons */}
-        <div className="mt-14 flex gap-4">
-          <button className="relative overflow-hidden px-6 py-3 rounded-2xl text-white bg-primary  group cursor-pointer">
+        <div className="mt-14 flex flex-col sm:flex-row gap-4">
+          <Link
+            to="/register"
+            className="relative isolate overflow-hidden px-6 py-3 rounded-2xl text-white bg-primary group cursor-pointer"
+          >
             <span className="relative z-10 flex items-center gap-2">
               <ArrowRight size={20} /> Get Started
             </span>
 
             {/* Background overlay */}
             <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-          </button>
+          </Link>
 
-          <button className="relative overflow-hidden flex items-center gap-2 px-6 py-3 bg-white rounded-2xl group cursor-pointer">
+          <Link
+            to="/login"
+            className="relative overflow-hidden flex items-center gap-2 px-6 py-3 bg-white rounded-2xl group cursor-pointer"
+          >
             {/* Text */}
             <span className="relative z-10 text-secondary group-hover:text-white transition-colors duration-300 flex items-center gap-2">
               <MessageCircle size={20} />
@@ -48,10 +54,10 @@ const Hero = () => {
 
             {/* Background overlay */}
             <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-          </button>
+          </Link>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
