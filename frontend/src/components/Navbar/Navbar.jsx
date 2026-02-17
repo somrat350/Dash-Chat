@@ -84,7 +84,7 @@ const Navbar = () => {
 
       {/* Right Side - Button */}
       <div className="navbar-end">
-        <Link to="/#" className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px]">
+        <Link to="/#" className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px] bg-white">
           <MessageCircle size={24} />
           Log in
         </Link>
