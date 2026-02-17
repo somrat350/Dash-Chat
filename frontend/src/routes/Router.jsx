@@ -4,6 +4,8 @@ import Home from "../pages/public/Home";
 import AuthLayout from "../layout/AuthLayout";
 import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
+import Login from "../pages/auth/Login";
+import ForgotPassword from "../pages/auth/ForgotPassword";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +29,14 @@ const router = createBrowserRouter([
       {
         path: "register",
         Component: Register,
+      },
+      {
+        path: "login",
+        Component: Login,
+      },
+      {
+        path: "forgot-password",
+        Component: ForgotPassword,
       },
     ],
   },
