@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Send, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
-import Logo from "../Logo/Logo";
+import Logo from "./Logo";
+import toast from "react-hot-toast";
 
 const Footer = () => {
   const [message, setMessage] = useState("");
@@ -17,7 +18,7 @@ const Footer = () => {
 
   const handleSend = () => {
     if (message.trim()) {
-      alert(`Message sent: ${message}`);
+      toast.success(`Message sent: ${message}`);
       setMessage("");
     }
   };
@@ -30,14 +31,10 @@ const Footer = () => {
             <Logo />
           </div>
 
-          {/* <p className="text-gray-300 text-sm sm:text-base"> */}
-
           <p className="text-gray-300 text-[14px] md:text-[16px]">
             Connect instantly with friends and family. Simple, reliable, and
             secure messaging.
           </p>
-
-          {/* <div className="flex gap-4 mt-2 justify-center md:justify-start"> */}
 
           <div className="flex gap-4 mt-2">
             <a

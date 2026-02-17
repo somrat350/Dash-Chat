@@ -1,6 +1,5 @@
-import React from "react";
 import { useForm } from "react-hook-form";
-import Logo from "../../components/Logo/Logo";
+import Logo from "../../components/public/Logo";
 import imageIllus from "../../assets/image illus.png";
 
 const Register = () => {
@@ -16,7 +15,7 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-primary min-h-screen flex items-center justify-center p-4">
+    <div className="bg-primary/25 min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
         {/* ===== Left Side (Form) ===== */}
         <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
@@ -33,7 +32,6 @@ const Register = () => {
           </h4>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            
             {/* Full Name */}
             <div>
               <input

@@ -1,8 +1,6 @@
-import React from "react";
-
 const ChatBubble = () => {
   return (
-    <div className="py-14 flex flex-col gap-6">
+    <section className="py-14 flex flex-col gap-6">
       {/* 1st Message */}
       <div className="chat chat-start">
         <div className="chat-image avatar">
@@ -110,7 +108,7 @@ const ChatBubble = () => {
         <div className="chat-bubble">Absolutely! Let’s do this!</div>
         <div className="chat-footer opacity-50">Seen at 12:50</div>
       </div>
-    </div>
+    </section>
   );
 };
 
