@@ -7,5 +7,6 @@ export const errorHandler = (err, req, res, next) => {
     status: statusCode,
     message: message,
   });
+  next()
 };
 
