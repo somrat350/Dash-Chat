@@ -4,11 +4,11 @@ import bcrypt from 'bcryptjs'
 
 export const Register = async (req, res, next) => {
     
-    const {name, userName, email, password} = req.body
+    const {name, email, password} = req.body
 
     try {
 
-        if (!name || !userName || !email || !password) {
+        if (!name || !email || !password) {
           return res.status(400).json({ message: "All Fields are required." });
         }
 
@@ -20,11 +20,10 @@ export const Register = async (req, res, next) => {
 
         const newUser = new User({
             name,
-            userName,
             email,
             password: hashedPass
         })
-        
+
         if (newUser) {
             const savedUser = await newUser.save()
             res.send(savedUser)
