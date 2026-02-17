@@ -1,4 +1,4 @@
-import { tokenGenarate } from "../lib/utits.js";
+import { tokenGenerate } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
@@ -25,8 +25,8 @@ export const register = async (req, res) => {
     if (newUser) {
       const savedUser = await newUser.save();
 
-      //token gerantion
-      tokenGenarate(savedUser._id, res);
+      //token generation
+      tokenGenerate(savedUser._id, res);
 
       res.status(201).json({
         _id: savedUser._id,
@@ -58,8 +58,8 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    //token gerantion
-    tokenGenarate(user._id, res);
+    //token generation
+    tokenGenerate(user._id, res);
 
     res.status(200).json({
       _id: user._id,
