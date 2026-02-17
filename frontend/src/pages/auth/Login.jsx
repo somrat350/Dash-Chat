@@ -1,110 +1,37 @@
-import { useState } from "react";
+import  { useState } from "react";
 import { useForm } from "react-hook-form";
-import Logo from "../../components/public/Logo";
 import imageIllus from "../../assets/image illus.png";
-import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
-const Register = () => {
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import Logo from "../../components/public/Logo";
+
+const Login = () => {
   const {
     register,
     handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm({mode: "onChange"});
-  const [showPassword, setShowPassword] = useState(false);
 
-  // const [showConfirm, setShowConfirm] = useState(false);
-  const password = watch("password");
+    formState: { errors },
+  } = useForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = (data) => {
     console.log(data);
     // Send data to backend API here
   };
-
   return (
     <div className="bg-green-300 min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
         {/* ===== Left Side (Form) ===== */}
         <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
           <div className="flex justify-center mb-4">
-            <Logo />
+            <Logo/>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 text-center">
-            Create Your Account
+            Welcome Back! Please login
           </h2>
 
-          <h4 className="mb-6 font-semibold text-center text-gray-500">
-            Sign up for new account
-          </h4>
-
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <input
-                type="text"
-                placeholder="Full Name"
-                {...register("fullName", {
-                  required: "Full name is required",
-                  minLength: {
-                    value: 3,
-                    message: "Name must be at least 3 characters",
-                  },
-                  maxLength: {
-                    value: 30,
-                    message: "Name must be less than 30 characters",
-                  },
-                  pattern: {
-                    value: /^[A-Za-z]+(?:\s[A-Za-z]+)+$/,
-                    message: "Enter first and last name (letters only)",
-                  },
-                  validate: (value) =>
-                    value.trim() === value || "No extra spaces allowed",
-                })}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.fullName ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
-              />
-
-              {errors.fullName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
-            {/* Username */}
-            <div>
-              <input
-                type="text"
-                placeholder="Username"
-                {...register("username", {
-                  required: "Username is required",
-                  minLength: {
-                    value: 4,
-                    message: "Username must be at least 4 characters",
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: "Username must be less than 20 characters",
-                  },
-                  pattern: {
-                    value: /^[a-zA-Z0-9_]+$/,
-                    message: "Only letters, numbers & underscore allowed",
-                  }
-                
-                })}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.username ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
-              />
-
-              {errors.username && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.username.message}
-                </p>
-              )}
-            </div>
-
             {/* Email */}
             <div>
               <input
@@ -148,7 +75,7 @@ const Register = () => {
               {/* Eye Button */}
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                className="absolute right-4 top-6 -translate-y-1/2 cursor-pointer text-gray-500"
               >
                 {showPassword ? <FaEye /> : <FaEyeSlash />}
               </span>
@@ -158,39 +85,21 @@ const Register = () => {
                   {errors.password.message}
                 </p>
               )}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Confirm Password"
-                {...register("confirmPassword", {
-                  required: "Confirm Password is required",
-                  validate: (value) =>
-                    value === password || "Passwords do not match",
-                })}
-                className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                  errors.confirmPassword && (
-                    <p className="text-red-500">
-                      {errors.confirmPassword.message}
-                    </p>
-                  )
-                }
-                } focus:outline-none focus:ring-2 focus:ring-primary border-gray-300`}
-              />
-
-           
-              {errors.confirmPassword && (
-                <p className="text-red-500">{errors.confirmPassword.message}</p>
-              )}
+              <p className="text-right mt-2">
+                <a
+                  href="/forgot-password"
+                  className="text-primary text-sm hover:underline"
+                >
+                  Forgot Password?
+                </a>
+              </p>
             </div>
 
             <button
               type="submit"
               className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold transition"
             >
-              Register
+              Login
             </button>
             <button className="btn w-full py-6 rounded-lg bg-violet-500 text-white border-[#e5e5e5] hover:bg-secondary ">
               <svg
@@ -220,17 +129,18 @@ const Register = () => {
                   ></path>
                 </g>
               </svg>
-              Continue with Google
+              Login with Google
             </button>
           </form>
           <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
-            Already have an account?{" "}
+            Are you new to our website ?{" "}
             <a
-              href="/login"
+              href="/register"
               className="text-primary font-medium hover:underline"
             >
-              Login
+              Register
             </a>
+            <p>Please</p>
           </p>
         </div>
 
@@ -247,4 +157,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
