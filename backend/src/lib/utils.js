@@ -8,10 +8,10 @@ export const tokenGenerate = (userId, res) => {
   res.cookie("token", token, {
     path: "/",
     httpOnly: true,
-    sameSite: "none",
+    sameSite: ENV.SAME_SITE,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     secure: ENV.NODE_ENV === "production",
   });
-  
+
   return token;
 };
