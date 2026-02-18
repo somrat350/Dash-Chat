@@ -1,3 +1,4 @@
+import { ENV } from "../lib/env.js";
 import { tokenGenerate } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
@@ -71,4 +72,14 @@ export const login = async (req, res) => {
     console.error("Error in user registration:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const logout = (_, res) => {
+  res.clearCookie("token", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: ENV.NODE_ENV === "production",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
 };
