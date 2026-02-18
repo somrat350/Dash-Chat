@@ -1,8 +1,19 @@
 import { Link, NavLink } from "react-router";
 import { MessageCircle } from "lucide-react";
 import Logo from "./Logo";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+ useEffect(() => {
+  const handleScroll = () => {
+    setScrolled(window.scrollY > 50); // 50px scroll হলে true
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Features", path: "/features" },
@@ -11,8 +22,9 @@ const Navbar = () => {
     { name: "Privacy", path: "/privacy" },
   ];
 
+
   return (
-    <div className="navbar bg-white shadow-sm px-4 md:px-10">
+    <div className={`navbar bg-white shadow-sm px-4 md:px-10 transition-all duration-500 ${scrolled ? "bg-white/60 backdrop-blur-md shadow-md ":"bg-white"}`}>
       {/* Mobile View */}
       <div className="navbar-start">
         <div className="dropdown">
@@ -85,7 +97,7 @@ const Navbar = () => {
       <div className="navbar-end">
         <Link
           to="/#"
-          className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px]"
+          className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px] bg-white"
         >
           <MessageCircle size={24} />
           Log in

@@ -108,6 +108,9 @@ const ChatBubble = () => {
         <div className="chat-bubble">Absolutely! Let’s do this!</div>
         <div className="chat-footer opacity-50">Seen at 12:50</div>
       </div>
+      <div className="flex flex-col justify-center max-w-5xl mx-auto"> 
+        <h1 className="text-3xl lg:text-[50px] text-center text-gray-900 leading-12 font-medium">With private messaging and calling, you can be yourself, speak freely and feel close to the most important people in your life no matter where they are.</h1>
+      </div>
     </section>
   );
 };
