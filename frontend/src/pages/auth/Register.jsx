@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import Logo from "../../components/public/Logo";
 import imageIllus from "../../assets/image illus.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { Link } from "react-router";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const Register = () => {
   const {
@@ -10,27 +12,28 @@ const Register = () => {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm({mode: "onChange"});
+  } = useForm({ mode: "onChange" });
   const [showPassword, setShowPassword] = useState(false);
-
-  // const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const password = watch("password");
 
+  const { registerUser, isRegistering } = useAuthStore();
+
   const onSubmit = (data) => {
-    console.log(data);
-    // Send data to backend API here
+    delete data.confirmPassword;
+    registerUser(data);
   };
 
   return (
-    <div className="bg-green-300 min-h-screen flex items-center justify-center p-4">
+    <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
         {/* ===== Left Side (Form) ===== */}
         <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2">
             <Logo />
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">
             Create Your Account
           </h2>
 
@@ -39,70 +42,15 @@ const Register = () => {
           </h4>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Full Name */}
+            {/* Name */}
             <div>
               <input
                 type="text"
-                placeholder="Full Name"
-                {...register("fullName", {
-                  required: "Full name is required",
-                  minLength: {
-                    value: 3,
-                    message: "Name must be at least 3 characters",
-                  },
-                  maxLength: {
-                    value: 30,
-                    message: "Name must be less than 30 characters",
-                  },
-                  pattern: {
-                    value: /^[A-Za-z]+(?:\s[A-Za-z]+)+$/,
-                    message: "Enter first and last name (letters only)",
-                  },
-                  validate: (value) =>
-                    value.trim() === value || "No extra spaces allowed",
-                })}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.fullName ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
+                placeholder="Name"
+                {...register("name")}
+                required
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary`}
               />
-
-              {errors.fullName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
-            {/* Username */}
-            <div>
-              <input
-                type="text"
-                placeholder="Username"
-                {...register("username", {
-                  required: "Username is required",
-                  minLength: {
-                    value: 4,
-                    message: "Username must be at least 4 characters",
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: "Username must be less than 20 characters",
-                  },
-                  pattern: {
-                    value: /^[a-zA-Z0-9_]+$/,
-                    message: "Only letters, numbers & underscore allowed",
-                  }
-                
-                })}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.username ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
-              />
-
-              {errors.username && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.username.message}
-                </p>
-              )}
             </div>
 
             {/* Email */}
@@ -110,127 +58,110 @@ const Register = () => {
               <input
                 type="email"
                 placeholder="Email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^\S+@\S+\.\S+$/,
-                    message: "Enter valid email",
-                  },
-                })}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
+                {...register("email")}
+                required
+                className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary`}
               />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
             </div>
 
             {/* Password */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Minimum 6 characters",
-                  },
-                })}
-                className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-primary`}
-              />
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Minimum 6 characters",
+                    },
+                    pattern: {
+                      value: /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
+                      message:
+                        "Password must contain at least 1 uppercase and 1 lowercase letter",
+                    },
+                  })}
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-primary`}
+                />
 
-              {/* Eye Button */}
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-              >
-                {showPassword ? <FaEye /> : <FaEyeSlash />}
-              </span>
+                {/* Eye Button */}
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-primary transition"
+                >
+                  {showPassword ? (
+                    <FaEye size={20} />
+                  ) : (
+                    <FaEyeSlash size={20} />
+                  )}
+                </span>
+              </div>
 
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1 ml-1.5">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
             {/* Confirm Password */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Confirm Password"
-                {...register("confirmPassword", {
-                  required: "Confirm Password is required",
-                  validate: (value) =>
-                    value === password || "Passwords do not match",
-                })}
-                className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                  errors.confirmPassword && (
-                    <p className="text-red-500">
-                      {errors.confirmPassword.message}
-                    </p>
-                  )
-                }
-                } focus:outline-none focus:ring-2 focus:ring-primary border-gray-300`}
-              />
-
-           
+            <div>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  {...register("confirmPassword", {
+                    required: "Confirm Password is required",
+                    validate: (value) =>
+                      value === password || "Passwords do not match",
+                  })}
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
+                    errors.confirmPassword
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-primary`}
+                />
+                {/* Eye Button */}
+                <span
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-primary transition"
+                >
+                  {showConfirmPassword ? (
+                    <FaEye size={20} />
+                  ) : (
+                    <FaEyeSlash size={20} />
+                  )}
+                </span>
+              </div>
               {errors.confirmPassword && (
-                <p className="text-red-500">{errors.confirmPassword.message}</p>
+                <p className="text-red-500 text-sm mt-1 ml-1.5">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold transition"
+              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${isRegistering && "btn btn-disabled py-3 bg-primary"}`}
+              disabled={isRegistering}
             >
-              Register
-            </button>
-            <button className="btn w-full py-6 rounded-lg bg-violet-500 text-white border-[#e5e5e5] hover:bg-secondary ">
-              <svg
-                aria-label="Google logo"
-                width="16"
-                height="16"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 512 512"
-              >
-                <g>
-                  <path d="m0 0H512V512H0" fill="#fff"></path>
-                  <path
-                    fill="#34a853"
-                    d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"
-                  ></path>
-                  <path
-                    fill="#4285f4"
-                    d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"
-                  ></path>
-                  <path
-                    fill="#fbbc02"
-                    d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"
-                  ></path>
-                  <path
-                    fill="#ea4335"
-                    d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"
-                  ></path>
-                </g>
-              </svg>
-              Continue with Google
+              {isRegistering && (
+                <span className="loading loading-spinner loading-sm"></span>
+              )}
+              {isRegistering ? "Registering..." : "Register"}
             </button>
           </form>
-          <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
+          <p className="text-gray-500 text-sm sm:text-base mt-4 text-center">
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-primary font-medium hover:underline"
             >
               Login
-            </a>
+            </Link>
           </p>
         </div>
 

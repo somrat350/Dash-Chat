@@ -6,6 +6,8 @@ import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import ChatLayout from "../layout/ChatLayout";
+import ChatHome from "../pages/chat/Home";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +39,16 @@ const router = createBrowserRouter([
       {
         path: "forgot-password",
         Component: ForgotPassword,
+      },
+    ],
+  },
+  {
+    path: "/chat",
+    Component: ChatLayout,
+    children: [
+      {
+        index: true,
+        Component: ChatHome,
       },
     ],
   },
