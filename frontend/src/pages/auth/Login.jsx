@@ -21,7 +21,7 @@ const Login = () => {
     loginUser(data);
   };
   return (
-    <div className="bg-green-300 min-h-screen flex items-center justify-center p-4">
+    <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
         {/* ===== Left Side (Form) ===== */}
         <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
@@ -89,7 +89,7 @@ const Login = () => {
             </div>
             <p className="text-right mt-2">
               <Link
-                href="/forgot-password"
+                to="/forgot-password"
                 className="text-primary text-sm hover:underline"
               >
                 Forgot Password?
@@ -107,14 +107,13 @@ const Login = () => {
             </button>
           </form>
           <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
-            Are you new to our website ?{" "}
-            <a
-              href="/register"
+            Are you new to our website?{" "}
+            <Link
+              to="/register"
               className="text-primary font-medium hover:underline"
             >
               Register
-            </a>
-            <p>Please</p>
+            </Link>
           </p>
         </div>
 
