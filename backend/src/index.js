@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 import { ENV } from "./lib/env.js";
 import { connectDb } from "./lib/connection.js";
@@ -9,6 +10,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 const port = ENV.PORT || 3000;
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
@@ -20,9 +22,15 @@ app.use(errorHandler);
 //auth routes
 app.use("/api/auth", authRouter);
 
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "server running" });
-});
+// Ready for deploy into single domain
+const singleDomainDeploy = () => {
+  if (ENV.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+    app.use((_, res) => {
+      res.sendFile(path.resolve(__dirname, "../frontend/dist/index.html"));
+    });
+  }
+};
 
 //server connecting function
 const server = async () => {
@@ -36,4 +44,5 @@ const server = async () => {
   }
 };
 
+singleDomainDeploy();
 server();
