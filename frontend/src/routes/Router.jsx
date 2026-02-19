@@ -8,6 +8,7 @@ import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ChatLayout from "../layout/ChatLayout";
 import ChatHome from "../pages/chat/Home";
+import Privacy from "../pages/public/Privacy";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: "/about",
         Component: About,
+      },
+      {
+        path: "/privacy",
+        Component: Privacy,
       },
     ],
   },
