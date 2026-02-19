@@ -4,6 +4,8 @@ import Home from "../pages/public/Home";
 import AuthLayout from "../layout/AuthLayout";
 import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
+import Privacy from "../components/public/home/privacy/Privacy";
+
 
 const router = createBrowserRouter([
   {
@@ -18,6 +20,11 @@ const router = createBrowserRouter([
         path: "/about",
         Component: About,
       },
+      {
+        path:"/privacy",
+        Component: Privacy
+        
+      }
     ],
   },
   {
