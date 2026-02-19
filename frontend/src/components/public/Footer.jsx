@@ -119,7 +119,7 @@ const Footer = () => {
             />
             <button
               onClick={handleSend}
-              className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center gap-2 transition shadow-md hover:shadow-lg w-full md:w-auto"
+              className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg w-full md:w-auto"
             >
               <Send size={20} />
               Send

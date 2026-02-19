@@ -5,7 +5,10 @@ import AuthLayout from "../layout/AuthLayout";
 import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
 import Privacy from "../components/public/home/privacy/Privacy";
-
+import Login from "../pages/auth/Login";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ChatLayout from "../layout/ChatLayout";
+import ChatHome from "../pages/chat/Home";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +37,24 @@ const router = createBrowserRouter([
       {
         path: "register",
         Component: Register,
+      },
+      {
+        path: "login",
+        Component: Login,
+      },
+      {
+        path: "forgot-password",
+        Component: ForgotPassword,
+      },
+    ],
+  },
+  {
+    path: "/chat",
+    Component: ChatLayout,
+    children: [
+      {
+        index: true,
+        Component: ChatHome,
       },
     ],
   },
