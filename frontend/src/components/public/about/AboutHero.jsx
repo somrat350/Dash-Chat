@@ -179,7 +179,6 @@ const AboutHero = () => {
         </div>
 
     </div>
-     {/* Team Section */}
 </section >
 
 {/* Team Section */}
