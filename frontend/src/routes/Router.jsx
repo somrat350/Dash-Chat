@@ -48,11 +48,11 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/chat",
+    path: "/",
     Component: ChatLayout,
     children: [
       {
-        index: true,
+        path: "chat",
         Component: ChatHome,
       },
     ],
