@@ -28,44 +28,17 @@ export default function SearchDropdown({ search, setSearch }) {
       <button
         onClick={() => setSearch(false)}
         className="absolute right-4 top-4 text-gray-500 text-lg"
-        
       >
-         Search massages  ✕ 
-        
+        Search massages ✕
       </button>
 
       {/* Profile */}
-      <div className="flex flex-col items-center mt-10">
-        <img
-          src="https://i.pravatar.cc/150"
-          className="w-24 h-24 rounded-full mb-3"
+      <div className=" mt-10 w-full max-w-md mx-auto my-4">
+        <input
+          type="text"
+          placeholder="Search..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
         />
-        <h2 className="text-lg font-semibold">
-          Osama bin Somrat Vai
-        </h2>
-        <p className="text-sm text-gray-500">
-          Last seen today at 10:30 AM
-        </p>
-      </div>
-
-      {/* Contact info */}
-      <div className="mt-6 space-y-3">
-        <div>
-          <p className="text-gray-400 text-sm">Phone</p>
-          <p className="font-medium">+8801XXXXXXXXX</p>
-        </div>
-
-        <div>
-          <p className="text-gray-400 text-sm">About</p>
-          <p className="font-medium">
-            Hey there! I am using Dash-chat.
-          </p>
-        </div>
-
-        <div>
-          <p className="text-gray-400 text-sm">Email</p>
-          <p className="font-medium">example@gmail.com</p>
-        </div>
       </div>
     </div>
   );

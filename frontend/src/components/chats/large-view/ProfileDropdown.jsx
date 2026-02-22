@@ -21,6 +21,7 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
 
   return (
     <div
+     
       ref={dropdownRef}
       className="fixed right-0 top-0 w-80 bg-white border-l h-screen p-4 z-50 shadow-lg"
     >
@@ -29,8 +30,7 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
         onClick={() => setOpenProfile(false)}
         className="absolute right-4 top-4 text-gray-500 text-lg"
       >
-         ✕
-       
+        ✕
       </button>
 
       {/* Profile */}
@@ -39,12 +39,8 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
           src="https://i.pravatar.cc/150"
           className="w-24 h-24 rounded-full mb-3"
         />
-        <h2 className="text-lg font-semibold">
-          Osama bin Somrat Vai
-        </h2>
-        <p className="text-sm text-gray-500">
-          Last seen today at 10:30 AM
-        </p>
+        <h2 className="text-lg font-semibold">Osama bin Somrat Vai</h2>
+        <p className="text-sm text-gray-500">Last seen today at 10:30 AM</p>
       </div>
 
       {/* Contact info */}
@@ -56,9 +52,7 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
 
         <div>
           <p className="text-gray-400 text-sm">About</p>
-          <p className="font-medium">
-            Hey there! I am using Dash-chat.
-          </p>
+          <p className="font-medium">Hey there! I am using Dash-chat.</p>
         </div>
 
         <div>

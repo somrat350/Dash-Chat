@@ -25,7 +25,15 @@ export default function ChatHeader() {
 
   return (
     <>
-      <div className="sticky top-0 z-50 bg-[#f0f2f5] border-b">
+      <div
+        className={`sticky top-0 z-50 border-b transition-all duration-300 ${
+          openProfile || search
+            ? "mr-100"
+            : "bg-[#f0f2f5]" 
+        }`}
+      >
+        
+
         <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-3">
             <img
@@ -88,15 +96,16 @@ export default function ChatHeader() {
             </div>
           </div>
         </div>
+
+       
+
+        {/* Render ProfilePanel if openProfile is true */}
+
+        <ProfileDropdown
+          openProfile={openProfile}
+          setOpenProfile={setOpenProfile}
+        />
       </div>
-      {/* </div> */}
-
-      {/* Render ProfilePanel if openProfile is true */}
-
-      <ProfileDropdown
-        openProfile={openProfile}
-        setOpenProfile={setOpenProfile}
-      />
     </>
   );
 }
