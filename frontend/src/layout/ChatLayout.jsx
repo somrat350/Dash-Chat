@@ -18,7 +18,7 @@ const ChatLayout = () => {
   }
   return (
     <div>
-      <div className="drawer md:drawer-open ">
+      <div className="drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         {/* Page content here */}
         <div className="drawer-content">
