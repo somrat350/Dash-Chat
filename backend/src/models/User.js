@@ -11,9 +11,9 @@ const userSchema = new Schema(
       require: true,
       unique: true,
     },
-    password: {
+    role: {
       type: String,
-      require: true,
+      default: 'user'
     },
     profilePic: {
       type: String,
