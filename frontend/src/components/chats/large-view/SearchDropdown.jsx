@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 
-export default function ProfilePanel({ openProfile, setOpenProfile }) {
+export default function SearchDropdown({ search, setSearch }) {
   const dropdownRef = useRef(null);
 
   // Outside click detect
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenProfile(false);
+        setSearch(false);
       }
     }
 
@@ -15,9 +15,9 @@ export default function ProfilePanel({ openProfile, setOpenProfile }) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [setOpenProfile]);
+  }, [setSearch]);
 
-  if (!openProfile) return null;
+  if (!search) return null;
 
   return (
     <div
@@ -26,10 +26,12 @@ export default function ProfilePanel({ openProfile, setOpenProfile }) {
     >
       {/* Close button */}
       <button
-        onClick={() => setOpenProfile(false)}
+        onClick={() => setSearch(false)}
         className="absolute right-4 top-4 text-gray-500 text-lg"
+        
       >
-        ✕
+         Search massages  ✕ 
+        
       </button>
 
       {/* Profile */}
