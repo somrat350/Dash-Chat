@@ -5,13 +5,12 @@ import { useEffect } from "react";
 import PageLoader from "../components/PageLoader";
 
 const AuthLayout = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { checkAuth, isCheckingAuth } = useAuthStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   if (isCheckingAuth) return <PageLoader />;
-  if (authUser) return <Navigate to="/chat" replace />;
   return (
     <>
       <Toaster />

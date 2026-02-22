@@ -4,11 +4,11 @@ import Home from "../pages/public/Home";
 import AuthLayout from "../layout/AuthLayout";
 import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
-import Privacy from "../components/public/home/privacy/Privacy";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ChatLayout from "../layout/ChatLayout";
 import ChatHome from "../pages/chat/Home";
+import Privacy from "../pages/public/Privacy";
 
 const router = createBrowserRouter([
   {
@@ -24,14 +24,13 @@ const router = createBrowserRouter([
         Component: About,
       },
       {
-        path:"/privacy",
-        Component: Privacy
-        
-      }
+        path: "/privacy",
+        Component: Privacy,
+      },
     ],
   },
   {
-    path: "/",
+    path: "/auth",
     Component: AuthLayout,
     children: [
       {
@@ -53,7 +52,7 @@ const router = createBrowserRouter([
     Component: ChatLayout,
     children: [
       {
-        index: true,
+        path: "home",
         Component: ChatHome,
       },
     ],
