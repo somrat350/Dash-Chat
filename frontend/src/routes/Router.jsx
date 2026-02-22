@@ -30,7 +30,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/",
+    path: "/auth",
     Component: AuthLayout,
     children: [
       {
@@ -48,11 +48,11 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/",
+    path: "/chat",
     Component: ChatLayout,
     children: [
       {
-        path: "chat",
+        path: "home",
         Component: ChatHome,
       },
     ],
