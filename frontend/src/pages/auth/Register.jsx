@@ -5,6 +5,7 @@ import imageIllus from "../../assets/image illus.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Link } from "react-router";
 import { useAuthStore } from "../../store/useAuthStore";
+import SocialLogin from "../../components/auth/SocialLogin";
 
 const Register = () => {
   const {
@@ -17,11 +18,11 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const password = watch("password");
 
-  const { registerUser, isRegistering } = useAuthStore();
+  const { registerWithEP, userLoading } = useAuthStore();
 
   const onSubmit = (data) => {
     delete data.confirmPassword;
-    registerUser(data);
+    registerWithEP(data);
   };
 
   return (
@@ -145,19 +146,28 @@ const Register = () => {
 
             <button
               type="submit"
-              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${isRegistering && "btn btn-disabled py-3 bg-primary"}`}
-              disabled={isRegistering}
+              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}
+              disabled={userLoading}
             >
-              {isRegistering && (
+              {userLoading && (
                 <span className="loading loading-spinner loading-sm"></span>
               )}
-              {isRegistering ? "Registering..." : "Register"}
+              {userLoading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
+          {/* Social Login  */}
+          {/* or  */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-gray-500 text-sm font-medium">Or</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+          {/* sign up with social  */}
+          <SocialLogin />
           <p className="text-gray-500 text-sm sm:text-base mt-4 text-center">
             Already have an account?{" "}
             <Link
-              to="/login"
+              to="/auth/login"
               className="text-primary font-medium hover:underline"
             >
               Login

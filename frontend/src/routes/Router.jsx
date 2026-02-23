@@ -9,6 +9,7 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ChatLayout from "../layout/ChatLayout";
 import ChatHome from "../pages/chat/Home";
 import Privacy from "../pages/public/Privacy";
+import ProtectedRoute from "./ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -30,7 +31,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/",
+    path: "/auth",
     Component: AuthLayout,
     children: [
       {
@@ -48,8 +49,12 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/",
-    Component: ChatLayout,
+    path: "/conversation",
+    element: (
+      <ProtectedRoute>
+        <ChatLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: "chat",

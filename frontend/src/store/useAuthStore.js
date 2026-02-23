@@ -1,49 +1,94 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { auth } from "../lib/Firebase.config";
 import toast from "react-hot-toast";
 
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+
+const googleAuthProvider = new GoogleAuthProvider();
+
 export const useAuthStore = create((set) => ({
+  userLoading: true,
   authUser: null,
-  isCheckingAuth: true,
-  isRegistering: false,
+
   checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get("/api/auth/check");
-      set({ authUser: res.data });
-    } catch (error) {
-      console.log("Error in auth checking:", error);
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
-    }
+    set({ userLoading: true });
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      set({
+        authUser: currentUser,
+        userLoading: false,
+      });
+    });
+
+    return unsubscribe;
   },
-  registerUser: async (userData) => {
-    set({ isRegistering: true });
+  registerWithEP: async (userData) => {
+    set({ userLoading: true });
     try {
-      const res = await axiosInstance.post("/api/auth/register", userData);
-      set({ authUser: res.data });
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        userData.email,
+        userData.password,
+      );
+      if (res.user) {
+        userData.firebaseUid = res.user.uid;
+        await axiosInstance.post("/api/auth/register", userData);
+      }
+      set({ authUser: res.user });
       toast.success("Account created successful!");
     } catch (error) {
-      toast.error(error.response.data.message || "Registration failed");
+      toast.error(error || "Registration failed");
     } finally {
-      set({ isRegistering: false });
+      set({ userLoading: false });
     }
   },
-  loginUser: async (userData) => {
-    set({ isLoggingIn: true });
+  loginWithEP: async (userData) => {
+    set({ userLoading: true });
     try {
-      const res = await axiosInstance.post("/api/auth/login", userData);
-      set({ authUser: res.data });
+      const res = await signInWithEmailAndPassword(
+        auth,
+        userData.email,
+        userData.password,
+      );
+      set({ authUser: res.user });
       toast.success("Logged in successful!");
     } catch (error) {
-      toast.error(error.response.data.message || "Login failed");
+      toast.error(error || "Login failed");
     } finally {
-      set({ isLoggingIn: false });
+      set({ userLoading: false });
+    }
+  },
+  loginWithGoogle: async () => {
+    set({ userLoading: true });
+    try {
+      const res = await signInWithPopup(auth, googleAuthProvider);
+      if (res.user) {
+        const userData = {
+          name: res.user.displayName,
+          email: res.user.email,
+          photoURL: res.user.photoURL,
+          firebaseUid: res.user.uid,
+        };
+        await axiosInstance.post("/api/auth/register", userData);
+      }
+      set({ authUser: res.user });
+      toast.success("Logged in successful!");
+    } catch (error) {
+      toast.error(error || "Login failed");
+    } finally {
+      set({ userLoading: false });
     }
   },
   logoutUser: async () => {
     try {
-      await axiosInstance.post("/api/auth/logout");
+      await signOut(auth);
       set({ authUser: null });
       toast.success("Logged out successful!");
     } catch (error) {

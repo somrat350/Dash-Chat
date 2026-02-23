@@ -11,11 +11,16 @@ const userSchema = new Schema(
       require: true,
       unique: true,
     },
-    password: {
+    firebaseUid: {
       type: String,
       require: true,
+      unique: true,
     },
-    profilePic: {
+    role: {
+      type: String,
+      default: "user",
+    },
+    photoURL: {
       type: String,
       default: "",
     },

@@ -1,9 +1,19 @@
 import { Toaster } from "react-hot-toast";
 import Navbar from "../components/public/Navbar";
 import Footer from "../components/public/Footer";
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
+import { useAuthStore } from "../store/useAuthStore";
+import { useEffect } from "react";
+import PageLoader from "../components/PageLoader";
 
 const PublicLayout = () => {
+  const { checkAuth, userLoading, authUser } = useAuthStore();
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (userLoading) return <PageLoader />;
+  if (authUser) return <Navigate to="/conversation" replace />;
   return (
     <>
       <Toaster />

@@ -4,6 +4,7 @@ import imageIllus from "../../assets/image illus.png";
 
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import Logo from "../../components/public/Logo";
+import SocialLogin from "../../components/auth/SocialLogin";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Link } from "react-router";
 
@@ -89,7 +90,7 @@ const Login = () => {
             </div>
             <p className="text-right mt-2">
               <Link
-                to="/forgot-password"
+                to="/auth/forgot-password"
                 className="text-primary text-sm hover:underline"
               >
                 Forgot Password?
@@ -106,10 +107,20 @@ const Login = () => {
               {isLoggingIn ? "LoggingIn..." : "Login"}
             </button>
           </form>
+
+          {/* Social Login  */}
+          {/* or  */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-gray-500 text-sm font-medium">Or</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+          {/* sign up with social  */}
+          <SocialLogin />
           <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
             Are you new to our website?{" "}
             <Link
-              to="/register"
+              to="/auth/register"
               className="text-primary font-medium hover:underline"
             >
               Register

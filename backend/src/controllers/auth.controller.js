@@ -4,10 +4,10 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
 export const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, photoURL = "", firebaseUid } = req.body;
 
   try {
-    if (!name || !email || !password) {
+    if (!name || !email || !firebaseUid) {
       return res.status(400).json({ message: "All Fields are required." });
     }
 
@@ -20,21 +20,13 @@ export const register = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      password: hashedPass,
+      photoURL,
+      firebaseUid,
     });
 
     if (newUser) {
-      const savedUser = await newUser.save();
-
-      //token generation
-      tokenGenerate(savedUser._id, res);
-
-      res.status(201).json({
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        profilePic: savedUser.profilePic,
-      });
+      await newUser.save();
+      res.status(201).json({ message: "User registered successfully" });
     }
   } catch (error) {
     console.error("Error in user registration:", error);
