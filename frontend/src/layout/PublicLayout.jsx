@@ -13,7 +13,7 @@ const PublicLayout = () => {
   }, [checkAuth]);
 
   if (userLoading) return <PageLoader />;
-  if (authUser) return <Navigate to="/conversation" replace />;
+  if (authUser) return <Navigate to="/conversation/chat" replace />;
   return (
     <>
       <Toaster />
