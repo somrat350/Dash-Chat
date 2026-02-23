@@ -143,7 +143,6 @@ const Register = () => {
                 </p>
               )}
             </div>
-
             <button
               type="submit"
               className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}

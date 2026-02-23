@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { MessageSquareText, Phone } from "lucide-react";
 import Home from "../components/chats/mobile-view/Home";
 import ChatHeader from "../components/chats/large-view/ChatHeader";
+import Sidebar from "../components/chats/sidebar/Sidebar";
 
 const ChatLayout = () => {
   return (
@@ -12,7 +13,9 @@ const ChatLayout = () => {
         <div className="drawer-content">
           <div className="border-l border-primary/30 h-full w-full grid grid-cols-3">
             {/* Chat sidebar */}
-            <div className="col-span-1 border-r border-primary/30 bg-primary"></div>
+            <div className="col-span-1 border-r border-primary/30 ">
+            <Sidebar></Sidebar>
+            </div>
             <div className="col-span-2">
               <ChatHeader />
             </div>
