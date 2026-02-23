@@ -1,24 +1,13 @@
-import { useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore";
-import PageLoader from "../components/PageLoader";
-import { Link, Navigate } from "react-router";
+import { Link } from "react-router";
 import { MessageSquareText, Phone } from "lucide-react";
 import Home from "../components/chats/mobile-view/Home";
 import ChatHeader from "../components/chats/large-view/ChatHeader";
 import Sidebar from "../components/chats/sidebar/Sidebar";
 
 const ChatLayout = () => {
-  const { isCheckingAuth, checkAuth, authUser } = useAuthStore();
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-  if (isCheckingAuth) return <PageLoader />;
-  if (!authUser) {
-    return <Navigate to="/login" replace />;
-  }
   return (
     <div>
-      <div className="drawer md:drawer-open">
+      <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         {/* Page content here */}
         <div className="drawer-content">

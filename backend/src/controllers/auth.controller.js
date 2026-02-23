@@ -1,10 +1,10 @@
 import User from "../models/User.js";
 
 export const register = async (req, res) => {
-  const { name, email, profilePic,role } = req.body;
+  const { name, email, photoURL = "", firebaseUid } = req.body;
 
   try {
-    if (!name || !email) {
+    if (!name || !email || !firebaseUid) {
       return res.status(400).json({ message: "All Fields are required." });
     }
 
@@ -14,20 +14,13 @@ export const register = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      profilePic,
-      role,
+      photoURL,
+      firebaseUid,
     });
 
     if (newUser) {
-      const savedUser = await newUser.save();
-
-      res.status(201).json({
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        profilePic: savedUser.profilePic,
-        role: savedUser.role
-      });
+      await newUser.save();
+      res.status(201).json({ message: "User registered successfully" });
     }
   } catch (error) {
     console.error("Error in user registration:", error);
