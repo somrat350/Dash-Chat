@@ -7,7 +7,7 @@ import About from "../pages/public/About";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ChatLayout from "../layout/ChatLayout";
-import ChatHome from "../pages/chat/Home";
+import ChatHome from "../pages/chat/ChatHome";
 import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -56,6 +56,10 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+      {
+        index: true,
+        Component: ChatHome,
+      },
       {
         path: "chat",
         Component: ChatHome,
