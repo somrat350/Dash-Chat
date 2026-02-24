@@ -2,6 +2,19 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  GithubAuthProvider, 
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+
+const googleAuthProvider = new GoogleAuthProvider();
+const githubAuthProvider =new GithubAuthProvider()
+
 export const useAuthStore = create((set) => ({
   authUser: null,
   isCheckingAuth: true,
@@ -41,6 +54,31 @@ export const useAuthStore = create((set) => ({
       set({ isLoggingIn: false });
     }
   },
+
+  loginWithGithub: async () => {
+  set({ userLoading: true });
+  try {
+    const res = await signInWithPopup(auth, githubAuthProvider);
+
+    if (res.user) {
+      const userData = {
+        name: res.user.displayName,
+        email: res.user.email,
+        photoURL: res.user.photoURL,
+        firebaseUid: res.user.uid,
+      };
+
+      await axiosInstance.post("/api/auth/register", userData);
+    }
+
+    set({ authUser: res.user });
+    toast.success("Logged in successful");
+  } catch (error) {
+    toast.error(error.message || "Logout failed");
+  } finally {
+    set({ userLoading: false });
+  }
+},
   logoutUser: async () => {
     try {
       await axiosInstance.post("/api/auth/logout");
