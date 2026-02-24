@@ -3,7 +3,7 @@ import { Plus, MoreVertical, Search } from "lucide-react";
 
 const users = [
   {
-    id: 1,
+    _id: 1,
     name: "Osambin Somrat",
     message: "Video",
     time: "04:30",
@@ -11,55 +11,7 @@ const users = [
     active: true,
   },
   {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 1,
-    name: "Osambin Somrat",
-    message: "Video",
-    time: "04:30",
-    img: "https://i.ibb.co.com/dsHnTmsC/Screenshot-2026-02-17-013037.png",
-    active: true,
-  },
-  {
-    id: 2,
+    _id: 2,
     name: "Lima Akter",
     message: "Voice call",
     time: "11:23",
@@ -67,7 +19,7 @@ const users = [
     active: false,
   },
   {
-    id: 3,
+    _id: 3,
     name: "Sabbir Shohag",
     message: "What are you doing now?",
     time: "13:12",
@@ -75,7 +27,7 @@ const users = [
     active: true,
   },
   {
-    id: 4,
+    _id: 4,
     name: "Chaina Akter",
     message: "hi! how are you?",
     time: "12:00",
@@ -83,7 +35,7 @@ const users = [
     active: false,
   },
   {
-    id: 5,
+    _id: 5,
     name: "Arman Islam",
     message: "Hello",
     time: "2:10",
@@ -91,7 +43,7 @@ const users = [
     active: false,
   },
   {
-    id: 6,
+    _id: 6,
     name: "Tangila Khatun",
     message: "You:Jani na",
     time: "1:00",
