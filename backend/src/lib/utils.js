@@ -1,17 +1,9 @@
-import jwt from "jsonwebtoken";
-import { ENV } from "./env.js";
+import admin from "firebase-admin";
+const decoded = Buffer.from(process.env.FIREBASE_SDK, "base64").toString(
+  "utf8",
+);
+const serviceAccount = JSON.parse(decoded);
 
-export const tokenGenerate = (userId, res) => {
-  const token = jwt.sign({ userId }, ENV.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-  res.cookie("token", token, {
-    path: "/",
-    httpOnly: true,
-    sameSite: ENV.SAME_SITE,
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    secure: ENV.NODE_ENV === "production",
-  });
-
-  return token;
-};
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
