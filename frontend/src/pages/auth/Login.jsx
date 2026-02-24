@@ -16,10 +16,10 @@ const Login = () => {
   } = useForm({ mode: "onChange" });
   const [showPassword, setShowPassword] = useState(false);
 
-  const { isLoggingIn, loginUser } = useAuthStore();
+  const { userLoading, loginWithEP } = useAuthStore();
 
   const onSubmit = (data) => {
-    loginUser(data);
+    loginWithEP(data);
   };
   return (
     <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
@@ -98,13 +98,13 @@ const Login = () => {
             </p>
             <button
               type="submit"
-              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${isLoggingIn && "btn btn-disabled py-3 bg-primary"}`}
-              disabled={isLoggingIn}
+              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}
+              disabled={userLoading}
             >
-              {isLoggingIn && (
+              {userLoading && (
                 <span className="loading loading-spinner loading-sm"></span>
               )}
-              {isLoggingIn ? "LoggingIn..." : "Login"}
+              {userLoading ? "LoggingIn..." : "Login"}
             </button>
           </form>
 

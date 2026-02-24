@@ -1,14 +1,17 @@
 import { Link, Outlet } from "react-router";
 import { MessageSquareText, Phone } from "lucide-react";
-import Home from "../components/chats/mobile-view/Home";
 
 const ChatLayout = () => {
   return (
     <div>
+      {/* Large view */}
+      
       <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         {/* Page content here */}
-        <Outlet />
+        <div className="drawer-content">
+          <Outlet />
+        </div>
 
         <div className="drawer-side overflow-visible">
           <label
@@ -48,7 +51,7 @@ const ChatLayout = () => {
 
       {/* Mobile view */}
       <div className="block md:hidden">
-        <Home />
+        <Outlet />
       </div>
     </div>
   );

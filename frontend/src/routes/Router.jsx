@@ -7,9 +7,9 @@ import About from "../pages/public/About";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ChatLayout from "../layout/ChatLayout";
-import ChatHome from "../pages/chat/ChatHome";
 import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
+import ChatHome from "../pages/conversation/chat/ChatHome";
 
 const router = createBrowserRouter([
   {
