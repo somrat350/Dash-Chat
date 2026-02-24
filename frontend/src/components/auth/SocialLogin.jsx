@@ -1,7 +1,7 @@
 import { useAuthStore } from "../../store/useAuthStore";
 
 const SocialLogin = () => {
-  const { loginWithGoogle } = useAuthStore();
+  const { loginWithGoogle ,loginWithGithub} = useAuthStore();
   return (
     <div className="flex flex-col lg:flex-row gap-2 lg:gap-5 mt-2 lg:ml-4">
       <button
@@ -38,7 +38,9 @@ const SocialLogin = () => {
         Login with Google
       </button>
 
-      <button className="btn bg-primary/25 hover:border-primary text-primary">
+      <button
+      onClick={loginWithGithub}
+       className="btn bg-primary/25 hover:border-primary text-primary">
         <svg
           aria-label="GitHub logo"
           width="24"
