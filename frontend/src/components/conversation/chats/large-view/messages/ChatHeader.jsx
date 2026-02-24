@@ -26,19 +26,24 @@ export default function ChatHeader() {
   return (
     <>
       <div
-        className={`sticky top-0 z-50 border-b transition-all duration-300 ${
-          openProfile || search ? "mr-100" : "bg-[#f0f2f5]"
-        }`}
+        className={`sticky top-0 z-50 border-b border-primary/30 transition-all duration-300`}
       >
         <div className="flex items-center justify-between px-5 py-3">
-          <div className="flex items-center gap-3">
+          <div
+            onClick={() => setOpenProfile(true)}
+            className="flex items-center gap-3 cursor-pointer"
+          >
             <img
-              onClick={() => setOpenProfile(true)}
               src="https://i.pravatar.cc/150"
               alt="profile"
               className="w-10 h-10 rounded-full"
             />
-            <h2 className="font-medium text-gray-800">Osama bin Somrat Vai</h2>
+            <div className="flex flex-col">
+              <h2 className="font-medium text-gray-800">
+                Osama bin Somrat Vai
+              </h2>
+              <span className="text-xs text-gray-500">online</span>
+            </div>
           </div>
 
           {/* Right side actions */}
@@ -65,7 +70,7 @@ export default function ChatHeader() {
 
               {/* Dropdown menu */}
               {menuOpen && (
-                <div className="absolute right-0 mt-5 w-48 bg-white border rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 mt-5 w-48 bg-white border border-primary rounded-lg shadow-lg z-50 overflow-hidden">
                   <button
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     onClick={() => {

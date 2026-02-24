@@ -24,7 +24,7 @@ export default function CallDropdown() {
       {/* Call Button */}
       <button
         onClick={() => setOpenCall(!openCall)}
-        className="flex items-center gap-2 px-4 py-2 border rounded-full hover:bg-gray-100"
+        className="flex items-center gap-2 px-4 py-2 border border-primary/50 rounded-full hover:border-primary duration-200 text-gray-700 cursor-pointer"
       >
         <Phone size={18} />
         Call
@@ -33,14 +33,13 @@ export default function CallDropdown() {
 
       {/* Dropdown */}
       {openCall && (
-        <div className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-2xl border p-4 z-50">
-          <div className="flex flex-col items-center mt-10">
+        <div className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-2xl border border-primary p-4 z-50">
+          <div className="flex flex-col items-center mt-10 mb-2">
             <img
               src="https://i.pravatar.cc/150"
               className="w-24 h-24 rounded-full mb-3"
             />
             <h2 className="text-lg font-semibold">Osama bin Somrat Vai</h2>
-            
           </div>
           <div className="flex gap-3 mb-4">
             <button className="flex-1 bg-green-500 text-white py-2 rounded-full flex items-center justify-center gap-2">

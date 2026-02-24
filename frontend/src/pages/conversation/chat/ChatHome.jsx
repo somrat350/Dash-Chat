@@ -1,6 +1,6 @@
-import ChatHeader from "../../components/conversation/chats/large-view/messages/ChatHeader";
-import Sidebar from "../../components/conversation/chats/large-view/sidebar/Sidebar";
-import Home from "../../components/conversation/chats/mobile-view/Home";
+import ChatHeader from "../../../components/conversation/chats/large-view/messages/ChatHeader";
+import Sidebar from "../../../components/conversation/chats/large-view/sidebar/Sidebar";
+import Home from "../../../components/conversation/chats/mobile-view/Home";
 
 const ChatHome = () => {
   return (
@@ -12,7 +12,10 @@ const ChatHome = () => {
           <Sidebar />
         </div>
         {/* Message portion */}
-        <div className="col-span-2">
+        <div className="col-span-2 relative overflow-auto">
+          <div className="absolute top-0 left-0 z-0 w-full h-full flex items-center justify-center opacity-30">
+            <img src="/DashChat-logo.png" alt="DashChat Logo" />
+          </div>
           <ChatHeader />
         </div>
       </div>
