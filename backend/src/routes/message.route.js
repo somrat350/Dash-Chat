@@ -1,10 +1,17 @@
 import express from "express";
 import { isAuthenticated } from "../middleware/auth.middleware.js";
+import {
+  getChatPartners,
+  getMessagesByEmail,
+  sendMessage,
+} from "../controllers/message.controllers.js";
 
 const messageRouter = express.Router();
 
-messageRouter.get("/message", isAuthenticated, (req, res) => {
-  res.status(200).json(req.user);
-});
+messageRouter.use(isAuthenticated);
+
+messageRouter.get("/messagePartners", getChatPartners);
+messageRouter.get("/chats/:userEmail", getMessagesByEmail);
+messageRouter.post("/send/:userEmail", sendMessage);
 
 export default messageRouter;
