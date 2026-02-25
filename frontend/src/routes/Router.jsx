@@ -10,6 +10,8 @@ import ChatLayout from "../layout/ChatLayout";
 import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
 import ChatHome from "../pages/conversation/chat/ChatHome";
+import Contact from "../pages/public/Contact";
+import Features from "../pages/public/Features";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +30,14 @@ const router = createBrowserRouter([
         path: "/privacy",
         Component: Privacy,
       },
+      {
+        path:"/contact" ,
+        Component: Contact
+      },
+      {
+        path: "/features" ,
+        Component: Features
+      }
     ],
   },
   {
