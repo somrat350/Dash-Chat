@@ -4,6 +4,7 @@ import imageIllus from "../../assets/image illus.png";
 
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import Logo from "../../components/public/Logo";
+import SocialLogin from "../../components/auth/SocialLogin";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Link } from "react-router";
 
@@ -15,10 +16,10 @@ const Login = () => {
   } = useForm({ mode: "onChange" });
   const [showPassword, setShowPassword] = useState(false);
 
-  const { isLoggingIn, loginUser } = useAuthStore();
+  const { userLoading, loginWithEP } = useAuthStore();
 
   const onSubmit = (data) => {
-    loginUser(data);
+    loginWithEP(data);
   };
   return (
     <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
@@ -89,7 +90,7 @@ const Login = () => {
             </div>
             <p className="text-right mt-2">
               <Link
-                to="/forgot-password"
+                to="/auth/forgot-password"
                 className="text-primary text-sm hover:underline"
               >
                 Forgot Password?
@@ -97,19 +98,29 @@ const Login = () => {
             </p>
             <button
               type="submit"
-              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${isLoggingIn && "btn btn-disabled py-3 bg-primary"}`}
-              disabled={isLoggingIn}
+              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}
+              disabled={userLoading}
             >
-              {isLoggingIn && (
+              {userLoading && (
                 <span className="loading loading-spinner loading-sm"></span>
               )}
-              {isLoggingIn ? "LoggingIn..." : "Login"}
+              {userLoading ? "LoggingIn..." : "Login"}
             </button>
           </form>
+
+          {/* Social Login  */}
+          {/* or  */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-gray-500 text-sm font-medium">Or</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+          {/* sign up with social  */}
+          <SocialLogin />
           <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
             Are you new to our website?{" "}
             <Link
-              to="/register"
+              to="/auth/register"
               className="text-primary font-medium hover:underline"
             >
               Register

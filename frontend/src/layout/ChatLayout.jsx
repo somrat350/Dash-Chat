@@ -1,33 +1,16 @@
-import { useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore";
-import PageLoader from "../components/PageLoader";
-import { Link, Navigate } from "react-router";
+import { Link, Outlet } from "react-router";
 import { MessageSquareText, Phone } from "lucide-react";
-import Home from "../components/chats/mobile-view/Home";
-import ChatHeader from "../components/chats/large-view/ChatHeader";
 
 const ChatLayout = () => {
-  const { isCheckingAuth, checkAuth, authUser } = useAuthStore();
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-  if (isCheckingAuth) return <PageLoader />;
-  if (!authUser) {
-    return <Navigate to="/login" replace />;
-  }
   return (
     <div>
-      <div className="drawer md:drawer-open">
+      {/* Large view */}
+      
+      <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         {/* Page content here */}
         <div className="drawer-content">
-          <div className="border-l border-primary/30 h-full w-full grid grid-cols-3">
-            {/* Chat sidebar */}
-            <div className="col-span-1 border-r border-primary/30 bg-primary"></div>
-            <div className="col-span-2">
-              <ChatHeader />
-            </div>
-          </div>
+          <Outlet />
         </div>
 
         <div className="drawer-side overflow-visible">
@@ -68,7 +51,7 @@ const ChatLayout = () => {
 
       {/* Mobile view */}
       <div className="block md:hidden">
-        <Home />
+        <Outlet />
       </div>
     </div>
   );
