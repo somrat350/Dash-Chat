@@ -1,5 +1,5 @@
-import Message from "../models/message";
-import User from "../models/User";
+import Message from "../models/message.js";
+import User from "../models/User.js";
 
 export const getChatPartners = async (req, res) => {
   try {
@@ -22,6 +22,36 @@ export const getChatPartners = async (req, res) => {
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const sendMessage = async (req, res) => {
+  try {
+    const { text, image } = req.body;
+    const loggedInUserEmail = req.decoded_email;
+    const { userEmail: receiverEmail } = req.params;
+
+    if (!text || !image) {
+      return res.status(400).json({ message: "Message content is required" });
+    }
+
+    let imageUrl;
+
+    const newMessage = new Message({
+      senderEmail: loggedInUserEmail,
+      receiverEmail,
+      text: text || null,
+      image: imageUrl || null,
+    });
+    await newMessage.save();
+    
+    //web socket
+
+
+    res.status(201).json(newMessage);
+  } catch (error) {
+    console.error("Error sending message:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
