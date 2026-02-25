@@ -1,5 +1,36 @@
 import { create } from "zustand";
 
+
+import axios from "axios";
+
+// sidebar 
+
+export const useMessageStore = create((set) => ({
+  users: [],
+  loading: false,
+
+  fetchMessagePartners: async () => {
+    try {
+      set({ loading: true });
+
+      const token = localStorage.getItem("token"); 
+
+      const res = await axios.get("/api/messages/messagePartners", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Chat partners:", res.data);
+
+      set({ users: Array.isArray(res.data) ? res.data : [], loading: false });
+    } catch (error) {
+      console.error("Failed to fetch chat partners:", error);
+      set({ users: [], loading: false });
+    }
+  },
+}));
+
+// massage input 
+
 export const useChatStore = create((set) => ({
   
   message: "",
@@ -47,5 +78,6 @@ export const useChatStore = create((set) => ({
  })),
 
 }));
+
 
 
