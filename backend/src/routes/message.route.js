@@ -7,4 +7,8 @@ messageRouter.get("/message", isAuthenticated, (req, res) => {
   res.status(200).json(req.user);
 });
 
+messageRouter.get("/messagePartners", isAuthenticated, (req, res) => {
+    res.status(200).json(req.user)
+});
+
 export default messageRouter;
