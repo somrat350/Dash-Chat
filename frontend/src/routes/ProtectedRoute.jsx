@@ -4,7 +4,8 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
 
 const ProtectedRoute = ({ children }) => {
-  const { authUser, userLoading, checkAuth } = useAuthStore();
+  const { authUser, userLoading, checkAuth, logoutUser } = useAuthStore();
+  logoutUser()
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);

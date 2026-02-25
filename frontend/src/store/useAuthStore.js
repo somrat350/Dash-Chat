@@ -11,6 +11,7 @@ import {
   GithubAuthProvider, 
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 
 const googleAuthProvider = new GoogleAuthProvider();
@@ -122,4 +123,16 @@ export const useAuthStore = create((set) => ({
       toast.error(error.message || "Logout failed");
     }
   },
+  //Reset Password
+  resetPassword: async (email) => {
+  set({ userLoading: true });
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast.success("Reset link sent to your email!");
+  } catch (error) {
+    toast.error(error.message || "Failed to send reset link");
+  } finally {
+    set({ userLoading: false });
+  }
+},
 }));
