@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Plus, MoreVertical, Search } from "lucide-react";
-import { useMessageStore } from "../../../../../store/useChatStore";
+import { useMessageStore } from "../../../../../store/useMessageStore";
 
 const Sidebar = () => {
   const [search, setSearch] = useState("");
-
-  const { users, loading, fetchMessagePartners } = useMessageStore();
+  const {
+    selectedPartner,
+    setSelectedPartner,
+    messagePartners,
+    messagePartnersLoading,
+    fetchMessagePartners,
+  } = useMessageStore();
 
   useEffect(() => {
     fetchMessagePartners();
-  }, []);
+  }, [fetchMessagePartners]);
 
-  const filteredUsers = users
-    .filter((user) =>
-      user.name.toLowerCase().includes(search.toLowerCase())
-    )
+  const filteredUsers = messagePartners
+    .filter((user) => user.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       const query = search.toLowerCase();
       const aStarts = a.name.toLowerCase().startsWith(query);
@@ -56,7 +59,7 @@ const Sidebar = () => {
 
       {/* user list */}
       <div className="flex-1 overflow-y-auto px-1">
-        {loading ? (
+        {messagePartnersLoading ? (
           <div className="flex justify-center items-center h-full text-gray-400 text-sm">
             Loading...
           </div>
@@ -64,10 +67,11 @@ const Sidebar = () => {
           filteredUsers.map((user) => (
             <div
               key={user.firebaseUid}
-              className="flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition"
+              onClick={() => setSelectedPartner(user)}
+              className={`flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition ${user.email === selectedPartner?.email && "bg-primary/30"}`}
             >
               <img
-                src={user.photoURL}
+                src={user.photoURL || "/default-avatar.jpg"}
                 alt={user.name}
                 className="w-12 h-12 rounded-full object-cover"
               />
