@@ -30,17 +30,14 @@ const Sidebar = () => {
 
   return (
     <div className="h-screen flex flex-col bg-base-100">
-      {/* header area  */}
+      {/* header area */}
       <div className="flex items-center justify-between px-4 pt-2">
-        <div className="flex items-center gap-2">
-          <h2 className="font-semibold text-lg">Chats</h2>
-        </div>
-
+        <h2 className="font-semibold text-lg">Chats</h2>
         <div className="flex items-center gap-1">
-          <button className="hover:bg-primary/30 cursor-pointer duration-200 p-3 rounded-full">
+          <button className="hover:bg-primary/30 p-3 rounded-full">
             <Plus size={20} />
           </button>
-          <button className="hover:bg-primary/30 cursor-pointer duration-200 p-3 rounded-full">
+          <button className="hover:bg-primary/30 p-3 rounded-full">
             <MoreVertical size={20} />
           </button>
         </div>
@@ -60,7 +57,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* user list  */}
+      {/* user list */}
       <div className="flex-1 overflow-y-auto px-1">
         {messagePartnersLoading ? (
           <div className="flex justify-center items-center h-full text-gray-400 text-sm">
@@ -82,8 +79,6 @@ const Sidebar = () => {
                 <h3 className="font-medium text-sm">{user.name}</h3>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
-
-              <span className="text-xs text-gray-400">{user.time}</span>
             </div>
           ))
         ) : (
