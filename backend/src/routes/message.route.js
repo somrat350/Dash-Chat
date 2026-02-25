@@ -16,6 +16,6 @@ messageRouter.post("/send/:userEmail", sendMessage);
 
 messageRouter.get("/messagePartners", isAuthenticated, getChatPartners);
 
-messageRouter.post('/send/:userEmail', isAuthenticated, sendMessage)
+messageRouter.post("/send/:userEmail", isAuthenticated, sendMessage);
 
 export default messageRouter;

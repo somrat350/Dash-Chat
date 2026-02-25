@@ -4,13 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import CallDropdown from "./CallDropdown";
 import ProfileDropdown from "./ProfileDropdown";
 import SearchDropdown from "./SearchDropdown";
+import { useMessageStore } from "../../../../../store/useMessageStore";
 
 export default function ChatHeader() {
   // const [openCall, setOpenCall] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-
+  const { selectedPartner } = useMessageStore();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -34,13 +35,13 @@ export default function ChatHeader() {
             className="flex items-center gap-3 cursor-pointer"
           >
             <img
-              src="https://i.pravatar.cc/150"
+              src={selectedPartner?.photoURL || "/default-avatar.jpg"}
               alt="profile"
               className="w-10 h-10 rounded-full"
             />
             <div className="flex flex-col">
               <h2 className="font-medium text-gray-800">
-                Osama bin Somrat Vai
+                {selectedPartner?.name || "Unknown User"}
               </h2>
               <span className="text-xs text-gray-500">online</span>
             </div>
