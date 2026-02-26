@@ -1,6 +1,27 @@
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
+export const searchChatNewPartners = async (req, res) => {
+  try {
+    const loggedInUserEmail = req.decoded_email;
+    const { query = "" } = req.query;
+    if (!query.trim()) {
+      return res.status(200).json([]);
+    }
+    const partners = await User.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } },
+      ],
+    });
+
+    res.status(200).json(partners);
+  } catch (error) {
+    console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getChatPartners = async (req, res) => {
   try {
     const loggedInUserEmail = req.decoded_email;

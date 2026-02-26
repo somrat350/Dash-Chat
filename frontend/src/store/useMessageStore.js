@@ -10,8 +10,26 @@ export const useMessageStore = create((set, get) => ({
   isMessagesLoading: false,
   isMessageSending: false,
 
+  newChatSearchLoading: false,
+  newChatSearchResults: [],
+
   setSelectedPartner: (selectedPartner) => set({ selectedPartner }),
 
+  searchNewChat: async (srcQuery) => {
+    try {
+      set({ newChatSearchLoading: true });
+      const res = await axiosSecure.get(
+        `/api/messages/searchNewPartner?query=${srcQuery}`,
+      );
+      set({
+        newChatSearchResults: Array.isArray(res.data) ? res.data : [],
+        newChatSearchLoading: false,
+      });
+    } catch (error) {
+      console.error("Failed to fetch chat partners:", error);
+      set({ newChatSearchResults: [], newChatSearchLoading: false });
+    }
+  },
   fetchMessagePartners: async () => {
     try {
       set({ messagePartnersLoading: true });
