@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { Smile, Plus, Mic, Send } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import AttachmentMenu from "../messages/AttachmentMenu";
+import { useMessageStore } from "../../../../../store/useMessageStore";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
 export default function MessageInput() {
   const [message, setMessage] = useState("");
@@ -9,9 +11,17 @@ export default function MessageInput() {
   const [showAttachment, setShowAttachment] = useState(false);
   const textareaRef = useRef(null);
 
+  const { sendMessage, selectedPartner } = useMessageStore();
+  const { authUser } = useAuthStore();
+
   const handleSend = () => {
     if (!message.trim()) return;
-    console.log(message);
+    const messageData = {
+      sender: authUser.email,
+      receiver: selectedPartner.email,
+      text: message,
+    };
+    sendMessage(messageData);
     setMessage("");
     setShowEmoji(false);
     textareaRef.current.style.height = "auto";
