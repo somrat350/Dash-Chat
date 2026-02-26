@@ -20,13 +20,6 @@ app.use(cookieParser());
 // error handler middleware
 app.use(errorHandler);
 
-//general routes
-app.get('/', (req, res) => {
-  res.json({
-    status: 200,
-    message: 'Server running'
-  })
-})
 //auth routes
 app.use("/api/auth", authRouter);
 //messages routes
