@@ -31,7 +31,7 @@ const Hero = () => {
         {/* Buttons */}
         <div className="mt-14 flex flex-col sm:flex-row gap-4">
           <Link
-            to="/register"
+            to="/auth/register"
             className="relative isolate overflow-hidden px-6 py-3 rounded-2xl text-white bg-primary group cursor-pointer"
           >
             <span className="relative z-10 flex items-center gap-2">
@@ -43,7 +43,7 @@ const Hero = () => {
           </Link>
 
           <Link
-            to="/login"
+            to="/auth/login"
             className="relative overflow-hidden flex items-center gap-2 px-6 py-3 bg-white rounded-2xl group cursor-pointer"
           >
             {/* Text */}

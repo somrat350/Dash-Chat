@@ -12,8 +12,8 @@ const PublicLayout = () => {
     checkAuth();
   }, [checkAuth]);
 
-  if (userLoading) return <PageLoader />;
-  if (authUser) return <Navigate to="/conversation/chat" replace />;
+  // if (userLoading) return <PageLoader />;
+  // if (authUser) return <Navigate to="/conversation/chat" replace />;
   return (
     <>
       <Toaster />

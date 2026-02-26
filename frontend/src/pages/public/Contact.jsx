@@ -21,7 +21,7 @@ const Contact = () => {
           </h1>
           <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-xl">
             Already a Desh Chat user?{" "}
-            <Link to="/login" className="underline font-bold hover:text-white text-black transition">
+            <Link to="/auth/login" className="underline font-bold hover:text-white text-black transition">
               Sign in
             </Link>{" "}
             to personalize your support experience. <br />
