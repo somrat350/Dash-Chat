@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, MoreVertical, Search } from "lucide-react";
 import { useMessageStore } from "../../../../../store/useMessageStore";
+import NewChatSearch from "./NewChatSearch";
 
 const Sidebar = () => {
   const [search, setSearch] = useState("");
@@ -34,10 +35,15 @@ const Sidebar = () => {
       <div className="flex items-center justify-between px-4 pt-2">
         <h2 className="font-semibold text-lg">Chats</h2>
         <div className="flex items-center gap-1">
-          <button className="hover:bg-primary/30 p-3 rounded-full">
+          <button
+            onClick={() =>
+              document.getElementById("new_chat_search_modal").showModal()
+            }
+            className="hover:bg-primary/30 p-3 rounded-full cursor-pointer"
+          >
             <Plus size={20} />
           </button>
-          <button className="hover:bg-primary/30 p-3 rounded-full">
+          <button className="hover:bg-primary/30 p-3 rounded-full cursor-pointer">
             <MoreVertical size={20} />
           </button>
         </div>
@@ -87,6 +93,9 @@ const Sidebar = () => {
           </div>
         )}
       </div>
+
+      {/* New Chat Search Modal */}
+      <NewChatSearch />
     </div>
   );
 };

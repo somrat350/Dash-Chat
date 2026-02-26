@@ -3,6 +3,7 @@ import { isAuthenticated } from "../middleware/auth.middleware.js";
 import {
   getChatPartners,
   getMessagesByEmail,
+  searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
 
@@ -10,6 +11,7 @@ const messageRouter = express.Router();
 
 messageRouter.use(isAuthenticated);
 
+messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
 messageRouter.get("/chats/:userEmail", getMessagesByEmail);
 messageRouter.post("/send/:userEmail", sendMessage);
