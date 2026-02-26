@@ -1,11 +1,13 @@
 import { Link, Outlet } from "react-router";
-import { MessageSquareText, Phone } from "lucide-react";
+import { LogOut, MessageSquareText, Phone } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 const ChatLayout = () => {
+  const { logoutUser } = useAuthStore();
   return (
     <div>
       {/* Large view */}
-      
+
       <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
         {/* Page content here */}
@@ -42,6 +44,16 @@ const ChatLayout = () => {
                 >
                   {/* Settings icon */}
                   <Phone size={24} />
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={logoutUser}
+                  className="tooltip tooltip-right hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
+                  data-tip="Logout"
+                >
+                  {/* Logout icon */}
+                  <LogOut size={24} />
                 </button>
               </li>
             </ul>
