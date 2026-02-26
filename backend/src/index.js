@@ -7,6 +7,7 @@ import { ENV } from "./lib/env.js";
 import { connectDb } from "./lib/connection.js";
 import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import messageRouter from "./routes/message.route.js";
 
 const app = express();
 const port = ENV.PORT || 3000;
@@ -19,8 +20,17 @@ app.use(cookieParser());
 // error handler middleware
 app.use(errorHandler);
 
+//general routes
+app.get('/', (req, res) => {
+  res.json({
+    status: 200,
+    message: 'Server running'
+  })
+})
 //auth routes
 app.use("/api/auth", authRouter);
+//messages routes
+app.use("/api/messages", messageRouter);
 
 // Ready for deploy into single domain
 const singleDomainDeploy = () => {

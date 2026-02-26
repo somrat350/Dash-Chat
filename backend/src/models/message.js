@@ -1,26 +1,22 @@
 import mongoose, { Schema } from "mongoose";
 
-const userSchema = new Schema(
+const messageSchema = new Schema(
   {
-    name: {
+    sender: {
+      type: String,
+      ref: "User",
+      require: true,
+    },
+    receiver: {
+      type: String,
+      ref: "User",
+      require: true,
+    },
+    text: {
       type: String,
       require: true,
     },
-    email: {
-      type: String,
-      require: true,
-      unique: true,
-    },
-    firebaseUid: {
-      type: String,
-      require: true,
-      unique: true,
-    },
-    role: {
-      type: String,
-      default: "user",
-    },
-    photoURL: {
+    image: {
       type: String,
       default: "",
     },
@@ -28,5 +24,5 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
-const User = mongoose.model("User", userSchema);
-export default User;
+const Message = mongoose.model("Message", messageSchema);
+export default Message;
