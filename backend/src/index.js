@@ -14,7 +14,7 @@ const port = ENV.PORT || 3000;
 const __dirname = path.resolve();
 
 app.use(express.json());
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(cors());
 app.use(cookieParser());
 
 // error handler middleware
