@@ -25,7 +25,7 @@ const ChatHome = () => {
           </div>
           {selectedPartner ? (
             <>
-              <ChatHeader />
+              {/* <ChatHeader /> */}
               <div className="flex-1 overflow-y-auto px-4">
                 {/*  MessageList  */}
                 <MessageContainer />
