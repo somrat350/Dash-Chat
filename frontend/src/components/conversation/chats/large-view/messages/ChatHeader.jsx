@@ -1,4 +1,11 @@
-import { Search, MoreVertical, Info, Check, BellOff } from "lucide-react";
+import {
+  Search,
+  MoreVertical,
+  Info,
+  Check,
+  BellOff,
+  CircleX,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import CallDropdown from "./CallDropdown";
@@ -10,7 +17,9 @@ export default function ChatHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  const { selectedPartner } = useMessageStore();
+  // const [selectedUser, setSelectedUser] = useState(null);
+  const { selectedPartner, setSelectedPartner } = useMessageStore();
+  // const { selectedPartner} = useMessageStore();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -25,10 +34,11 @@ export default function ChatHeader() {
 
   return (
     <>
-      <div   className={`sticky top-0 z-50 border-b border-primary/30 transition-all duration-300 ${
-    openProfile || search ? "pr-120" : "pr-0"
-  }`}
-      //  className="sticky top-0 z-50 border-b border-primary/30 transition-all duration-300"
+      <div
+        className={`sticky top-0 z-50 border-b border-primary/30 transition-all duration-300 ${
+          openProfile || search ? "pr-120" : "pr-0"
+        }`}
+        //  className="sticky top-0 z-50 border-b border-primary/30 transition-all duration-300"
       >
         <div className="flex items-center justify-between px-5 py-3">
           <div
@@ -49,7 +59,7 @@ export default function ChatHeader() {
           </div>
 
           {/* Right side actions */}
-          <div   className="flex items-center gap-4 relative">
+          <div className="flex items-center gap-4 relative">
             <CallDropdown />
 
             <SearchDropdown search={search} setSearch={setSearch} />
@@ -94,6 +104,17 @@ export default function ChatHeader() {
                       <BellOff /> Mute Notification
                     </div>
                   </button>
+                  <button
+                    onClick={() => {
+                      setSelectedPartner(null);
+                      setMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    <div className="flex gap-2">
+                      <CircleX /> Close chat
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -103,7 +124,7 @@ export default function ChatHeader() {
         {/* Render ProfilePanel if openProfile is true */}
 
         <ProfileDropdown
-         openProfile={openProfile}
+          openProfile={openProfile}
           setOpenProfile={setOpenProfile}
           user={selectedPartner}
         />
