@@ -16,6 +16,7 @@ export const register = async (req, res) => {
       email,
       photoURL,
       firebaseUid,
+       
     });
 
     if (newUser) {

@@ -21,7 +21,10 @@ export default function SearchDropdown({ search, setSearch }) {
 
   return (
     <div
+    
       ref={dropdownRef}
+      
+
       className="fixed right-0 top-0 w-80 bg-white border-l border-primary h-screen p-4 z-50 shadow-lg"
     >
       {/* Close button */}
