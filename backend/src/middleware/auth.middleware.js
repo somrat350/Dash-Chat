@@ -1,11 +1,4 @@
-import admin from "firebase-admin";
-import { ENV } from "../lib/env.js";
-
-const decoded = Buffer.from(ENV.FIREBASE_SDK, "base64").toString("utf8");
-const serviceAccount = JSON.parse(decoded);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+import admin from "../lib/firebase.js";
 
 export const isAuthenticated = async (req, res, next) => {
   const token = req.headers.authorization;

@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios";
 import { auth } from "../lib/Firebase.config";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
+import { io } from "socket.io-client";
 
 import {
   createUserWithEmailAndPassword,
@@ -17,10 +18,13 @@ import {
 
 const googleAuthProvider = new GoogleAuthProvider();
 const githubAuthProvider = new GithubAuthProvider();
+const BASE_URL = import.meta.env.VITE_SERVER_URL;
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   userLoading: true,
   authUser: null,
+  socket: null,
+  onlineUsers: [],
 
   checkAuth: async () => {
     set({ userLoading: true });
@@ -29,6 +33,7 @@ export const useAuthStore = create((set) => ({
         authUser: currentUser,
         userLoading: false,
       });
+      get().connectSocket();
     });
 
     return unsubscribe;
@@ -46,6 +51,7 @@ export const useAuthStore = create((set) => ({
         await axiosInstance.post("/api/auth/register", userData);
       }
       set({ authUser: res.user });
+      get().connectSocket();
       toast.success("Account created successful!");
     } catch (error) {
       toast.error(error.message || "Registration failed");
@@ -62,6 +68,7 @@ export const useAuthStore = create((set) => ({
         userData.password,
       );
       set({ authUser: res.user });
+      get().connectSocket();
       toast.success("Logged in successful!");
     } catch (error) {
       toast.error(error.message || "Login failed");
@@ -83,6 +90,7 @@ export const useAuthStore = create((set) => ({
         await axiosInstance.post("/api/auth/register", userData);
       }
       set({ authUser: res.user });
+      get().connectSocket();
       toast.success("Logged in successful!");
     } catch (error) {
       toast.error(error.message || "Login failed");
@@ -108,6 +116,7 @@ export const useAuthStore = create((set) => ({
       }
 
       set({ authUser: res.user });
+      get().connectSocket();
       toast.success("Logged in successful");
     } catch (error) {
       toast.error(error.message || "Logout failed");
@@ -129,6 +138,7 @@ export const useAuthStore = create((set) => ({
         if (result.isConfirmed) {
           await signOut(auth);
           set({ authUser: null });
+          get().disconnectSocket();
           toast.success("Logged out successful!");
         }
       });
@@ -147,5 +157,23 @@ export const useAuthStore = create((set) => ({
     } finally {
       set({ userLoading: false });
     }
+  },
+  connectSocket: () => {
+    const { authUser, userLoading } = get();
+    if (!authUser || userLoading || get().socket?.connected) return;
+    const socket = io(BASE_URL, {
+      auth: {
+        token: authUser.accessToken,
+      },
+    });
+    socket.connect();
+    set({ socket });
+
+    socket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds });
+    });
+  },
+  disconnectSocket: () => {
+    if (get().socket?.connected) get().socket.disconnect();
   },
 }));
