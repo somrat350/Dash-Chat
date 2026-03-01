@@ -3,7 +3,7 @@ import { axiosSecure } from "../lib/axios";
 import toast from "react-hot-toast";
 
 export const useMessageStore = create((set, get) => ({
-  selectedPartner: null,
+  selectedPartner: true,
   messagePartners: [],
   messagePartnersLoading: false,
   messages: [],
