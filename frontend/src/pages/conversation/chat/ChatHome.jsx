@@ -3,6 +3,7 @@ import EmptyChatState from "../../../components/conversation/chats/large-view/me
 import MessageContainer from "../../../components/conversation/chats/large-view/messages/MessageContainer";
 import MessageInput from "../../../components/conversation/chats/large-view/messages/MessagesInput";
 import Sidebar from "../../../components/conversation/chats/large-view/sidebar/Sidebar";
+
 import Home from "../../../components/conversation/chats/mobile-view/Home";
 import { useMessageStore } from "../../../store/useMessageStore";
 
@@ -42,7 +43,7 @@ const ChatHome = () => {
 
       {/* Mobile view */}
       <div className="block md:hidden">
-        <Home />
+         <Home />
       </div>
     </>
   );
