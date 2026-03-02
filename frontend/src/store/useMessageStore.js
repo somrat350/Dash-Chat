@@ -70,6 +70,62 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
+  // edit 
+
+editMessage: async (id, updatedText) => {
+  try {
+    const res = await fetch(`/api/messages/edit/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        mgs: updatedText,
+      }),
+    });
+
+    const data = await res.json();
+
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg._id === id ? { ...msg, text: data.updatedMgs } : msg
+      ),
+    }));
+  } catch (error) {
+    console.error("Edit failed", error);
+  }
+},
+
+// delete 
+
+deleteMessage: async (id) => {
+  try {
+    const res = await fetch(`/api/messages/delete/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        status: "hide",
+      }),
+    });
+
+    const data = await res.json();
+
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg._id === id
+          ? { ...msg, status: "hide", text: "This message was deleted" }
+          : msg
+      ),
+    }));
+  } catch (error) {
+    console.error("Delete failed", error);
+  }
+},
+
   //  reaction part
 
   
@@ -84,9 +140,5 @@ export const useMessageStore = create((set, get) => ({
     });
     set({ messages });
   },
-
-
-  
-
 
 }));

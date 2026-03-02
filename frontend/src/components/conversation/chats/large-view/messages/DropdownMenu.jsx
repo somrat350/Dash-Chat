@@ -2,40 +2,57 @@ import { CornerUpLeft, Copy, Edit, Trash, Share2, Smile } from "lucide-react";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import EmojiPicker from "emoji-picker-react";
 import { useState } from "react";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
-const DropdownMenu = ({ message }) => {
-  const { authUser, setReplyMessage, setEditingMessage, addReaction, forwardMessage, deleteMessage } = useMessageStore();
+
+const DropdownMenu = ({ message, onEdit,onClose }) => {
+  const {addReaction, forwardMessage, deleteMessage } = useMessageStore();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+const { authUser } = useAuthStore();
 
   return (
     <div className="absolute -top-10 right-0 mt-1 bg-white shadow-md rounded-md flex flex-col z-50 w-36">
-      <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
-       onClick={() => setReplyMessage(message)}>
+      {/* reply  */}
+      <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm">
         <CornerUpLeft size={16} /> Reply
       </button>
 
-      <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm" 
-      onClick={() => navigator.clipboard.writeText(message.text)}>
+      {/* copy  */}
+       <button
+        className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(message.text);
+          onClose(); 
+        }}
+      >
         <Copy size={16} /> Copy
       </button>
 
-      <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
-       onClick={() => setEditingMessage(message)}>
-        <Edit size={16} /> Edit
+     {/* edit  */}
+      <button
+   className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+   onClick={(e) => {
+    e.stopPropagation(); 
+    onEdit();            
+       }}>
+          <Edit size={16} /> Edit
       </button>
 
+       {/* delete  */}
       <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm" 
       onClick={() => deleteMessage(message._id)}>
         <Trash size={16} /> Delete
       </button>
 
+        {/* forword  */}
       <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm" 
       onClick={() => forwardMessage(message)}>
         <Share2 size={16} /> Forward
       </button>
-
+       {/* emoji  */}
       <div className="relative">
-        <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
+       <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm"
         onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
           <Smile size={16} /> React
         </button>
