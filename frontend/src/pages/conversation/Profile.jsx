@@ -1,15 +1,16 @@
 import { FiEdit, FiCopy, FiUser } from "react-icons/fi";
-import { useMessageStore } from "../../store/useMessageStore";
 import { useState } from "react";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export default function ProfilePage() {
-  const { selectedPartner } = useMessageStore();
+  // const { selectedPartner } = useMessageStore();
+  const { authUser } = useAuthStore();
 
   const [tempName, setTempName] = useState("");
   const [editingName, setEditingName] = useState(false);
 
   const handleEditName = () => {
-    setTempName(selectedPartner?.name || "");
+    setTempName(authUser?.name || "");
     setEditingName(true);
   };
 
@@ -19,17 +20,18 @@ export default function ProfilePage() {
   };
 
   const handleCancelName = () => {
-    setTempName(selectedPartner?.name || "");
+    setTempName(authUser?.name || "");
     setEditingName(false);
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Left Sidebar */}
-      <aside className="w-[400px] bg-white border-r">
-        <div className="flex flex-col items-center p-6 space-y-6">
+      <aside className="w-[100] bg-white border-r">
+        <div className="flex flex-col items-center p-12 space-y-6">
+          <h2 className="text-xl font-semibold ">Profile</h2>
           <img
-            src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+            src={authUser?.photoURL || "/default-avatar.jpg"}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover"
           />
@@ -41,7 +43,7 @@ export default function ProfilePage() {
             {!editingName ? (
               <div className="flex items-center justify-between mt-1">
                 <span className="text-gray-900 font-medium">
-                  {selectedPartner?.name}
+                  {authUser?.name}
                 </span>
 
                 <FiEdit
@@ -81,7 +83,7 @@ export default function ProfilePage() {
             <div className="text-sm text-gray-500 mt-4">Email</div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-gray-900 font-medium">
-                {selectedPartner?.email}
+                {authUser?.email}
               </span>
               <FiCopy className="text-gray-400 hover:text-gray-700 cursor-pointer" />
             </div>
