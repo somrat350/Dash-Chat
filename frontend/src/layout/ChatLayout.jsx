@@ -1,9 +1,13 @@
-import { Link, Outlet } from "react-router";
-import { LogOut, MessageSquareText, Phone } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
+import { Link,  Outlet, useNavigate } from "react-router";
+import { Library, LogOut, MessageSquareText, Phone, Settings } from "lucide-react";
+import { useMessageStore } from "../store/useMessageStore";
+import Profile from "../pages/conversation/Profile";
+// import { useAuthStore } from "../store/useAuthStore";
 
 const ChatLayout = () => {
-  const { logoutUser } = useAuthStore();
+  // const { logoutUser } = useAuthStore();
+   const { selectedPartner,  } = useMessageStore();
+   const navigate = useNavigate();
   return (
     <div>
       {/* Large view */}
@@ -23,7 +27,7 @@ const ChatLayout = () => {
           ></label>
           <div className="flex min-h-full flex-col items-start justify-center bg-primary/10 w-16">
             {/* Sidebar content here */}
-            <ul className="menu gap-1 w-full grow">
+            <ul className="menu gap-1 w-full grow space-y-2">
               <Link to="/">
                 <img src="/DashChat-logo.png" alt="DashChat Logo" />
               </Link>
@@ -46,16 +50,37 @@ const ChatLayout = () => {
                   <Phone size={24} />
                 </button>
               </li>
-              <li>
-                <button
+            <ul className="mt-auto space-y-2">
+                 <li>
+                 <button
+                  className=" rounded-full w-12 h-12"
+                  data-tip="Settings"
+                >
+                  {/* Settings icon */}
+                  <Settings size={24} />
+                </button>
+
+              </li>
+              <li onClick={() => navigate("/conversation/profile")}>
+                {/* <button
                   onClick={logoutUser}
-                  className="tooltip tooltip-right hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
+                  className="tooltip tooltip-right mt-20 hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
                   data-tip="Logout"
                 >
-                  {/* Logout icon */}
+                  Logout icon
                   <LogOut size={24} />
-                </button>
+                </button> */}
+                
+                
+                <img
+          
+                  src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+                  alt="profile"
+                  className="w-12 h-12 rounded-full"
+                />
               </li>
+            </ul>
+             
             </ul>
           </div>
         </div>

@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import PageLoader from "../components/PageLoader";
 
 const PublicLayout = () => {
-  const { checkAuth, userLoading, authUser } = useAuthStore();
+  const { checkAuth,  } = useAuthStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
