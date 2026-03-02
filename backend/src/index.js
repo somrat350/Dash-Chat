@@ -17,8 +17,7 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-// error handler middleware
-app.use(errorHandler);
+
 
 //auth routes
 app.use("/api/auth", authRouter);
@@ -49,3 +48,6 @@ const startServer = async () => {
 
 singleDomainDeploy();
 startServer();
+
+// error handler middleware
+app.use(errorHandler);
