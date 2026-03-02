@@ -20,6 +20,10 @@ const messageSchema = new Schema(
       type: String,
       default: "",
     },
+    hide: {
+      type: String,
+      default: 'false'
+    }
   },
   { timestamps: true },
 );
