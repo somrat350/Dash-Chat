@@ -1,11 +1,11 @@
 import { Link,  Outlet, useNavigate } from "react-router";
 import { Library, LogOut, MessageSquareText, Phone, Settings } from "lucide-react";
 import { useMessageStore } from "../store/useMessageStore";
-import Profile from "../pages/conversation/Profile";
+
 // import { useAuthStore } from "../store/useAuthStore";
 
 const ChatLayout = () => {
-  // const { logoutUser } = useAuthStore();
+ 
    const { selectedPartner,  } = useMessageStore();
    const navigate = useNavigate();
   return (
@@ -51,7 +51,7 @@ const ChatLayout = () => {
                 </button>
               </li>
             <ul className="mt-auto space-y-2">
-                 <li>
+                 <li onClick={() => navigate("/conversation/setting")} >
                  <button
                   className=" rounded-full w-12 h-12"
                   data-tip="Settings"
@@ -62,14 +62,7 @@ const ChatLayout = () => {
 
               </li>
               <li onClick={() => navigate("/conversation/profile")}>
-                {/* <button
-                  onClick={logoutUser}
-                  className="tooltip tooltip-right mt-20 hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
-                  data-tip="Logout"
-                >
-                  Logout icon
-                  <LogOut size={24} />
-                </button> */}
+               
                 
                 
                 <img
