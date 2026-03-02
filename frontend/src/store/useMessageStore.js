@@ -69,4 +69,24 @@ export const useMessageStore = create((set, get) => ({
       set({ isMessageSending: false });
     }
   },
+
+  //  reaction part
+
+  
+  addReaction: (msgId, emoji, userEmail) => {
+    const messages = get().messages.map((m) => {
+      if (m._id === msgId) {
+        const reactions = m.reactions ? [...m.reactions] : [];
+        reactions.push({ emoji, by: userEmail });
+        return { ...m, reactions };
+      }
+      return m;
+    });
+    set({ messages });
+  },
+
+
+  
+
+
 }));

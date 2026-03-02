@@ -10,6 +10,7 @@ const Sidebar = () => {
     setSelectedPartner,
     messagePartners,
     messagePartnersLoading,
+     getMessagesByUserEmail, 
     fetchMessagePartners,
   } = useMessageStore();
 
@@ -72,10 +73,14 @@ const Sidebar = () => {
         ) : filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
             <div
-              key={user.firebaseUid}
-              onClick={() => setSelectedPartner(user)}
-              className={`flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition ${user.email === selectedPartner?.email && "bg-primary/30"}`}
-            >
+    key={user.firebaseUid}
+    onClick={() => {
+      setSelectedPartner(user);
+      getMessagesByUserEmail(user.email);
+    }}
+    className={`flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition 
+    ${user.email === selectedPartner?.email && "bg-primary/30"}`}
+  >
               <img
                 src={user.photoURL || "/default-avatar.jpg"}
                 alt={user.name}

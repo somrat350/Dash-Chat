@@ -12,7 +12,7 @@ const ChatHome = () => {
   return (
     <>
       {/* Large view */}
-      <div className=" hidden md:grid grid-cols-3 border-l border-primary/30 h-full w-full">
+      <div className=" hidden md:grid grid-cols-3 border-l border-primary/30 h-full w-full ">
         {/* Chat sidebar */}
         <div className="col-span-1 border-r border-primary/30 ">
           <Sidebar />
