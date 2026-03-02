@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Check, CheckSquare, ChevronDown, Smile } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import DropdownMenu from "./DropdownMenu";
 import { useMessageStore } from "../../../../../store/useMessageStore";
+import EditMessageModal from "./EditMessageModal";
 
 const MessageBubble = ({ message, authUser }) => {
   const isMe = message.sender === authUser?.email;
@@ -11,6 +11,7 @@ const MessageBubble = ({ message, authUser }) => {
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], {
@@ -18,7 +19,6 @@ const MessageBubble = ({ message, authUser }) => {
       minute: "2-digit",
     });
 
-  
   useEffect(() => {
     const closeAll = () => {
       setShowEmoji(false);
@@ -32,47 +32,10 @@ const MessageBubble = ({ message, authUser }) => {
     <div className={`flex my-2 ${isMe ? "justify-end" : "justify-start"}`}>
       <div className="relative group">
 
-        {/* emoji  */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowEmoji(!showEmoji);
-          }}
-          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition
-          ${isMe ? "-left-8" : "-right-8"}`}
-        >
-          <Smile size={16} className="text-gray-500" />
-        </button>
-
-        {/*emoji picker*/}
-        {showEmoji && (
-          <div
-            className={`absolute z-50 mt-2 ${
-              isMe ? "left-0" : "left-0"
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <EmojiPicker
-              onEmojiClick={(emojiData) => {
-                addReaction(
-                  message._id,
-                  emojiData.emoji,
-                  authUser.email
-                );
-                setShowEmoji(false);
-              }}
-            />
-          </div>
-        )}
-
         {/* message bubble */}
         <div
           className={`px-4 py-2 rounded-2xl max-w-xs md:max-w-md text-sm shadow-md break-words
-          ${
-            isMe
-              ? "bg-green-500 text-white rounded-br-sm"
-              : "bg-white text-black rounded-bl-sm"
-          }`}
+          ${isMe ? "bg-green-500 text-white rounded-br-sm" : "bg-white text-black rounded-bl-sm"}`}
         >
           <p>{message.text}</p>
 
@@ -101,27 +64,64 @@ const MessageBubble = ({ message, authUser }) => {
           </div>
         </div>
 
-        {/* dropdwon */}
+        {/* emoji  */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowEmoji(!showEmoji);
+          }}
+          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition
+            ${isMe ? "-left-8" : "-right-8"}`}
+        >
+          <Smile size={16} className="text-gray-500" />
+        </button>
+
+        {/* emoji picker */}
+        {showEmoji && (
+          <div
+            className={`absolute z-50 mt-2 ${isMe ? "-left-60" : "left-0"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EmojiPicker
+              onEmojiClick={(emojiData) => {
+                addReaction(message._id, emojiData.emoji, authUser.email);
+                setShowEmoji(false);
+              }}
+            />
+          </div>
+        )}
+
+        {/* dropdown */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             setShowDropdown(!showDropdown);
           }}
-          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition
-          ${isMe ? "right-0" : "right-0"}`}
+          className={`absolute top-1 opacity-0 group-hover:opacity-100 transition ${isMe ? "right-0" : "right-0"}`}
         >
           <ChevronDown size={16} className="text-gray-500" />
         </button>
 
-        {/* dropdwon menu */}
+        {/* dropdown menu */}
         {showDropdown && (
           <div
-            className={`absolute mt-1 z-50
-            ${isMe ? "right-0" : "-right-30"}`}
+            className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <DropdownMenu message={message} />
+            <DropdownMenu
+              message={message}
+              onEdit={() => setShowEditModal(true)}
+               onClose={() => setShowDropdown(false)}
+            />
           </div>
+        )}
+
+        {/* edit modal */}
+        {showEditModal && (
+          <EditMessageModal
+            message={message}
+            onClose={() => setShowEditModal(false)}
+          />
         )}
 
       </div>
@@ -129,4 +129,4 @@ const MessageBubble = ({ message, authUser }) => {
   );
 };
 
-export default MessageBubble;
+export default MessageBubble; 
