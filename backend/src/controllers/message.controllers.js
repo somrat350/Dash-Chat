@@ -100,9 +100,7 @@ export const editMessage = async (req, res,next) => {
  try {
    const { id } = req.params;
    const editedMessage = req.body;
-   const updateMessage = await Message.findByIdAndUpdate(id, editedMessage, {
-     new: true,
-   });
+   const updateMessage = await Message.findByIdAndUpdate(id, editedMessage);
    if (!updateMessage) {
      return res.status(404).json({ message: "Message not found" });
    }
