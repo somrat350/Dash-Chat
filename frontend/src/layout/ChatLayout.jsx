@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router";
-import { MessageSquareText, Phone, Settings } from "lucide-react";
+import { MessageSquareText, Phone, Radio, Settings,  } from "lucide-react";
 import { useMessageStore } from "../store/useMessageStore";
 
 const ChatLayout = () => {
@@ -60,6 +60,16 @@ const ChatLayout = () => {
                   }
                 >
                   <Phone size={24} />
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/conversation/channel"
+                  className={({ isActive }) =>
+                    isActive ? activeClass : normalClass
+                  }
+                >
+                  <Radio size={24} />
                 </NavLink>
               </li>
             </ul>
