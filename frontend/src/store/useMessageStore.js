@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosSecure } from "../lib/axios";
 import toast from "react-hot-toast";
 
+
 export const useMessageStore = create((set, get) => ({
   selectedPartner: null,
   messagePartners: [],
@@ -74,22 +75,14 @@ export const useMessageStore = create((set, get) => ({
 
 editMessage: async (id, updatedText) => {
   try {
-    const res = await fetch(`/api/messages/edit/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify({
-        mgs: updatedText,
-      }),
-    });
-
-    const data = await res.json();
+    const res = await axiosSecure.patch(
+      `/api/messages/edit/${id}`,
+      { text: updatedText }
+    );
 
     set((state) => ({
       messages: state.messages.map((msg) =>
-        msg._id === id ? { ...msg, text: data.updatedMgs } : msg
+        msg._id === id ? res.data : msg
       ),
     }));
   } catch (error) {
@@ -97,35 +90,32 @@ editMessage: async (id, updatedText) => {
   }
 },
 
-// delete 
-
-deleteMessage: async (id) => {
+// delete
+deleteMessage: async (id, mode = "me", userEmail) => {
   try {
-    const res = await fetch(`/api/messages/delete/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify({
-        status: "hide",
-      }),
+    const res = await axiosSecure.patch(`/api/messages/delete/${id}`, {
+      mode,
+      userEmail, 
     });
-
-    const data = await res.json();
-
+    const updatedMessage = res.data;
     set((state) => ({
-      messages: state.messages.map((msg) =>
-        msg._id === id
-          ? { ...msg, status: "hide", text: "This message was deleted" }
-          : msg
-      ),
+      messages: state.messages.map((msg) => {
+        if (msg._id === id) {
+         
+          if (updatedMessage.status === "hide") {
+            return { ...msg, status: "hide", text: "This message was deleted" };
+          }
+          if (updatedMessage.hiddenFor?.includes(userEmail)) {
+            return { ...msg, hiddenFor: updatedMessage.hiddenFor };
+          }
+        }
+        return msg;
+      }),
     }));
   } catch (error) {
     console.error("Delete failed", error);
   }
 },
-
   //  reaction part
 
   
