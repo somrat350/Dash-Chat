@@ -16,7 +16,6 @@ export const register = async (req, res) => {
       email,
       photoURL,
       firebaseUid,
-       
     });
 
     if (newUser) {
@@ -25,6 +24,30 @@ export const register = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in user registration:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  const { id } = req.params;
+  const { name, photoURL } = req.body;
+
+  try {
+    if (!name || !photoURL) {
+      return res.status(400).json({ message: "No Content" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if (name) user.name = name;
+    if (photoURL !== undefined) user.photoURL = photoURL;
+
+    await user.save();
+    res.status(200).json({ message: "Profile updated successfully.", user });
+  } catch (error) {
+    console.error("Error updating profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
