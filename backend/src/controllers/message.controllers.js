@@ -100,7 +100,7 @@ export const editMessage = async (req, res,next) => {
  try {
    const { id } = req.params;
    const editedMessage = req.body;
-   const updateMessage = await Message.findByIdAndUpdate(id, editedMessage);
+   const updateMessage = await Message.findByIdAndUpdate(id, editedMessage, { new: true });
    if (!updateMessage) {
      return res.status(404).json({ message: "Message not found" });
    }
@@ -113,22 +113,32 @@ export const editMessage = async (req, res,next) => {
  } 
 }
 
+
 export const deleteMessage = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deleteMessage = await Message.findByIdAndUpdate(id, {
-      $set: {
-        hide: "true",
-      },
-    });
-
-    if (!deleteMessage) {
-      return res.status(404).json({ message: "Message not found" });
+    const { mode, userEmail } = req.body; 
+    const message = await Message.findById(id);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    let updateData = {};
+    if (mode === "everyone") {
+      updateData = { status: "hide", text: "This message was deleted" };
+    } 
+    else if (mode === "me") {
+      const hiddenFor = message.hiddenFor || [];
+      if (!hiddenFor.includes(userEmail)) hiddenFor.push(userEmail);
+      updateData = { hiddenFor };
     }
-    res.status(200).json(deleteMessage);
-  } catch (error) {
+    const updatedMessage = await Message.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+    res.status(200).json(updatedMessage);
+  } 
+  catch (error) {
     console.error("Error deleting message:", error);
     res.status(500).json({ message: "Internal server error" });
     next(error);
   }
-}
+};
