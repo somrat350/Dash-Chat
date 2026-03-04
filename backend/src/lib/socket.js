@@ -14,6 +14,10 @@ io.use(socketAuthMiddleware);
 
 const userSocketMap = {};
 
+export function getReceiverSocketId(userEmail) {
+  return userSocketMap[userEmail];
+}
+
 io.on("connection", (socket) => {
   const email = socket.email;
   userSocketMap[email] = socket.id;

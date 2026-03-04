@@ -82,18 +82,17 @@ export const useMessageStore = create((set, get) => ({
 
     socket.on("newMessage", (newMessage) => {
       const isMessageSentFromSelectedPartner =
-        newMessage.senderEmail === selectedPartner.email;
+        newMessage.sender === selectedPartner.email;
       if (!isMessageSentFromSelectedPartner) return;
 
       const currentMessages = get().messages;
       set({ messages: [...currentMessages, newMessage] });
-      // if (isSoundEnabled) {
-      //   const notificationSound = new Audio("/sounds/notification.mp3");
-      //   notificationSound.currentTime = 0;
-      //   notificationSound
-      //     .play()
-      //     .catch((e) => console.log("Audio play failed:", e));
-      // }
+
+      const notificationSound = new Audio("/sounds/notification.mp3");
+      notificationSound.currentTime = 0;
+      notificationSound
+        .play()
+        .catch((e) => console.log("Audio play failed:", e));
     });
   },
   unsubscribeFromMessage: () => {
