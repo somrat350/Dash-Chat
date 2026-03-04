@@ -21,7 +21,7 @@ export const socketAuthMiddleware = async (socket, next) => {
     }
 
     socket.user = user;
-    socket.firebaseUid = user.firebaseUid;
+    socket.email = user.email;
 
     next();
   } catch (error) {

@@ -74,6 +74,31 @@ export const useMessageStore = create((set, get) => ({
       set({ isMessageSending: false });
     }
   },
+  subscribeToMessage: () => {
+    const { selectedPartner } = get();
+    if (!selectedPartner) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    socket.on("newMessage", (newMessage) => {
+      const isMessageSentFromSelectedPartner =
+        newMessage.sender === selectedPartner.email;
+      if (!isMessageSentFromSelectedPartner) return;
+
+      const currentMessages = get().messages;
+      set({ messages: [...currentMessages, newMessage] });
+
+      const notificationSound = new Audio("/sounds/notification.mp3");
+      notificationSound.currentTime = 0;
+      notificationSound
+        .play()
+        .catch((e) => console.log("Audio play failed:", e));
+    });
+  },
+  unsubscribeFromMessage: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.off("newMessage");
+  },
 
   // edit
 

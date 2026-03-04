@@ -1,10 +1,10 @@
 import User from "../models/User.js";
 
 export const register = async (req, res) => {
-  const { name, email, photoURL = "", firebaseUid } = req.body;
+  const { name, email, photoURL = "" } = req.body;
 
   try {
-    if (!name || !email || !firebaseUid) {
+    if (!name || !email) {
       return res.status(400).json({ message: "All Fields are required." });
     }
 
@@ -15,7 +15,6 @@ export const register = async (req, res) => {
       name,
       email,
       photoURL,
-      firebaseUid,
     });
 
     if (newUser) {

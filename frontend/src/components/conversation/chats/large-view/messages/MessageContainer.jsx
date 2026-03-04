@@ -10,14 +10,22 @@ const MessageContainer = () => {
     messages,
     isMessagesLoading,
     getMessagesByUserEmail,
+    subscribeToMessage,
+    unsubscribeFromMessage,
   } = useMessageStore();
 
   const bottomRef = useRef();
 
   useEffect(() => {
-    if (selectedPartner?.email)
-      getMessagesByUserEmail(selectedPartner.email);
-  }, [selectedPartner]);
+    if (selectedPartner?.email) getMessagesByUserEmail(selectedPartner.email);
+    subscribeToMessage();
+    return () => unsubscribeFromMessage();
+  }, [
+    selectedPartner,
+    getMessagesByUserEmail,
+    subscribeToMessage,
+    unsubscribeFromMessage,
+  ]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,19 +46,14 @@ const MessageContainer = () => {
         </div>
       ) : messages.length > 0 ? (
         messages.map((msg) => (
-          <MessageBubble
-            key={msg._id}
-            message={msg}
-            authUser={authUser}
-            
-          />
+          <MessageBubble key={msg._id} message={msg} authUser={authUser} />
         ))
       ) : (
         <div className="text-center text-gray-400 text-sm">
           No messages yet. Start the conversation!
         </div>
       )}
-      
+      <div ref={bottomRef} />
     </div>
   );
 };

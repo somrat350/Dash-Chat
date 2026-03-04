@@ -20,7 +20,7 @@ export default function ChatHeader() {
   const [openProfile, setOpenProfile] = useState(false);
   const { selectedPartner, setSelectedPartner } = useMessageStore();
   const { onlineUsers } = useAuthStore();
-  const isOnline = onlineUsers.includes(selectedPartner.firebaseUid);
+  const isOnline = onlineUsers.includes(selectedPartner.email);
   const menuRef = useRef(null);
 
   useEffect(() => {
