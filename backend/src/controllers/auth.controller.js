@@ -28,7 +28,7 @@ export const register = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
-  const { id } = req.params;
+  const { email } = req.params;
   const { name, photoURL } = req.body;
 
   try {
@@ -36,7 +36,7 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ message: "No Content" });
     }
 
-    const user = await User.findById(id);
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
