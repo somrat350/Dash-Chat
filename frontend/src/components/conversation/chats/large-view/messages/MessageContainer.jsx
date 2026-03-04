@@ -39,7 +39,7 @@ const MessageContainer = () => {
     );
 
   return (
-    <div className="flex-1 overflow-y-auto p-5 bg-base-200 flex flex-col">
+    <div className="flex-1 p-5 bg-base-200 flex flex-col">
       {isMessagesLoading ? (
         <div className="text-center text-gray-400 text-sm">
           Loading messages...
