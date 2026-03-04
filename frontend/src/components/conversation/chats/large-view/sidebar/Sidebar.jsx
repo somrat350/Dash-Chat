@@ -75,7 +75,7 @@ const Sidebar = () => {
         ) : filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
             <div
-              key={user.firebaseUid}
+              key={user.email}
               onClick={() => {
                 setSelectedPartner(user);
                 getMessagesByUserEmail(user.email);
@@ -84,7 +84,7 @@ const Sidebar = () => {
     ${user.email === selectedPartner?.email && "bg-primary/30"}`}
             >
               <div
-                className={`avatar ${onlineUsers.includes(user.firebaseUid) ? "avatar-online" : ""}`}
+                className={`avatar ${onlineUsers.includes(user.email) ? "avatar-online" : ""}`}
               >
                 <div className="size-12 rounded-full">
                   <img

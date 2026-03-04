@@ -47,7 +47,6 @@ export const useAuthStore = create((set, get) => ({
         userData.password,
       );
       if (res.user) {
-        userData.firebaseUid = res.user.uid;
         await axiosInstance.post("/api/auth/register", userData);
       }
       set({ authUser: res.user });
@@ -85,7 +84,6 @@ export const useAuthStore = create((set, get) => ({
           name: res.user.displayName,
           email: res.user.email,
           photoURL: res.user.photoURL,
-          firebaseUid: res.user.uid,
         };
         await axiosInstance.post("/api/auth/register", userData);
       }
@@ -109,7 +107,6 @@ export const useAuthStore = create((set, get) => ({
           name: res.user.displayName,
           email: res.user.email,
           photoURL: res.user.photoURL,
-          firebaseUid: res.user.uid,
         };
 
         await axiosInstance.post("/api/auth/register", userData);
