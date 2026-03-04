@@ -1,34 +1,30 @@
 import {
   Search,
-  Video,
-  Phone,
   MoreVertical,
   Info,
   Check,
   BellOff,
   CircleX,
   ArrowLeft,
+  Video,
+  Phone,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
+import CallDropdown from "./CallDropdown";
 import ProfileDropdown from "./ProfileDropdown";
 import SearchDropdown from "./SearchDropdown";
 import { useMessageStore } from "../../../../../store/useMessageStore";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
 export default function ChatHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  // const [selectedUser, setSelectedUser] = useState(null);
   const { selectedPartner, setSelectedPartner } = useMessageStore();
-  // const { selectedPartner} = useMessageStore();
+  const { onlineUsers } = useAuthStore();
+  const isOnline = onlineUsers.includes(selectedPartner.email);
   const menuRef = useRef(null);
-
-  // Name if too long, trim it and add ... at the end. and show will show only first 16 words of the name
-  const partnerName = selectedPartner?.name?.trim() || "Unknown User";
-  const nameWords = partnerName.split(/\s+/).filter(Boolean);
-  const displayPartnerName =
-    nameWords.length > 16 ? `${nameWords[0]}..` : partnerName;
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -40,16 +36,18 @@ export default function ChatHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const partnerName = selectedPartner?.name?.trim() || "Unknown User";
+  const nameWords = partnerName.split(/\s+/).filter(Boolean);
+  const displayPartnerName =
+    nameWords.length > 10 ? `${nameWords[0]}..` : partnerName;
+
   return (
     <>
       <div
-        className={`sticky top-0 z-50 border-b border-primary/30 transition-all duration-300 ${
-          openProfile || search ? "pr-120" : "pr-0"
-        }`}
+        className={`sticky top-0 z-50 bg-white border-b border-primary/30 transition-all duration-300`}
       >
-        <div className="flex items-center justify-between lg:justify-start px-5 py-3">
-          {/* back arrow for small device  */}
-          <div>
+        <div className="flex items-center justify-between px-2 sm:px-4 py-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedPartner(null)}
               className="md:hidden hover:bg-primary/20 rounded-full p-1"
@@ -57,39 +55,42 @@ export default function ChatHeader() {
             >
               <ArrowLeft />
             </button>
-          </div>
-          {/* Name and Profile img  */}
-          <div
-            onClick={() => setOpenProfile(true)}
-            className="flex items-center gap-3 cursor-pointer mr-5"
-          >
-            <img
-              src={selectedPartner?.photoURL || "/default-avatar.jpg"}
-              alt="profile"
-              className="w-10 h-10 rounded-full"
-            />
-            <div className="flex flex-col">
-              <h2 className="font-medium text-gray-800 text-sm md:text-base lg:text-lg">
-                {displayPartnerName}
-              </h2>
-              {/* Online Active Status  */}
-              <span className="text-xs text-gray-500">Online</span>
+
+            <div
+              onClick={() => setOpenProfile(true)}
+              className="flex items-center gap-3 cursor-pointer mr-5"
+            >
+              <img
+                src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+                alt="profile"
+                className="w-10 h-10 rounded-full"
+              />
+              <div className="flex flex-col">
+                <h2 className="font-medium text-gray-800 text-sm md:text-base lg:text-lg">
+                  {displayPartnerName}
+                </h2>
+                <span className="text-xs text-gray-500">
+                  {isOnline ? "Online" : "Offline"}
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Right side actions */}
-          <div className="flex items-center gap-3 md:gap-4 lg:gap-5 relative lg:ml-auto">
-            {/* Video and Audio call icons  */}
+          <div className="flex items-center gap-3 md:gap-4 lg:gap-5 relative">
             <Video className="cursor-pointer text-gray-700" size={20} />
             <Phone className="cursor-pointer text-gray-700" size={17} />
 
             <div className="hidden sm:block">
-              <SearchDropdown search={search} setSearch={setSearch} />
+              {/* <SearchDropdown search={search} setSearch={setSearch} /> */}
             </div>
+            {/* <CallDropdown /> */}
+
+            <SearchDropdown search={search} setSearch={setSearch} />
 
             <Search
               onClick={() => setSearch(!search)}
-              className="hidden sm:block cursor-pointer text-gray-700"
+              className="cursor-pointer text-gray-700 hidden sm:block"
               size={20}
             />
 

@@ -1,67 +1,108 @@
-import { Link, Outlet } from "react-router";
-import { LogOut, MessageSquareText, Phone } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
+import { NavLink, Outlet } from "react-router";
+import { MessageSquareText, Phone, Settings } from "lucide-react";
+import { useMessageStore } from "../store/useMessageStore";
 
 const ChatLayout = () => {
-  const { logoutUser } = useAuthStore();
+  const { selectedPartner } = useMessageStore();
+
+  const baseClass =
+    "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none focus:ring-0 focus:ring-offset-0";
+
+  const normalClass = `${baseClass} hover:bg-primary/20`;
+  const activeClass = `${baseClass} bg-primary text-white shadow-sm`;
+
   return (
     <div>
-      {/* Large view */}
-
+      {/* Desktop */}
       <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-        {/* Page content here */}
+
+        {/* Page */}
         <div className="drawer-content">
           <Outlet />
         </div>
 
+        {/* Sidebar */}
         <div className="drawer-side overflow-visible">
           <label
             htmlFor="my-drawer-4"
-            aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <div className="flex min-h-full flex-col items-start justify-center bg-primary/10 w-16">
-            {/* Sidebar content here */}
-            <ul className="menu gap-1 w-full grow">
-              <Link to="/">
-                <img src="/DashChat-logo.png" alt="DashChat Logo" />
-              </Link>
 
+          <div className="flex min-h-full flex-col items-center bg-primary/10 w-16 py-4">
+            
+            {/* Logo */}
+            <NavLink to="/" className="mb-6">
+              <img src="/DashChat-logo.png" alt="DashChat Logo" />
+            </NavLink>
+
+            <ul className="menu gap-2 w-full items-center">
+              
+              {/* Messages */}
               <li>
-                <button
-                  className="tooltip tooltip-right hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
-                  data-tip="Messages"
+                <NavLink
+                  to="/"
+                  end
+                  className={({ isActive }) =>
+                    isActive ? activeClass : normalClass
+                  }
                 >
-                  {/* Settings icon */}
                   <MessageSquareText size={24} />
-                </button>
+                </NavLink>
               </li>
+
+              {/* Calls */}
               <li>
-                <button
-                  className="tooltip tooltip-right hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
-                  data-tip="Calls"
+                <NavLink
+                  to="/calls"
+                  className={({ isActive }) =>
+                    isActive ? activeClass : normalClass
+                  }
                 >
-                  {/* Settings icon */}
                   <Phone size={24} />
-                </button>
+                </NavLink>
               </li>
+            </ul>
+
+            {/* Bottom */}
+            <ul className="menu mt-auto gap-2 items-center">
+              
+              {/* Settings */}
               <li>
-                <button
-                  onClick={logoutUser}
-                  className="tooltip tooltip-right hover:bg-primary/20 rounded-full flex items-center justify-center w-12 h-12"
-                  data-tip="Logout"
+                <NavLink
+                  to="/conversation/setting"
+                  className={({ isActive }) =>
+                    isActive ? activeClass : normalClass
+                  }
                 >
-                  {/* Logout icon */}
-                  <LogOut size={24} />
-                </button>
+                  <Settings size={24} />
+                </NavLink>
               </li>
+
+              {/* Profile */}
+              <li>
+                <NavLink
+                  to="/conversation/profile"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "bg-primary rounded-full p-1 shadow-sm"
+                      : "hover:bg-primary/20 rounded-full p-1 transition"
+                  }
+                >
+                  <img
+                    src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+                    alt="profile"
+                    className="w-10 h-10 rounded-full"
+                  />
+                </NavLink>
+              </li>
+
             </ul>
           </div>
         </div>
       </div>
 
-      {/* Mobile view */}
+      {/* Mobile */}
       <div className="block md:hidden">
         <Outlet />
       </div>
@@ -70,3 +111,6 @@ const ChatLayout = () => {
 };
 
 export default ChatLayout;
+
+
+
