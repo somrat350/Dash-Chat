@@ -12,14 +12,15 @@ import CallDropdown from "./CallDropdown";
 import ProfileDropdown from "./ProfileDropdown";
 import SearchDropdown from "./SearchDropdown";
 import { useMessageStore } from "../../../../../store/useMessageStore";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
 export default function ChatHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  // const [selectedUser, setSelectedUser] = useState(null);
   const { selectedPartner, setSelectedPartner } = useMessageStore();
-  // const { selectedPartner} = useMessageStore();
+  const { onlineUsers } = useAuthStore();
+  const isOnline = onlineUsers.includes(selectedPartner.firebaseUid);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -54,7 +55,9 @@ export default function ChatHeader() {
               <h2 className="font-medium text-gray-800">
                 {selectedPartner?.name || "Unknown User"}
               </h2>
-              <span className="text-xs text-gray-500">online</span>
+              <span className="text-xs text-gray-500">
+                {isOnline ? "Online" : "Offline"}
+              </span>
             </div>
           </div>
 
