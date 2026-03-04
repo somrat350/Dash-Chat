@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
 export const useMessageStore = create((set, get) => ({
-  selectedPartner: null,
+  selectedPartner: true,
   messagePartners: [],
   messagePartnersLoading: false,
   messages: [],
