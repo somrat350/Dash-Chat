@@ -32,7 +32,7 @@ export const updateProfile = async (req, res) => {
   const { name, photoURL } = req.body;
 
   try {
-    if (!name || !photoURL) {
+    if (!name && !photoURL) {
       return res.status(400).json({ message: "No Content" });
     }
 
