@@ -18,7 +18,6 @@ const ChatHome = () => {
           <Sidebar />
         </div>
         {/* Message portion */}
-        {/* <div className="col-span-2 relative overflow-auto"> */}
 
         <div className="col-span-2 flex flex-col h-screen relative">
           <div className="absolute top-0 left-0 z-0 w-full h-full flex text-center items-center justify-center opacity-30  pointer-events-none">

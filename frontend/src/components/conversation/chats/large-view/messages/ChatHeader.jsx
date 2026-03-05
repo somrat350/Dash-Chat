@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-import CallDropdown from "./CallDropdown";
 import ProfileDropdown from "./ProfileDropdown";
 import SearchDropdown from "./SearchDropdown";
 import { useMessageStore } from "../../../../../store/useMessageStore";
