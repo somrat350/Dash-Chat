@@ -15,9 +15,9 @@ import Features from "../pages/public/Features";
 import ProfilePage from "../pages/conversation/Profile";
 import SettingPage from "../pages/conversation/chat/Setting";
 import Channel from "../pages/conversation/chat/Channel";
-import Calls from "../components/conversation/calls/calls";
 import CallsLayout from "../layout/CallsLayout";
 import Community from "../pages/conversation/chat/Community";
+import Calls from "../components/conversation/calls/Calls";
 
 const router = createBrowserRouter([
   {
