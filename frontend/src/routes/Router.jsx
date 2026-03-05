@@ -15,7 +15,9 @@ import Features from "../pages/public/Features";
 import ProfilePage from "../pages/conversation/Profile";
 import SettingPage from "../pages/conversation/chat/Setting";
 import Channel from "../pages/conversation/chat/Channel";
-
+import Calls from "../components/conversation/calls/calls";
+import CallsLayout from "../layout/CallsLayout";
+import Community from "../pages/conversation/chat/Community";
 
 const router = createBrowserRouter([
   {
@@ -35,13 +37,13 @@ const router = createBrowserRouter([
         Component: Privacy,
       },
       {
-        path:"/contact" ,
-        Component: Contact
+        path: "/contact",
+        Component: Contact,
       },
       {
-        path: "/features" ,
-        Component: Features
-      }
+        path: "/features",
+        Component: Features,
+      },
     ],
   },
   {
@@ -79,19 +81,43 @@ const router = createBrowserRouter([
         Component: ChatHome,
       },
       {
-        path:"profile",
-        element:<ProfilePage></ProfilePage>
+        path: "profile",
+        element: <ProfilePage></ProfilePage>,
       },
       {
-        path:"setting",
-        element:<SettingPage></SettingPage>
+        path: "setting",
+        element: <SettingPage></SettingPage>,
       },
       {
         path: "channel",
-       element:<Channel></Channel>
-      }
-       
-     
+        element: <Channel></Channel>,
+      },
+      {
+        path: "community",
+        element: <Community></Community>,
+      },
+      {
+        path: "calls",
+        element: <CallsLayout></CallsLayout>,
+        children: [
+          {
+            index: true,
+            element: <Calls mode="recent"></Calls>,
+          },
+          {
+            path: "recent",
+            element: <Calls mode="recent"></Calls>,
+          },
+          {
+            path: "missed",
+            element: <Calls mode="missed"></Calls>,
+          },
+          {
+            path: "scheduled",
+            element: <Calls mode="scheduled"></Calls>,
+          },
+        ],
+      },
     ],
   },
 ]);
