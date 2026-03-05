@@ -1,27 +1,36 @@
-import React, { useState } from 'react';
-import { Radio, Plus, Search, LayoutDashboard } from 'lucide-react';
+import React, { useState } from "react";
+import { Radio, Plus, Search, LayoutDashboard, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const Channel = () => {
+  const navigate = useNavigate();
+
   const initialChannels = [
     { id: 1, name: "FSD Freelance Help", update: "2:00 PM" },
     { id: 2, name: "Web Development Tips", update: "1:30 PM" },
-    
   ];
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredChannels = initialChannels.filter(channel =>
-    channel.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredChannels = initialChannels.filter((channel) =>
+    channel.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
-    
     <div className="flex flex-col md:flex-row h-screen w-full bg-white overflow-hidden">
-      
+      <div className="md:hidden flex items-center gap-2 p-3 border-b border-gray-200">
+        <button
+          type="button"
+          onClick={() => navigate("/conversation/chat")}
+          className="btn btn-ghost btn-sm"
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <h2 className="font-semibold text-gray-800">Channels</h2>
+      </div>
+
       {/* lift side */}
       <div className="w-full md:w-1/3 min-w-[300px] border-r border-gray-200 flex flex-col h-full bg-white">
-        
-        
         <div className="p-4 flex justify-between items-center shrink-0">
           <h1 className="text-xl font-bold text-gray-800">Channels</h1>
           <Plus size={20} className="cursor-pointer text-gray-600" />
@@ -30,7 +39,10 @@ const Channel = () => {
         {/*search */}
         <div className="px-4 mb-2 shrink-0">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+            <Search
+              size={16}
+              className="absolute left-3 top-2.5 text-gray-400"
+            />
             <input
               type="text"
               placeholder="Search channels..."
@@ -43,18 +55,24 @@ const Channel = () => {
 
         {/* Channels list */}
         <div className="overflow-y-auto flex-grow custom-scrollbar px-2 pb-6">
-          
           {/* list*/}
           <div className="mb-6">
             {filteredChannels.length > 0 ? (
               filteredChannels.map((channel) => (
-                <div key={channel.id} className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50">
+                <div
+                  key={channel.id}
+                  className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50"
+                >
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-3 shrink-0">
                     <Radio size={24} className="text-green-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-gray-800">{channel.name}</p>
-                    <p className="text-xs text-gray-400">Last update: {channel.update}</p>
+                    <p className="font-semibold text-sm text-gray-800">
+                      {channel.name}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Last update: {channel.update}
+                    </p>
                   </div>
                 </div>
               ))
@@ -84,15 +102,17 @@ const Channel = () => {
         <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4 shrink-0 shadow-inner">
           <Radio size={40} className="text-gray-400" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-700">Discover channels</h2>
+        <h2 className="text-2xl font-semibold text-gray-700">
+          Discover channels
+        </h2>
         <p className="text-gray-500 mt-2 max-w-sm text-sm md:text-base leading-relaxed">
-          Entertainment, sports, news, lifestyle, and more. Follow the channels that interest you.
+          Entertainment, sports, news, lifestyle, and more. Follow the channels
+          that interest you.
         </p>
         <button className="mt-6 bg-[#00a884] hover:bg-[#06cf9c] text-white px-8 py-2.5 rounded-full font-bold transition-all shadow-md active:scale-95">
           Discover more
         </button>
       </div>
-
     </div>
   );
 };

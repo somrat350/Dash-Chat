@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router";
-import { MessageSquareText, Phone, Radio, Settings } from "lucide-react";
+import { MessageSquareText, Phone, Radio, Settings, Users } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
 const ChatLayout = () => {
@@ -49,7 +49,7 @@ const ChatLayout = () => {
               {/* Calls */}
               <li>
                 <NavLink
-                  to="/conversation/call"
+                  to="/conversation/calls"
                   className={({ isActive }) =>
                     isActive ? activeClass : normalClass
                   }
@@ -65,6 +65,18 @@ const ChatLayout = () => {
                   }
                 >
                   <Radio size={24} />
+                </NavLink>
+              </li>
+
+              {/* Community */}
+              <li>
+                <NavLink
+                  to="/conversation/community"
+                  className={({ isActive }) =>
+                    isActive ? activeClass : normalClass
+                  }
+                >
+                  <Users size={24} />
                 </NavLink>
               </li>
             </ul>

@@ -1,30 +1,27 @@
 import {
   CameraIcon,
-  ChartBarBig,
+  MessageSquareText,
   MoreVertical,
   PhoneCall,
-  RefreshCcw,
+  Radio,
   Users,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useMessageStore } from "../../../../store/useMessageStore";
 import { useEffect } from "react";
 
-
-
 const Home = () => {
-
-  const { messagePartners,
+  const {
+    messagePartners,
     fetchMessagePartners,
 
     setSelectedPartner,
-    messagePartnersLoading } = useMessageStore();
+    messagePartnersLoading,
+  } = useMessageStore();
 
   useEffect(() => {
     fetchMessagePartners();
   }, [fetchMessagePartners]);
-
-
 
   return (
     <div className="min-h-screen  bg-gray-100 flex flex-col">
@@ -68,8 +65,9 @@ const Home = () => {
                   className="w-12 h-12 rounded-full object-cover border"
                 />
                 <div>
-                  <h2 className="font-semibold text-gray-800">{partner.name}</h2>
-
+                  <h2 className="font-semibold text-gray-800">
+                    {partner.name}
+                  </h2>
                 </div>
               </div>
               <span className="text-[10px] text-gray-400">Now</span>
@@ -78,26 +76,45 @@ const Home = () => {
         )}
       </div>
 
-
       {/* Bottom Nav */}
       <div className="fixed bottom-0 w-full bg-white  flex justify-around p-2">
-        <button className="flex flex-col items-center text-green-600">
-          <ChartBarBig size={22} />
-          <span className="text-xs font-semibold">Chats</span>
-        </button>
+        <NavLink
+          to="/conversation/chat"
+          className={({ isActive }) =>
+            `flex flex-col items-center ${isActive ? "text-green-600" : "text-gray-600"}`
+          }
+        >
+          <MessageSquareText size={22} />
+          <span className="text-xs font-semibold">Message</span>
+        </NavLink>
 
-        <button className="flex flex-col items-center text-gray-600">
-          <RefreshCcw size={22}></RefreshCcw>
-          <span className="text-xs font-semibold">Updates</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-600">
-          <Users size={22}></Users>
-          <span className="text-xs font-semibold">Communities</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-600">
+        <NavLink
+          to="/conversation/calls"
+          className={({ isActive }) =>
+            `flex flex-col items-center ${isActive ? "text-green-600" : "text-gray-600"}`
+          }
+        >
           <PhoneCall size={22}></PhoneCall>
-          <span className="text-xs font-semibold">Calls</span>
-        </button>
+          <span className="text-xs font-semibold">Call</span>
+        </NavLink>
+        <NavLink
+          to="/conversation/channel"
+          className={({ isActive }) =>
+            `flex flex-col items-center ${isActive ? "text-green-600" : "text-gray-600"}`
+          }
+        >
+          <Radio size={22}></Radio>
+          <span className="text-xs font-semibold">Channel</span>
+        </NavLink>
+        <NavLink
+          to="/conversation/community"
+          className={({ isActive }) =>
+            `flex flex-col items-center ${isActive ? "text-green-600" : "text-gray-600"}`
+          }
+        >
+          <Users size={22}></Users>
+          <span className="text-xs font-semibold">Community</span>
+        </NavLink>
       </div>
     </div>
   );
