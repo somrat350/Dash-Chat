@@ -1,10 +1,10 @@
 import { NavLink, Outlet } from "react-router";
-import { MessageSquareText, Phone, Radio, Settings,  } from "lucide-react";
-import { useMessageStore } from "../store/useMessageStore";
+import { MessageSquareText, Phone, Radio, Settings } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 const ChatLayout = () => {
-  const { selectedPartner } = useMessageStore();
-
+  const { authUser, userLoading } = useAuthStore();
+  if (userLoading) return;
   const baseClass =
     "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none focus:ring-0 focus:ring-offset-0";
 
@@ -24,24 +24,19 @@ const ChatLayout = () => {
 
         {/* Sidebar */}
         <div className="drawer-side overflow-visible">
-          <label
-            htmlFor="my-drawer-4"
-            className="drawer-overlay"
-          ></label>
+          <label htmlFor="my-drawer-4" className="drawer-overlay"></label>
 
           <div className="flex min-h-full flex-col items-center bg-primary/10 w-16 py-4">
-            
             {/* Logo */}
             <NavLink to="/" className="mb-6">
               <img src="/DashChat-logo.png" alt="DashChat Logo" />
             </NavLink>
 
             <ul className="menu gap-2 w-full items-center">
-              
               {/* Messages */}
               <li>
                 <NavLink
-                  to="/"
+                  to="/conversation/chat"
                   end
                   className={({ isActive }) =>
                     isActive ? activeClass : normalClass
@@ -54,7 +49,7 @@ const ChatLayout = () => {
               {/* Calls */}
               <li>
                 <NavLink
-                  to="/calls"
+                  to="/conversation/call"
                   className={({ isActive }) =>
                     isActive ? activeClass : normalClass
                   }
@@ -76,7 +71,6 @@ const ChatLayout = () => {
 
             {/* Bottom */}
             <ul className="menu mt-auto gap-2 items-center">
-              
               {/* Settings */}
               <li>
                 <NavLink
@@ -100,13 +94,12 @@ const ChatLayout = () => {
                   }
                 >
                   <img
-                    src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+                    src={authUser?.photoURL || "/default-avatar.jpg"}
                     alt="profile"
                     className="w-10 h-10 rounded-full"
                   />
                 </NavLink>
               </li>
-
             </ul>
           </div>
         </div>
@@ -121,6 +114,3 @@ const ChatLayout = () => {
 };
 
 export default ChatLayout;
-
-
-
