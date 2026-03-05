@@ -12,6 +12,10 @@ import ProtectedRoute from "./ProtectedRoute";
 import ChatHome from "../pages/conversation/chat/ChatHome";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
+import ProfilePage from "../pages/conversation/Profile";
+import SettingPage from "../pages/conversation/chat/Setting";
+import Channel from "../pages/conversation/chat/Channel";
+
 
 const router = createBrowserRouter([
   {
@@ -74,6 +78,20 @@ const router = createBrowserRouter([
         path: "chat",
         Component: ChatHome,
       },
+      {
+        path:"profile",
+        element:<ProfilePage></ProfilePage>
+      },
+      {
+        path:"setting",
+        element:<SettingPage></SettingPage>
+      },
+      {
+        path: "channel",
+       element:<Channel></Channel>
+      }
+       
+     
     ],
   },
 ]);

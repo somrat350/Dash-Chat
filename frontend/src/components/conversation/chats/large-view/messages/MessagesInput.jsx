@@ -43,9 +43,8 @@ export default function MessageInput() {
   };
 
   return (
-    <div className="relative w-full bg-primary/40 p-3">
-      <div className="flex items-end gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
-        {/* emoji, attachment, mic are send ,emoji picker,attachment menu etc here */}
+    <div className="w-full bg-primary/50 p-3">
+      <div className="flex items-center gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
         <Smile
           className="cursor-pointer text-gray-500 hover:text-gray-700"
           onClick={() => setShowEmoji(!showEmoji)}

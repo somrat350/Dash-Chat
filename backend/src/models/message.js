@@ -20,6 +20,14 @@ const messageSchema = new Schema(
       type: String,
       default: "",
     },
+     status: { 
+      type: String,
+       default: "active" },
+    // hide: {
+    //   type: String,
+    //   default: 'false'
+    // },
+    hiddenFor: { type: [String], default: [] },
   },
   { timestamps: true },
 );

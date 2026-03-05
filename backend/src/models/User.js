@@ -11,11 +11,6 @@ const userSchema = new Schema(
       require: true,
       unique: true,
     },
-    firebaseUid: {
-      type: String,
-      require: true,
-      unique: true,
-    },
     role: {
       type: String,
       default: "user",
@@ -24,6 +19,7 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    
   },
   { timestamps: true },
 );

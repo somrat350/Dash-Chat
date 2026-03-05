@@ -8,8 +8,8 @@ import { connectDb } from "./lib/connection.js";
 import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import messageRouter from "./routes/message.route.js";
+import { app, server } from "./lib/socket.js";
 
-const app = express();
 const port = ENV.PORT || 3000;
 const __dirname = path.resolve();
 
@@ -17,8 +17,7 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-// error handler middleware
-app.use(errorHandler);
+
 
 //auth routes
 app.use("/api/auth", authRouter);
@@ -36,10 +35,10 @@ const singleDomainDeploy = () => {
 };
 
 //server connecting function
-const server = async () => {
+const startServer = async () => {
   try {
     await connectDb();
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log("server running on port:", port);
     });
   } catch (error) {
@@ -48,4 +47,7 @@ const server = async () => {
 };
 
 singleDomainDeploy();
-server();
+startServer();
+
+// error handler middleware
+app.use(errorHandler);

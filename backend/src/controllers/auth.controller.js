@@ -1,10 +1,10 @@
 import User from "../models/User.js";
 
 export const register = async (req, res) => {
-  const { name, email, photoURL = "", firebaseUid } = req.body;
+  const { name, email, photoURL = "" } = req.body;
 
   try {
-    if (!name || !email || !firebaseUid) {
+    if (!name || !email) {
       return res.status(400).json({ message: "All Fields are required." });
     }
 
@@ -15,7 +15,6 @@ export const register = async (req, res) => {
       name,
       email,
       photoURL,
-      firebaseUid,
     });
 
     if (newUser) {
@@ -24,6 +23,30 @@ export const register = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in user registration:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  const { email } = req.params;
+  const { name, photoURL } = req.body;
+
+  try {
+    if (!name && !photoURL) {
+      return res.status(400).json({ message: "No Content" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if (name) user.name = name;
+    if (photoURL !== undefined) user.photoURL = photoURL;
+
+    await user.save();
+    res.status(200).json({ message: "Profile updated successfully.", user });
+  } catch (error) {
+    console.error("Error updating profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

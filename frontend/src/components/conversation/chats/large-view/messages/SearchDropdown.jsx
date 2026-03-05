@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 export default function SearchDropdown({ search, setSearch }) {
   const dropdownRef = useRef(null);
 
-  // Outside click detect
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -27,12 +26,11 @@ export default function SearchDropdown({ search, setSearch }) {
       {/* Close button */}
       <button
         onClick={() => setSearch(false)}
-        className="absolute right-4 top-4 text-gray-500 text-lg"
+        className="text-gray-500 text-lg"
       >
         Search messages ✕
       </button>
 
-      {/* Profile */}
       <div className=" mt-10 w-full max-w-md mx-auto my-4">
         <input
           type="text"
