@@ -13,11 +13,7 @@ const MessageBubble = ({ message, authUser }) => {
   (message.hiddenFor && message.hiddenFor.includes(authUser.email)) ||
   message.text === "This message was deleted"; 
 
-<<<<<<< Updated upstream
-  const { addReaction,deleteMessage } = useMessageStore();
-=======
-  const { addReaction, deleteMessage ,setReplyMessage} = useMessageStore();
->>>>>>> Stashed changes
+  const { addReaction,deleteMessage,setReplyMessage } = useMessageStore();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
@@ -50,13 +46,19 @@ const MessageBubble = ({ message, authUser }) => {
         >
 
 {/* reply  */}
- 
-  {message.replyTo && (
-    <div className="bg-gray-200 p-2 rounded mb-1 text-xs border-l-4 border-green-500">
-      <p className="font-semibold">{message.replyTo.sender}</p>
-      <p className="truncate">{message.replyTo.text}</p>
-    </div>
-  )}
+{message.replyTo && (
+  <div className="bg-gray-200 p-2 text-black  rounded-lg mb-1 text-xs border-l-4 border-green-500">
+
+    <p className="font-semibold">
+      {message.replyTo.sender}
+    </p>
+
+    <p className="truncate">
+      {message.replyTo.text}
+    </p>
+
+  </div>
+)}
 
           <p>
   {message.status === "hide" || message.hiddenFor?.includes(authUser.email)
@@ -131,7 +133,6 @@ const MessageBubble = ({ message, authUser }) => {
         {/* dropdown menu */}
            {showDropdown && (
           <div
-<<<<<<< Updated upstream
        className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
        onClick={(e) => e.stopPropagation()}
       >
@@ -142,25 +143,10 @@ const MessageBubble = ({ message, authUser }) => {
     openDeleteModal={() => setShowDeleteModal(true)}
     onEdit={() => setShowEditModal(true)}
     onClose={() => setShowDropdown(false)}
+    onReply={(msg) => setReplyMessage(msg)}
     />
    </div>
    )}
-=======
-            className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DropdownMenu
-              message={message}
-              isMe={isMe}
-              isDeleted={isDeleted}
-              openDeleteModal={() => setShowDeleteModal(true)}
-              onEdit={() => setShowEditModal(true)}
-              onClose={() => setShowDropdown(false)}
-              onReply={(msg) => setReplyMessage(msg)}
-            />
-          </div>
-        )}
->>>>>>> Stashed changes
 
         {/* edit modal */}
 

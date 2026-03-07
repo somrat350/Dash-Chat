@@ -45,6 +45,7 @@ export const useMessageStore = create((set, get) => ({
       set({ messagePartners: [], messagePartnersLoading: false });
     }
   },
+
   getMessagesByUserEmail: async (userEmail) => {
     try {
       set({ isMessagesLoading: true });
@@ -56,6 +57,7 @@ export const useMessageStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
+
   sendMessage: async (messageData) => {
     const { selectedPartner, messages } = get();
     try {
@@ -132,11 +134,8 @@ deleteMessage: async (id, mode = "me", userEmail) => {
     set({ messages });
   },
 
-<<<<<<< Updated upstream
-=======
   // reply 
-  setReplyMessage: (message) => set({ replyMessage: message }),
-  clearReplyMessage: () => set({ replyMessage: null }),
->>>>>>> Stashed changes
+   setReplyMessage: (msg) => set({ replyMessage: msg }),
+   clearReplyMessage: () => set({ replyMessage: null }),
 }));
 

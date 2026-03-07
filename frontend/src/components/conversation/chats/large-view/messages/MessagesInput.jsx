@@ -17,10 +17,14 @@ export default function MessageInput() {
   const handleSend = () => {
     if (!message.trim()) return;
     const messageData = {
+        
       sender: authUser.email,
+       senderName: authUser.name,
       receiver: selectedPartner.email,
       text: message,
        replyTo: replyMessage?._id,
+         replyToSenderName: replyMessage?.senderName || replyMessage?.sender, 
+    replyToText: replyMessage?.text,   
     };
     sendMessage(messageData);
     setMessage("");
@@ -45,14 +49,8 @@ export default function MessageInput() {
   };
 
   return (
-<<<<<<< Updated upstream
     <div className="relative w-full bg-primary/40 p-3">
-      <div className="flex items-end gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
-        {/* emoji, attachment, mic are send ,emoji picker,attachment menu etc here */}
-=======
-    <div className="w-full bg-primary/50 p-3">
-      {/* reply previw  */}
-        {replyMessage && (
+ {replyMessage && (
     <div className="bg-gray-100 border-l-4 border-green-500 px-3 py-2 mb-2 rounded flex justify-between items-start text-sm max-w-full">
       <div className="flex flex-col overflow-hidden">
         <span className="font-semibold text-gray-700 truncate">
@@ -71,8 +69,9 @@ export default function MessageInput() {
     </div>
   )}
 
-      <div className="flex items-center gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
->>>>>>> Stashed changes
+
+      <div className="flex items-end gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
+        {/* emoji, attachment, mic are send ,emoji picker,attachment menu etc here */}
         <Smile
           className="cursor-pointer text-gray-500 hover:text-gray-700"
           onClick={() => setShowEmoji(!showEmoji)}
