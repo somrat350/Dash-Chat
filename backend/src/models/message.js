@@ -28,6 +28,12 @@ const messageSchema = new Schema(
     //   default: 'false'
     // },
     hiddenFor: { type: [String], default: [] },
+    // riplay 
+    replyTo: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Message",
+  default: null,
+},
   },
   { timestamps: true },
 );

@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 export const useMessageStore = create((set, get) => ({
   selectedPartner: null,
+  replyMessage: null,
   messagePartners: [],
   messagePartnersLoading: false,
   messages: [],
@@ -131,4 +132,11 @@ deleteMessage: async (id, mode = "me", userEmail) => {
     set({ messages });
   },
 
+<<<<<<< Updated upstream
+=======
+  // reply 
+  setReplyMessage: (message) => set({ replyMessage: message }),
+  clearReplyMessage: () => set({ replyMessage: null }),
+>>>>>>> Stashed changes
 }));
+
