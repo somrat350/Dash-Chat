@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router";
 import { MessageSquareText, Phone, Radio, Settings, Users } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import PageTitleManager from "../components/PageTitleManager";
 
 const ChatLayout = () => {
   const { authUser, userLoading } = useAuthStore();
@@ -13,6 +14,7 @@ const ChatLayout = () => {
 
   return (
     <div>
+      <PageTitleManager />
       {/* Desktop */}
       <div className="hidden md:grid drawer md:drawer-open">
         <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
@@ -34,7 +36,7 @@ const ChatLayout = () => {
 
             <ul className="menu gap-2 w-full items-center">
               {/* Messages */}
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/chat"
                   end
@@ -44,10 +46,18 @@ const ChatLayout = () => {
                 >
                   <MessageSquareText size={24} />
                 </NavLink>
+
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Chats
+                </span>
               </li>
 
               {/* Calls */}
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/calls"
                   className={({ isActive }) =>
@@ -56,8 +66,15 @@ const ChatLayout = () => {
                 >
                   <Phone size={24} />
                 </NavLink>
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Calls
+                </span>
               </li>
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/channel"
                   className={({ isActive }) =>
@@ -66,10 +83,17 @@ const ChatLayout = () => {
                 >
                   <Radio size={24} />
                 </NavLink>
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Channel
+                </span>
               </li>
 
               {/* Community */}
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/community"
                   className={({ isActive }) =>
@@ -78,13 +102,20 @@ const ChatLayout = () => {
                 >
                   <Users size={24} />
                 </NavLink>
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Community
+                </span>
               </li>
             </ul>
 
             {/* Bottom */}
             <ul className="menu mt-auto gap-2 items-center">
               {/* Settings */}
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/setting"
                   className={({ isActive }) =>
@@ -93,10 +124,17 @@ const ChatLayout = () => {
                 >
                   <Settings size={24} />
                 </NavLink>
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Settings
+                </span>
               </li>
 
               {/* Profile */}
-              <li>
+              <li className="relative group">
                 <NavLink
                   to="/conversation/profile"
                   className={({ isActive }) =>
@@ -111,6 +149,13 @@ const ChatLayout = () => {
                     className="w-10 h-10 rounded-full"
                   />
                 </NavLink>
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
+  bg-secondary text-white text-xs px-2 py-1 rounded 
+  opacity-0 group-hover:opacity-100 transition"
+                >
+                  Profile
+                </span>
               </li>
             </ul>
           </div>

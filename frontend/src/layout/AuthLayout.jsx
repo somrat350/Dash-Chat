@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "../components/PageLoader";
+import PageTitleManager from "../components/PageTitleManager";
 
 const AuthLayout = () => {
   const { checkAuth, userLoading, authUser } = useAuthStore();
@@ -16,6 +17,7 @@ const AuthLayout = () => {
   }
   return (
     <>
+      <PageTitleManager />
       <Toaster />
       <Outlet />
     </>
