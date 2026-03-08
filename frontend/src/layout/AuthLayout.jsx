@@ -13,7 +13,7 @@ const AuthLayout = () => {
 
   if (userLoading) return <PageLoader />;
   if (authUser) {
-    return <Navigate to="/conversation/chat" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return (
     <>
