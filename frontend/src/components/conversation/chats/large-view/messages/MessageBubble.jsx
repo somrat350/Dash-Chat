@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Check, CheckSquare, ChevronDown, Smile } from "lucide-react";
+import { Check, CheckSquare, ChevronDown, CornerUpRight, Smile } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import DropdownMenu from "./DropdownMenu";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import EditMessageModal from "./EditMessageModal";
 import DeleteModal from "./DeleteModal";
+import ForwardModal from "./ForwardModal";
 
 const MessageBubble = ({ message, authUser }) => {
   const isMe = message.sender === authUser?.email;
@@ -19,6 +20,10 @@ const MessageBubble = ({ message, authUser }) => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const handleForward = () => {
+  setShowForwardModal(true);
+};
 
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], {
@@ -58,7 +63,14 @@ const MessageBubble = ({ message, authUser }) => {
 
   </div>
 )}
+              {/* forword  */}
 
+            {message.forwarded && (
+            <p className="flex items-center text-[10px] text-gray-700 mb-1 italic gap-1">
+          <CornerUpRight size={12} /> Forwarded
+        </p>
+         )}
+         
           <p>
             {message.status === "hide" ||
             message.hiddenFor?.includes(authUser.email)
@@ -144,6 +156,7 @@ const MessageBubble = ({ message, authUser }) => {
     onEdit={() => setShowEditModal(true)}
     onClose={() => setShowDropdown(false)}
     onReply={(msg) => setReplyMessage(msg)}
+      onForward={handleForward}
     />
    </div>
    )}
@@ -159,6 +172,7 @@ const MessageBubble = ({ message, authUser }) => {
 
         {/* delet modal  */}
 
+<<<<<<< HEAD
         {showDeleteModal && (
           <DeleteModal
             isSender={isMe}
@@ -175,6 +189,32 @@ const MessageBubble = ({ message, authUser }) => {
             onCancel={() => setShowDeleteModal(false)}
           />
         )}
+=======
+  {showDeleteModal && (
+  <DeleteModal
+    isSender={isMe}
+    onDeleteForMe={() => {
+      deleteMessage(message._id, "me", authUser.email);
+      setShowDeleteModal(false);
+      setShowDropdown(false);
+    }}
+    onDeleteForEveryone={() => {
+      deleteMessage(message._id, "everyone", authUser.email);
+      setShowDeleteModal(false);
+      setShowDropdown(false);
+    }}
+    onCancel={() => setShowDeleteModal(false)}
+  />
+)}
+
+  {/* forward modal  */}
+   {showForwardModal && (
+  <ForwardModal
+    message={message}
+    onClose={() => setShowForwardModal(false)}
+  />
+)}
+>>>>>>> ad328cb (Implement Forward feature)
       </div>
     </div>
   );

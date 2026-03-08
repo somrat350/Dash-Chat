@@ -67,7 +67,7 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo } = req.body;
+    const { text, image, replyTo,forwarded, originalSender} = req.body;
     const loggedInUserEmail = req.decoded_email;
     const { userEmail: receiverEmail } = req.params;
 
@@ -83,6 +83,8 @@ export const sendMessage = async (req, res) => {
       text: text || null,
       image: imageUrl || null,
       replyTo: replyTo || null,
+      forwarded: forwarded || false,
+      originalSender: forwarded ? originalSender : "",
     });
     const savedMessage = await newMessage.save();
 
