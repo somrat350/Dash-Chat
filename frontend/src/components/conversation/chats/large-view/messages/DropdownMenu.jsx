@@ -12,8 +12,9 @@ const DropdownMenu = ({
   isDeleted,
   openDeleteModal,
   onReply,
+  onForward
 }) => {
-  const { addReaction, forwardMessage, removeMessageFromUI } =
+  const { addReaction,removeMessageFromUI } =
     useMessageStore();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { authUser } = useAuthStore();
@@ -87,7 +88,7 @@ const DropdownMenu = ({
           <button
             className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm cursor-pointer"
             onClick={() => {
-              forwardMessage(message);
+             onForward(message);
               onClose();
             }}
           >

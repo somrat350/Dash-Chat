@@ -167,5 +167,26 @@ export const useMessageStore = create((set, get) => ({
   // reply 
    setReplyMessage: (msg) => set({ replyMessage: msg }),
    clearReplyMessage: () => set({ replyMessage: null }),
+
+  //  forward 
+    forwardMessage: async (message, receiverEmail) => {
+  try {
+    const messageData = {
+      text: message.text,
+      forwarded: true,
+      originalSender: message.sender,
+    };
+    const res = await axiosSecure.post(
+      `/api/messages/send/${receiverEmail}`,
+      messageData
+    );
+    set((state) => ({
+      messages: [...state.messages, res.data],
+    }));
+  } catch (error) {
+    console.error("Forward failed", error);
+  }
+}
+
 }));
 

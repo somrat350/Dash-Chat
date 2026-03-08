@@ -34,6 +34,15 @@ const messageSchema = new Schema(
   ref: "Message",
   default: null,
 },
+      // forword 
+        forwarded: {
+      type: Boolean,
+      default: false,
+    },
+    originalSender: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );
