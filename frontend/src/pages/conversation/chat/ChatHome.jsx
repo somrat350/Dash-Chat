@@ -25,7 +25,6 @@ const ChatHome = () => {
           <Sidebar />
         </div>
         {/* Message portion */}
-        {/* <div className="col-span-2 relative overflow-auto"> */}
 
         <div className="col-span-2 flex flex-col h-screen relative">
           <div className="absolute top-0 left-0 z-0 w-full h-full flex text-center items-center justify-center opacity-30  pointer-events-none">
@@ -38,8 +37,8 @@ const ChatHome = () => {
                 {/*  MessageList  */}
                 <MessageContainer />
               </div>
-              <div className="border-t border-primary/20">
-                <MessageInput></MessageInput>
+              <div className="border-t border-primary/20 relative">
+                <MessageInput />
               </div>
             </>
           ) : (
@@ -49,8 +48,24 @@ const ChatHome = () => {
       </div>
 
       {/* Mobile view */}
-      <div className="block md:hidden">
-         <Home />
+      <div className="flex flex-col h-screen relative md:hidden">
+        <div className="absolute top-0 left-0 z-0 w-full h-full flex text-center items-center justify-center opacity-30  pointer-events-none">
+          <img src="/DashChat-logo.png" alt="DashChat Logo" />
+        </div>
+        {selectedPartner ? (
+          <>
+            <ChatHeader />
+            <div className="flex-1 overflow-y-auto px-4">
+              {/*  MessageList  */}
+              <MessageContainer />
+            </div>
+            <div className="border-t border-primary/20">
+              <MessageInput />
+            </div>
+          </>
+        ) : (
+          <Home />
+        )}
       </div>
     </>
   );
