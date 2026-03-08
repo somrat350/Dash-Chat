@@ -57,7 +57,7 @@ export const getMessagesByEmail = async (req, res) => {
         { sender: loggedInUserEmail, receiver: userEmail },
         { sender: userEmail, receiver: loggedInUserEmail },
       ],
-    });
+    }).populate("replyTo");
     res.status(200).json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -67,7 +67,7 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo } = req.body;
     const loggedInUserEmail = req.decoded_email;
     const { userEmail: receiverEmail } = req.params;
 
@@ -82,6 +82,7 @@ export const sendMessage = async (req, res) => {
       receiver: receiverEmail,
       text: text || null,
       image: imageUrl || null,
+      replyTo: replyTo || null,
     });
     const savedMessage = await newMessage.save();
 

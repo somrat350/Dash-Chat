@@ -13,7 +13,7 @@ const MessageBubble = ({ message, authUser }) => {
     (message.hiddenFor && message.hiddenFor.includes(authUser.email)) ||
     message.text === "This message was deleted";
 
-  const { addReaction, deleteMessage } = useMessageStore();
+  const { addReaction,deleteMessage,setReplyMessage } = useMessageStore();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
@@ -43,6 +43,22 @@ const MessageBubble = ({ message, authUser }) => {
           className={`px-4 py-2 rounded-2xl max-w-xs md:max-w-md text-sm shadow-md wrap-break-word
           ${isMe ? "bg-green-500 text-white rounded-br-sm" : "bg-white text-black rounded-bl-sm"}`}
         >
+
+{/* reply  */}
+{message.replyTo && (
+  <div className="bg-gray-200 p-2 text-black  rounded-lg mb-1 text-xs border-l-4 border-green-500">
+
+    <p className="font-semibold">
+      {message.replyTo.sender}
+    </p>
+
+    <p className="truncate">
+      {message.replyTo.text}
+    </p>
+
+  </div>
+)}
+
           <p>
             {message.status === "hide" ||
             message.hiddenFor?.includes(authUser.email)
@@ -117,19 +133,20 @@ const MessageBubble = ({ message, authUser }) => {
         {/* dropdown menu */}
         {showDropdown && (
           <div
-            className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DropdownMenu
-              message={message}
-              isMe={isMe}
-              isDeleted={isDeleted}
-              openDeleteModal={() => setShowDeleteModal(true)}
-              onEdit={() => setShowEditModal(true)}
-              onClose={() => setShowDropdown(false)}
-            />
-          </div>
-        )}
+       className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
+       onClick={(e) => e.stopPropagation()}
+      >
+    <DropdownMenu
+    message={message}
+    isMe={isMe}
+    isDeleted={isDeleted}
+    openDeleteModal={() => setShowDeleteModal(true)}
+    onEdit={() => setShowEditModal(true)}
+    onClose={() => setShowDropdown(false)}
+    onReply={(msg) => setReplyMessage(msg)}
+    />
+   </div>
+   )}
 
         {/* edit modal */}
 
