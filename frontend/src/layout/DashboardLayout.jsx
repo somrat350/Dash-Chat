@@ -12,7 +12,6 @@ import {
 import ThemeSelector from "../components/ThemeSelector";
 
 const DashboardLayout = () => {
-
   const sideMenus = [
     {
       title: "Home",
@@ -56,21 +55,21 @@ const DashboardLayout = () => {
       />
       <div className="drawer-content">
         {/* Navbar */}
-        <nav className="navbar w-full bg-base-300">
+        <nav className="navbar w-full bg-base-200 sticky top-0 z-50 pl-4">
           <label
             htmlFor="my-drawer-4"
             aria-label="open sidebar"
-            className="btn btn-circle btn-primary"
+            className="btn btn-circle btn-primary btn-sm"
           >
             {/* Sidebar toggle icon */}
-            <PanelLeft />
+            <PanelLeft size={20} />
           </label>
           <div className="px-4 flex justify-end w-full">
             <ThemeSelector />
           </div>
         </nav>
         {/* Page content here */}
-        <div className="p-4">
+        <div className="p-4 sm:p-6">
           <Outlet />
         </div>
       </div>
