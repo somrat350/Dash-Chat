@@ -53,7 +53,7 @@ const DashboardLayout = () => {
         type="checkbox"
         className="drawer-toggle"
       />
-      <div className="drawer-content">
+      <div className="drawer-content h-screen overflow-y-auto relative">
         {/* Navbar */}
         <nav className="navbar w-full bg-base-200 sticky top-0 z-50 pl-4">
           <label
