@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, MoreVertical, Search } from "lucide-react";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import NewChatSearch from "./NewChatSearch";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
 const Sidebar = () => {
   const [search, setSearch] = useState("");
@@ -10,9 +11,10 @@ const Sidebar = () => {
     setSelectedPartner,
     messagePartners,
     messagePartnersLoading,
-     getMessagesByUserEmail, 
+    getMessagesByUserEmail,
     fetchMessagePartners,
   } = useMessageStore();
+  const { onlineUsers } = useAuthStore();
 
   useEffect(() => {
     fetchMessagePartners();
@@ -73,19 +75,26 @@ const Sidebar = () => {
         ) : filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
             <div
-    key={user.firebaseUid}
-    onClick={() => {
-      setSelectedPartner(user);
-      getMessagesByUserEmail(user.email);
-    }}
-    className={`flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition 
+              key={user.email}
+              onClick={() => {
+                setSelectedPartner(user);
+                getMessagesByUserEmail(user.email);
+              }}
+              className={`flex items-center px-4 py-3 hover:bg-primary/30 rounded-xl cursor-pointer transition 
     ${user.email === selectedPartner?.email && "bg-primary/30"}`}
-  >
-              <img
-                src={user.photoURL || "/default-avatar.jpg"}
-                alt={user.name}
-                className="w-12 h-12 rounded-full object-cover"
-              />
+            >
+              <div
+                className={`avatar ${onlineUsers.includes(user.email) ? "avatar-online" : ""}`}
+              >
+                <div className="size-12 rounded-full">
+                  <img
+                    src={user.photoURL || "/default-avatar.jpg"}
+                    alt={user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                </div>
+              </div>
+
               <div className="ml-3">
                 <h3 className="font-medium text-sm">{user.name}</h3>
                 <p className="text-xs text-gray-500">{user.email}</p>

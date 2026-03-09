@@ -1,3 +1,4 @@
+import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
@@ -56,7 +57,7 @@ export const getMessagesByEmail = async (req, res) => {
         { sender: loggedInUserEmail, receiver: userEmail },
         { sender: userEmail, receiver: loggedInUserEmail },
       ],
-    });
+    }).populate("replyTo");
     res.status(200).json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -66,7 +67,7 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo,forwarded, originalSender} = req.body;
     const loggedInUserEmail = req.decoded_email;
     const { userEmail: receiverEmail } = req.params;
 
@@ -81,12 +82,17 @@ export const sendMessage = async (req, res) => {
       receiver: receiverEmail,
       text: text || null,
       image: imageUrl || null,
+      replyTo: replyTo || null,
+      forwarded: forwarded || false,
+      originalSender: forwarded ? originalSender : "",
     });
     const savedMessage = await newMessage.save();
 
-
-
     //web socket
+    const receiverSocketId = getReceiverSocketId(receiverEmail);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", savedMessage);
+    }
 
     res.status(201).json(savedMessage);
   } catch (error) {
@@ -95,40 +101,46 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+export const editMessage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const editedMessage = req.body;
+    const updateMessage = await Message.findByIdAndUpdate(id, editedMessage, {
+      new: true,
+    });
+    if (!updateMessage) {
+      return res.status(404).json({ message: "Message not found" });
+    }
 
-export const editMessage = async (req, res,next) => {
- try {
-   const { id } = req.params;
-   const editedMessage = req.body;
-   const updateMessage = await Message.findByIdAndUpdate(id, editedMessage);
-   if (!updateMessage) {
-     return res.status(404).json({ message: "Message not found" });
-   }
-
-   res.status(200).json(updateMessage);
- } catch (error) {
-  console.error("Error editing message:", error);
-  res.status(500).json({ message: "Internal server error" });
-  next(error)
- } 
-}
+    res.status(200).json(updateMessage);
+  } catch (error) {
+    console.error("Error editing message:", error);
+    res.status(500).json({ message: "Internal server error" });
+    next(error);
+  }
+};
 
 export const deleteMessage = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deleteMessage = await Message.findByIdAndUpdate(id, {
-      $set: {
-        hide: "true",
-      },
-    });
-
-    if (!deleteMessage) {
-      return res.status(404).json({ message: "Message not found" });
+    const { mode, userEmail } = req.body;
+    const message = await Message.findById(id);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    let updateData = {};
+    if (mode === "everyone") {
+      updateData = { status: "hide", text: "This message was deleted" };
+    } else if (mode === "me") {
+      const hiddenFor = message.hiddenFor || [];
+      if (!hiddenFor.includes(userEmail)) hiddenFor.push(userEmail);
+      updateData = { hiddenFor };
     }
-    res.status(200).json(deleteMessage);
+    const updatedMessage = await Message.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+    res.status(200).json(updatedMessage);
   } catch (error) {
     console.error("Error deleting message:", error);
     res.status(500).json({ message: "Internal server error" });
     next(error);
   }
-}
+};

@@ -4,17 +4,16 @@ const userSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
-    firebaseUid: {
+    password: {
       type: String,
-      require: true,
-      unique: true,
+      required: false,
     },
     role: {
       type: String,
@@ -32,7 +31,7 @@ const userSchema = new Schema(
         },
         status: {
           type: String,
-          enum: ["pending", "accepted","rejected", "blocked"],
+          enum: ["pending", "accepted", "rejected", "blocked"],
           default: "pending",
         },
       },

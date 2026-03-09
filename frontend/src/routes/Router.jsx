@@ -6,12 +6,17 @@ import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
-import ChatLayout from "../layout/ChatLayout";
 import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
-import ChatHome from "../pages/conversation/chat/ChatHome";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
+import DashboardLayout from "../layout/DashboardLayout";
+import DashHome from "../pages/dashboard/DashHome";
+import Friends from "../pages/dashboard/Friends";
+import Chats from "../pages/dashboard/Chats";
+import Notifications from "../pages/dashboard/Notifications";
+import Profile from "../pages/dashboard/Profile";
+import Settings from "../pages/dashboard/Settings";
 
 const router = createBrowserRouter([
   {
@@ -31,13 +36,13 @@ const router = createBrowserRouter([
         Component: Privacy,
       },
       {
-        path:"/contact" ,
-        Component: Contact
+        path: "/contact",
+        Component: Contact,
       },
       {
-        path: "/features" ,
-        Component: Features
-      }
+        path: "/features",
+        Component: Features,
+      },
     ],
   },
   {
@@ -59,20 +64,36 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/conversation",
+    path: "/dashboard",
     element: (
       <ProtectedRoute>
-        <ChatLayout />
+        <DashboardLayout />
       </ProtectedRoute>
     ),
     children: [
       {
         index: true,
-        Component: ChatHome,
+        Component: DashHome,
       },
       {
-        path: "chat",
-        Component: ChatHome,
+        path: "friends",
+        Component: Friends,
+      },
+      {
+        path: "chats",
+        Component: Chats,
+      },
+      {
+        path: "notifications",
+        Component: Notifications,
+      },
+      {
+        path: "profile",
+        Component: Profile,
+      },
+      {
+        path: "settings",
+        Component: Settings,
       },
     ],
   },

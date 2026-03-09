@@ -20,10 +20,29 @@ const messageSchema = new Schema(
       type: String,
       default: "",
     },
-    hide: {
+     status: { 
       type: String,
-      default: 'false'
-    }
+       default: "active" },
+    // hide: {
+    //   type: String,
+    //   default: 'false'
+    // },
+    hiddenFor: { type: [String], default: [] },
+    // riplay 
+    replyTo: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Message",
+  default: null,
+},
+      // forword 
+        forwarded: {
+      type: Boolean,
+      default: false,
+    },
+    originalSender: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );

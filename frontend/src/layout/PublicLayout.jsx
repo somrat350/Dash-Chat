@@ -5,9 +5,10 @@ import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "../components/PageLoader";
+import PageTitleManager from "../components/PageTitleManager";
 
 const PublicLayout = () => {
-  const { checkAuth, userLoading, authUser } = useAuthStore();
+  const { checkAuth } = useAuthStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -16,6 +17,7 @@ const PublicLayout = () => {
   // if (authUser) return <Navigate to="/conversation/chat" replace />;
   return (
     <>
+      <PageTitleManager />
       <Toaster />
       <div className="flex flex-col min-h-screen">
         <nav className="sticky top-0 z-50">

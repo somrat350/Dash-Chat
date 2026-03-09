@@ -1,23 +1,9 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
-import { auth } from "../lib/Firebase.config";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { io } from "socket.io-client";
 
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  GithubAuthProvider,
-  signInWithPopup,
-  signOut,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-
-const googleAuthProvider = new GoogleAuthProvider();
-const githubAuthProvider = new GithubAuthProvider();
 const BASE_URL = import.meta.env.VITE_SERVER_URL;
 
 export const useAuthStore = create((set, get) => ({
@@ -28,32 +14,29 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     set({ userLoading: true });
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      set({
-        authUser: currentUser,
-        userLoading: false,
-      });
+    try {
+      const res = await axiosInstance.get("/api/auth/checkAuth");
+      set({ authUser: res.data });
       get().connectSocket();
-    });
-
-    return unsubscribe;
+    } catch (error) {
+      console.log("Error in auth checking:", error);
+      set({ authUser: null });
+    } finally {
+      set({ userLoading: false });
+    }
   },
   registerWithEP: async (userData) => {
     set({ userLoading: true });
     try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        userData.email,
-        userData.password,
+      const res = await axiosInstance.post(
+        "/api/auth/registerWithEmailPassword",
+        userData,
       );
-      if (res.user) {
-        userData.firebaseUid = res.user.uid;
-        await axiosInstance.post("/api/auth/register", userData);
-      }
-      set({ authUser: res.user });
+      set({ authUser: res.data });
       get().connectSocket();
       toast.success("Account created successful!");
     } catch (error) {
+      set({ authUser: null });
       toast.error(error.message || "Registration failed");
     } finally {
       set({ userLoading: false });
@@ -62,68 +45,38 @@ export const useAuthStore = create((set, get) => ({
   loginWithEP: async (userData) => {
     set({ userLoading: true });
     try {
-      const res = await signInWithEmailAndPassword(
-        auth,
-        userData.email,
-        userData.password,
+      const res = await axiosInstance.post(
+        "/api/auth/loginWithEmailPassword",
+        userData,
       );
-      set({ authUser: res.user });
-      get().connectSocket();
+      set({ authUser: res.data });
       toast.success("Logged in successful!");
+      get().connectSocket();
     } catch (error) {
-      toast.error(error.message || "Login failed");
+      set({ authUser: null });
+      toast.error(error.response.data.message || "Login failed");
     } finally {
       set({ userLoading: false });
     }
   },
-  loginWithGoogle: async () => {
+  loginWithGoogle: async (code) => {
     set({ userLoading: true });
     try {
-      const res = await signInWithPopup(auth, googleAuthProvider);
-      if (res.user) {
-        const userData = {
-          name: res.user.displayName,
-          email: res.user.email,
-          photoURL: res.user.photoURL,
-          firebaseUid: res.user.uid,
-        };
-        await axiosInstance.post("/api/auth/register", userData);
-      }
-      set({ authUser: res.user });
-      get().connectSocket();
+      const res = await axiosInstance.get(
+        `/api/auth/loginWithGoogle?code=${code}`,
+      );
+      set({ authUser: res.data });
       toast.success("Logged in successful!");
-    } catch (error) {
-      toast.error(error.message || "Login failed");
-    } finally {
-      set({ userLoading: false });
-    }
-  },
-
-  loginWithGithub: async () => {
-    set({ userLoading: true });
-    try {
-      const res = await signInWithPopup(auth, githubAuthProvider);
-
-      if (res.user) {
-        const userData = {
-          name: res.user.displayName,
-          email: res.user.email,
-          photoURL: res.user.photoURL,
-          firebaseUid: res.user.uid,
-        };
-
-        await axiosInstance.post("/api/auth/register", userData);
-      }
-
-      set({ authUser: res.user });
       get().connectSocket();
-      toast.success("Logged in successful");
     } catch (error) {
-      toast.error(error.message || "Logout failed");
+      set({ authUser: null });
+      toast.error("Google login failed.");
+      console.error("Google login error:", error);
     } finally {
       set({ userLoading: false });
     }
   },
+  loginWithGithub: async () => {},
   logoutUser: async () => {
     try {
       Swal.fire({
@@ -136,35 +89,24 @@ export const useAuthStore = create((set, get) => ({
         confirmButtonText: "Yes, logout!",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          await signOut(auth);
+          await axiosInstance.post("/api/auth/logout");
           set({ authUser: null });
           get().disconnectSocket();
           toast.success("Logged out successful!");
         }
       });
     } catch (error) {
-      toast.error(error.message || "Logout failed");
+      toast.error("Logout failed");
+      console.error("Logout failed:", error);
     }
   },
   //Reset Password
-  resetPassword: async (email) => {
-    set({ userLoading: true });
-    try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success("Reset link sent to your email!");
-    } catch (error) {
-      toast.error(error.message || "Failed to send reset link");
-    } finally {
-      set({ userLoading: false });
-    }
-  },
+  resetPassword: async () => {},
   connectSocket: () => {
     const { authUser, userLoading } = get();
     if (!authUser || userLoading || get().socket?.connected) return;
     const socket = io(BASE_URL, {
-      auth: {
-        token: authUser.accessToken,
-      },
+      withCredentials: true,
     });
     socket.connect();
     set({ socket });
