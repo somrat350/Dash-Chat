@@ -25,22 +25,25 @@ export const searchChatNewPartners = async (req, res) => {
 
 export const getChatPartners = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
+    const loggedInUserId = req.user._id;
     const messages = await Message.find({
-      $or: [{ sender: loggedInUserEmail }, { receiver: loggedInUserEmail }],
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
     });
 
-    const chatPartnersEmail = [
+    const chatPartnersId = [
       ...new Set(
         messages.map((msg) =>
-          msg.sender === loggedInUserEmail ? msg.receiver : msg.sender,
+          msg.senderId.toString() === loggedInUserId.toString()
+            ? msg.receiverId.toString()
+            : msg.senderId.toString(),
         ),
       ),
     ];
 
     const chatPartners = await User.find({
-      email: { $in: chatPartnersEmail },
-    });
+      _id: { $in: chatPartnersId },
+    }).select("-password");
+    console.log(chatPartners);
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
@@ -48,14 +51,14 @@ export const getChatPartners = async (req, res) => {
   }
 };
 
-export const getMessagesByEmail = async (req, res) => {
+export const getMessagesByUserId = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
-    const { userEmail } = req.params;
+    const loggedInUserId = req.user._id;
+    const { userId } = req.params;
     const messages = await Message.find({
       $or: [
-        { sender: loggedInUserEmail, receiver: userEmail },
-        { sender: userEmail, receiver: loggedInUserEmail },
+        { senderId: loggedInUserId, receiverId: userId },
+        { senderId: userId, receiverId: loggedInUserId },
       ],
     }).populate("replyTo");
     res.status(200).json(messages);
@@ -67,21 +70,19 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo,forwarded, originalSender} = req.body;
-    const loggedInUserEmail = req.decoded_email;
-    const { userEmail: receiverEmail } = req.params;
+    const { text, image, replyTo, forwarded, originalSender } = req.body;
+    const loggedInUserId = req.user._id;
+    const { userId: receiverId } = req.params;
 
     if (!text && !image) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
-    let imageUrl;
-
     const newMessage = new Message({
-      sender: loggedInUserEmail,
-      receiver: receiverEmail,
+      senderId: loggedInUserId,
+      receiverId,
       text: text || null,
-      image: imageUrl || null,
+      image: image || null,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",
@@ -89,7 +90,7 @@ export const sendMessage = async (req, res) => {
     const savedMessage = await newMessage.save();
 
     //web socket
-    const receiverSocketId = getReceiverSocketId(receiverEmail);
+    const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", savedMessage);
     }

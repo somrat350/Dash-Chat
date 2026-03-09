@@ -27,9 +27,9 @@ const Chats = () => {
   return (
     <div>
       <Breadcrumb items={pageFlow} />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {chatPartners.map((_, i) => (
-          <ChatCard key={i} />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
+        {chatPartners.map((partner) => (
+          <ChatCard key={partner._id} partner={partner} />
         ))}
       </div>
     </div>

@@ -4,7 +4,7 @@ import {
   deleteMessage,
   editMessage,
   getChatPartners,
-  getMessagesByEmail,
+  getMessagesByUserId,
   searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
@@ -15,8 +15,8 @@ messageRouter.use(isAuthenticated);
 
 messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
-messageRouter.get("/chats/:userEmail", getMessagesByEmail);
-messageRouter.post("/send/:userEmail", sendMessage);
+messageRouter.get("/chats/:userId", getMessagesByUserId);
+messageRouter.post("/send/:userId", sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
 
