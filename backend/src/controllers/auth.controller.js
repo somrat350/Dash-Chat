@@ -1,25 +1,39 @@
+import bcrypt from "bcryptjs";
+import axios from "axios";
 import User from "../models/User.js";
+import { ENV } from "../lib/env.js";
+import generateToken from "../utils/generateToken.js";
+import oauth2client from "../utils/googleConfig.js";
 
-export const register = async (req, res) => {
-  const { name, email, photoURL = "" } = req.body;
+export const registerWithEmailPassword = async (req, res) => {
+  const { name, email, password } = req.body;
 
   try {
-    if (!name || !email) {
+    if (!name || !email || !password) {
       return res.status(400).json({ message: "All Fields are required." });
     }
 
     const user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "User already exists." });
 
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newUser = new User({
       name,
       email,
-      photoURL,
+      password: hashedPassword,
     });
 
     if (newUser) {
-      await newUser.save();
-      res.status(201).json({ message: "User registered successfully" });
+      const savedUser = await newUser.save();
+      generateToken(savedUser._id, res);
+      res.status(201).json({
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        photoURL: savedUser.photoURL,
+      });
     }
   } catch (error) {
     console.error("Error in user registration:", error);
@@ -27,26 +41,82 @@ export const register = async (req, res) => {
   }
 };
 
-export const updateProfile = async (req, res) => {
-  const { email } = req.params;
-  const { name, photoURL } = req.body;
+export const loginWithEmailPassword = async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    if (!name && !photoURL) {
-      return res.status(400).json({ message: "No Content" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "All Fields are required." });
     }
 
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    if (name) user.name = name;
-    if (photoURL !== undefined) user.photoURL = photoURL;
+    if (!user)
+      return res.status(400).json({ message: "Invalid email or password" });
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect)
+      return res.status(400).json({ message: "Invalid email or password" });
 
-    await user.save();
-    res.status(200).json({ message: "Profile updated successfully.", user });
+    generateToken(user._id, res);
+
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      photoURL: user.photoURL,
+    });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    console.error("Error in user login:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const loginWithGoogle = async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Authorization code is required",
+      });
+    }
+
+    const { tokens } = await oauth2client.getToken(code);
+    oauth2client.setCredentials(tokens);
+
+    const userRes = await axios.get(
+      `https://www.googleapis.com/oauth2/v3/userinfo?alt=json&access_token=${tokens.access_token}`,
+    );
+    const { email, name, picture } = userRes.data;
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        photoURL: picture,
+      });
+    }
+    generateToken(user._id, res);
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      photoURL: user.photoURL,
+    });
+  } catch (error) {
+    console.error("Google authenticate error : ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
+  }
+};
+
+export const logout = (_, res) => {
+  res.clearCookie("token", {
+    path: "/",
+    httpOnly: true,
+    sameSite: ENV.SAME_SITE,
+    maxAge: 0,
+    secure: ENV.NODE_ENV === "production",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
 };

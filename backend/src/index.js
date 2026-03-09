@@ -15,17 +15,15 @@ const port = ENV.PORT || 3000;
 const __dirname = path.resolve();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
-
-
 
 //auth routes
 app.use("/api/auth", authRouter);
 //messages routes
 app.use("/api/messages", messageRouter);
 //friends routes
-app.use('/api/friends', friendsRouter)
+app.use("/api/friends", friendsRouter);
 
 // Ready for deploy into single domain
 const singleDomainDeploy = () => {

@@ -1,17 +1,22 @@
-import express from 'express'
-import { isAuthenticated } from '../middleware/auth.middleware'
-import { acceptedFriendRequests, sendRequest, unblockUser, updateRequest } from '../controllers/friends.controllers'
+import express from "express";
+import { isAuthenticated } from "../middleware/auth.middleware.js";
+import {
+  acceptedFriendRequests,
+  sendRequest,
+  unblockUser,
+  updateRequest,
+} from "../controllers/friends.controllers.js";
 
-const friendsRouter = express.Router()
+const friendsRouter = express.Router();
 
-friendsRouter.use(isAuthenticated)
+friendsRouter.use(isAuthenticated);
 
-friendsRouter.post('/send', sendRequest)
+friendsRouter.post("/send", sendRequest);
 
-friendsRouter.patch('/update', updateRequest)
+friendsRouter.patch("/update", updateRequest);
 
-friendsRouter.get('/accepted-friends/:id', acceptedFriendRequests)
+friendsRouter.get("/accepted-friends/:id", acceptedFriendRequests);
 
-friendsRouter.patch('/unblock', unblockUser)
+friendsRouter.patch("/unblock", unblockUser);
 
-export default friendsRouter
+export default friendsRouter;
