@@ -1,272 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { Phone, MessageSquare, MoreVertical, ChevronLeft, ChevronRight, UserPlus, X, UserMinus, Globe, Moon, Camera } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Phone, MessageSquare, MoreVertical, UserPlus, Edit2, Trash2 } from "lucide-react";
 
 const Friends = () => {
 
-  // friend list 
-  const defaultFriends = [
-    { 
-    id: 1, 
-    name: "Arman Islam Shuvo", 
-    isOnline: true, 
-   
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-  { 
-    id: 2, 
-    name: "Osamabin Somrat", 
-    isOnline: false, 
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-  { 
-    id: 3, 
-    name: "Sabbir Hossain", 
-    isOnline: true, 
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-  { 
-    id: 4, 
-    name: "Lima Akther", 
-    isOnline: false, 
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-  { 
-    id: 5, 
-    name: "Tangila Khatun", 
-    isOnline: true, 
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-  { 
-    id: 6, 
-    name: "China Akther", 
-    isOnline: true, 
-    avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" 
-  },
-    { id: 7, name: "Adnan Sami", isOnline: false, avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop" },
-    { id: 8, name: "Rakib Ahmed", isOnline: true, avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop" },
-    { id: 9, name: "Jubayer Hossain", isOnline: true, avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&h=150&fit=crop" }
+   const initialFriend = [
+    { name: "Arman Islam", isOnline: true, avatar: "https://i.ibb.co.com/21nZN8vq/Annotation-2026-02-17-13414.png" },
+    { name: "Osamabin Somrat", isOnline: false, avatar: "https://i.ibb.co.com/JFCXxgD6/Annotation-2026-02-17-152124.png" },
+    { name: "Sabbir Hossain", isOnline: true, avatar: "https://i.ibb.co.com/DHkWSP4k/Annotation-2026-02-17-134327.png" },
+    { name: "Lima Akther", isOnline: false, avatar: "https://i.ibb.co.com/zWzn0xZY/lima.jpg" },
+    { name: "Tangila Khatun", isOnline: true, avatar: "https://i.ibb.co.com/fGCLJsPw/images-tangida.jpg" },
+    { name: "China Akther", isOnline: true, avatar: "https://i.ibb.co.com/XrP39Qhv/images-c.jpg" },
+    { name: "Sakib Hossain", isOnline: true, avatar: "https://i.ibb.co.com/tMTKSKYw/sakib.jpg" },
+    { name: "Rakib Ahamed", isOnline: true, avatar: "https://i.ibb.co.com/9HJsM6YW/rakib.jpg" },
+    { name: "Nlaoy khan", isOnline: true, avatar: "https://i.ibb.co.com/BVLf3YZP/nalyo.jpg" },
   ];
 
-  //localstorage
-  const [friends, setFriends] = useState(() => {
-    const saved = localStorage.getItem('desh_chat_v101');
-    return saved ? JSON.parse(saved) : defaultFriends;
+   const [friends, setFriends] = useState(() => {
+    const saved = localStorage.getItem("friends");
+    return saved ? JSON.parse(saved) : initialFriend;
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [imagePreview, setImagePreview] = useState(null);
-  const [activeMenuId, setActiveMenuId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-
-  useEffect(() => {
-    localStorage.setItem('desh_chat_v101', JSON.stringify(friends));
-  }, [friends]);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddFriend = () => {
-    if (!newName.trim()) return;
-    const newFriend = { id: Date.now(), name: newName, isOnline: true, avatar: imagePreview };
-    setFriends([newFriend, ...friends]);
-    setNewName("");
-    setImagePreview(null);
-    setIsModalOpen(false);
-    setCurrentPage(1);
-  };
-
-  const toggleStatus = (id) => {
-    setFriends(friends.map(f => f.id === id ? { ...f, isOnline: !f.isOnline } : f));
-    setActiveMenuId(null);
-  };
-
-  const removeFriend = (id) => {
-    setFriends(friends.filter(f => f.id !== id));
-    setActiveMenuId(null);
-  };
-
   const totalPages = Math.ceil(friends.length / itemsPerPage);
   const currentFriends = friends.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingFriendIndex, setEditingFriendIndex] = useState(null);
+  const [friendName, setFriendName] = useState("");
+  const [friendAvatar, setFriendAvatar] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".dropdown")) {
+        setActiveMenu(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const openAddModal = () => {
+    setEditingFriendIndex(null);
+    setFriendName("");
+    setFriendAvatar(null);
+    setShowModal(true);
+  };
+
+  const openEditModal = (index) => {
+    setEditingFriendIndex(index);
+    setFriendName(friends[index].name);
+    setFriendAvatar(null);
+    setShowModal(true);
+  };
+
+  const handleSaveFriend = () => {
+    if (!friendName.trim()) return;
+    let updated = [...friends];
+    if (editingFriendIndex !== null) {
+      updated[editingFriendIndex] = {
+        ...updated[editingFriendIndex],
+        name: friendName,
+        avatar: friendAvatar ? URL.createObjectURL(friendAvatar) : updated[editingFriendIndex].avatar,
+      };
+    } else {
+      const newFriend = {
+        name: friendName,
+        isOnline: true,
+        avatar: friendAvatar ? URL.createObjectURL(friendAvatar) : `https://i.pravatar.cc/150?img=${Math.floor(Math.random()*70)}`,
+      };
+      updated = [newFriend, ...updated];
+    }
+    setFriends(updated);
+    localStorage.setItem("friends", JSON.stringify(updated));
+    setShowModal(false);
+    setFriendName("");
+    setFriendAvatar(null);
+  };
+
+  const handleDeleteFriend = (index) => {
+    const updated = friends.filter((_, i) => i !== index);
+    setFriends(updated);
+    localStorage.setItem("friends", JSON.stringify(updated));
+  };
+
   return (
-    <div className="flex-1 bg-gray-50 dark:bg-gray-950 p-6 min-h-screen font-sans">
-      
-      {/* Header Section*/}
-      <div className="flex justify-between items-center mb-10 max-w-7xl mx-auto">
+     <div className="flex-1 p-6 min-h-screen">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold dark:text-white text-primary tracking-tight">Friends</h1>
-          <p className="text-black text-sm font-medium mt-1">Total {friends.length} active connections</p>
+          <h1 className="text-2xl font-bold">Friends</h1>
+          <p className="text-sm text-gray-500">Manage your friends</p>
         </div>
-        
-        {/* right side add fnd */}
-        <button 
-          onClick={() => setIsModalOpen(true)} 
-          className="bg-primary text-white px-6 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-blue-200 dark:shadow-none active:scale-95 font-bold"
-        >
-          <UserPlus size={20} /> <span className="hidden sm:inline text-pretty">Add Friend</span>
+        <button onClick={openAddModal} className="flex items-center gap-2 btn btn-primary bg-primary hover:bg-secondary  px-4 py-2 rounded-lg text-sm shadow">
+          <UserPlus size={18} /> Add Friend
         </button>
       </div>
+           {/** friend card */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+        {currentFriends.map((friend, index) => (
+          <div
+            key={index}
+            className="relative rounded-2xl p-5  shadow-sm hover:shadow-primary transition bg-base-200 r"
+          >
+            <span
+              className={`absolute top-3 left-3 text-xs font-semibold ${
+                friend.isOnline ? "text-green-500" : "text-gray-400"
+              }`}
+            >
+              {friend.isOnline ? "Online" : "Offline"}
+            </span>
 
-      {/* Friends Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-        {currentFriends.map((friend) => (
-          <div key={friend.id} className="group relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[32px] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            
-            {/* Options Menu */}
-            <div className="flex justify-end relative z-10">
-              <button 
-                onClick={() => setActiveMenuId(activeMenuId === friend.id ? null : friend.id)} 
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            <div className="absolute top-3 right-3 dropdown">
+              <button
+                onClick={() => setActiveMenu(activeMenu === index ? null : index)}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <MoreVertical size={20}/>
+                <MoreVertical size={18} />
               </button>
-              
-              {activeMenuId === friend.id && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setActiveMenuId(null)}></div>
-                  <div className="absolute right-0 mt-10 w-48 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl shadow-2xl z-20 py-2 animate-in fade-in zoom-in duration-200">
-                    <button onClick={() => toggleStatus(friend.id)} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
-                      {friend.isOnline ? <><Moon size={18} className="text-amber-500"/> Go Offline</> : <><Globe size={18} className="text-green-500"/> Go Online</>}
-                    </button>
-                    <div className="h-px bg-gray-100 dark:bg-gray-700 my-1 mx-2"></div>
-                    <button onClick={() => removeFriend(friend.id)} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                      <UserMinus size={18} /> Unfriend
-                    </button>
-                  </div>
-                </>
+
+              {activeMenu === index && (
+                <div className="absolute right-0 top-6 w-18  rounded-lg shadow-md text-sm bg-gray-100 z-10">
+                  <button
+                    onClick={() => openEditModal(index)}
+                    className="w-full px-3 py-1.5 hover:bg-gray-200 flex items-center gap-2 text-gray-900"
+                  >
+                    <Edit2 size={16} /> Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteFriend(index)}
+                    className="w-full px-3 py-1.5 hover:bg-red-200 text-red-500 flex items-center gap-2"
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                </div>
               )}
             </div>
-
-            {/* Profile info */}
-            <div className="flex flex-col items-center -mt-4 mb-8">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-blue-100 dark:from-blue-900 dark:to-gray-800 rounded-full p-1 shadow-inner">
-                  <div className="w-full h-full bg-white dark:bg-gray-900 rounded-full overflow-hidden flex items-center justify-center">
-                    {friend.avatar ? (
-                      <img src={friend.avatar} alt={friend.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-blue-600 dark:text-blue-400 font-black text-3xl">{friend.name[0]}</span>
-                    )}
-                  </div>
-                </div>
-                <div className={`absolute bottom-1 right-1 w-5 h-5 border-4 border-white dark:border-gray-900 rounded-full shadow-sm ${friend.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-              </div>
-              <h3 className="mt-5 font-bold text-gray-900 dark:text-gray-100 text-lg tracking-tight truncate w-full text-center px-2">{friend.name}</h3>
-              <p className={`text-[11px] font-extrabold uppercase mt-1 tracking-widest ${friend.isOnline ? 'text-green-500' : 'text-gray-400'}`}>
-                {friend.isOnline ? 'Online Now' : 'Offline'}
-              </p>
+                {/* profile */}
+            <div className="flex flex-col items-center mt-6">
+              <img
+                src={friend.avatar}
+                alt={friend.name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+              />
+              <h3 className="mt-3 font-semibold text-center text-gray-500">
+                {friend.name}
+              </h3>
             </div>
+                 {/* button  */}
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <button className="relative overflow-hidden px-6 py-2.5 rounded-2xl btn btn-primary  bg-primary group cursor-pointer">
+                <span className="relative z-10 flex items-center gap-2">
+                  <Phone size={16} /> Call
+                </span>
+                <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
+              </button>
 
-            {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 ml-3 mt-auto overflow-hidden">
-  
-  {/* 1st Button Call */}
-  <button className="relative group/call overflow-hidden flex items-center justify-center gap-2 px-2 py-3 bg-white rounded-2xl cursor-pointer border-none">
-    <span className="relative z-10 text-secondary group-hover/call:text-white transition-colors duration-300 flex items-center gap-1 sm:gap-2">
-      <Phone size={18} />
-      <span className="text-sm sm:text-base">Call</span>
-    </span>
-    <span className="absolute inset-0 bg-secondary -translate-y-full group-hover/call:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-  </button>
-
-  {/* 2nd Button Chat */}
-  <button className="relative group/chat isolate overflow-hidden px-2 py-3 rounded-2xl text-white bg-primary cursor-pointer border-none outline-none flex items-center justify-center">
-    <span className="relative z-30 flex items-center justify-center gap-1 sm:gap-2 pointer-events-none w-full">
-      <MessageSquare size={18} className="shrink-0 group-hover/chat:scale-110 transition-transform duration-300" />
-      <span className="font-medium text-sm sm:text-base whitespace-nowrap">Chat</span>
-    </span>
-    <span className="absolute inset-0 bg-secondary -translate-y-full group-hover/chat:translate-y-0 transition-transform duration-300 ease-in-out z-10"></span>
-  </button>
-
-</div>
+              <button className="relative overflow-hidden border btn btn-primary border-gray-200 flex items-center gap-2 px-2 py-2 bg-white rounded-2xl group cursor-pointer">
+                <span className="relative z-10 text-secondary group-hover:text-white transition-colors duration-300 flex items-center gap-2">
+                  <MessageSquare size={20} /> Chat
+                </span>
+                <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
+       {/* Page couunt */}
       {totalPages > 1 && (
-        <div className="mt-16 flex justify-center pb-10">
-          <div className="flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2 rounded-full shadow-lg">
-            <button 
+        <div className="flex justify-center  mt-8">
+          <div className="flex items-center gap-2 bg-white border border-gray-300 shadow-sm hover:shadow-primary  rounded-full  p-1">
+            <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(prev => prev - 1)}
-              className="p-2 text-gray-400 hover:text-blue-600 disabled:opacity-20 transition-colors"
+              className="px-4 py-2 rounded-full border border-transparent   hover:bg-gray-100 disabled:opacity-40 text-gray-700 transition"
             >
-              <ChevronLeft size={22} />
+              Prev
             </button>
-            <div className="flex gap-1 px-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button 
-                  key={i + 1} 
-                  onClick={() => setCurrentPage(i + 1)} 
-                  className={`w-10 h-10 rounded-full text-sm font-bold transition-all ${
-                    currentPage === i + 1 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button 
+
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-4 py-2 rounded-full border border-transparent transition ${
+                  currentPage === i + 1
+                    ? "bg-primary text-white shadow-lg"
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(prev => prev + 1)}
-              className="p-2 text-gray-400 hover:text-blue-600 disabled:opacity-20 transition-colors"
+              className="px-4 py-2 rounded-full border border-transparent hover:bg-gray-100 disabled:opacity-40 text-gray-700 transition"
             >
-              <ChevronRight size={22} />
+              Next
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[40px] shadow-2xl p-8 animate-in slide-in-from-bottom-4 duration-300">
-            <div className="flex justify-between items-center mb-8">
-             <h2 className="text-2xl font-black text-primary dark:text-black">New Friend</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-500"><X size={20}/></button>
-            </div>
-            
-            <div className="flex flex-col items-center mb-8">
-              <label className="relative cursor-pointer group">
-                <div className="w-28 h-28 rounded-full border-4 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden group-hover:border-blue-500 transition-all">
-                  {imagePreview ? (
-                    <img src={imagePreview} className="w-full h-full object-cover" alt="preview" />
-                  ) : (
-                    <div className="text-center text-gray-400 flex flex-col items-center">
-                      <Camera size={32} />
-                      <span className="text-[11px] uppercase font-black mt-2 tracking-tighter">Add Photo</span>
-                    </div>
-                  )}
-                </div>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-              </label>
-            </div>
 
-          {/*  Name Input Field */}
-<input 
-  type="text" 
-  placeholder="Full Name" 
-  className="w-full p-5 bg-gray-100 dark:bg-gray-800 border-none rounded-3xl outline-none mb-6 text-black dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all font-semibold"
-  value={newName}
-  onChange={(e) => setNewName(e.target.value)}
-/>
-            <button 
-              onClick={handleAddFriend} 
-              className="w-full bg-primary text-white py-5 rounded-3xl font-black text-lg hover:bg-secondary shadow-xl shadow-blue-200 dark:shadow-none transition-all active:scale-[0.98]"
-            >
-              Connect Now
-            </button>
+     {/* friend  add modal*/}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg p-6 w-80 text-gray-900">
+            <h2 className="text-lg font-bold mb-4">{editingFriendIndex !== null ? "Edit Friend" : "Add Friend"}</h2>
+
+            <input
+              type="text"
+              placeholder="Friend Name"
+              value={friendName}
+              onChange={e => setFriendName(e.target.value)}
+              className="w-full border px-3 py-2 rounded-2xl mb-3  bg-white text-gray-900 placeholder-gray-400"
+            />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setFriendAvatar(e.target.files[0])}
+              className="w-full border px-3 py-2 rounded-2xl mb-3 bg-white text-gray-900 placeholder-gray-400"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-900">Cancel</button>
+              <button onClick={handleSaveFriend} className="px-4 py-2 rounded bg-primary text-white hover:bg-secondary">Save</button>
+            </div>
           </div>
         </div>
       )}
