@@ -1,21 +1,21 @@
-import User from "../models/User";
+import User from "../models/User.js";
 
 export const sendRequest = async (req, res) => {
   const { senderId, receiverId } = req.body;
 
   //checking existing friends
-    const receiver = await User.findById(receiverId);
-    
-    //block checker
-    const isBlocked = receiver.friends.find(f => f.user.toString() === senderId && f.status === 'blocked')
-    
-    if (isBlocked) {
-        return res
-          .status(403)
-          .json({ message: "User unavailable." });
-    }
+  const receiver = await User.findById(receiverId);
 
-    // existed friends checker
+  //block checker
+  const isBlocked = receiver.friends.find(
+    (f) => f.user.toString() === senderId && f.status === "blocked",
+  );
+
+  if (isBlocked) {
+    return res.status(403).json({ message: "User unavailable." });
+  }
+
+  // existed friends checker
   const alreadyExists = receiver.friends.find(
     (f) => f.user.toString() === senderId,
   );
@@ -55,8 +55,8 @@ export const sendRequest = async (req, res) => {
 };
 
 export const updateRequest = async (req, res) => {
-    const { userId, friendId, action } = req.body;
-    
+  const { userId, friendId, action } = req.body;
+
   if (action === "rejected" || action === "delete") {
     await User.updateOne(
       { _id: userId },
