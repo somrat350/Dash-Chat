@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Phone, MessageSquare, MoreVertical, UserPlus, Edit2, Trash2 } from "lucide-react";
+import FriendProfileModal from "../../components/dashboard/messages/FriendProfileModal";
 
 const Friends = () => {
 
@@ -30,6 +31,7 @@ const Friends = () => {
   const [editingFriendIndex, setEditingFriendIndex] = useState(null);
   const [friendName, setFriendName] = useState("");
   const [friendAvatar, setFriendAvatar] = useState(null);
+  const [selectedFriend, setSelectedFriend] = useState(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -98,9 +100,11 @@ const Friends = () => {
       </div>
            {/** friend card */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+
         {currentFriends.map((friend, index) => (
           <div
             key={index}
+             onClick={() => setSelectedFriend(friend)}
             className="relative rounded-2xl p-5  shadow-sm hover:shadow-primary transition bg-base-200 r"
           >
             <span
@@ -150,14 +154,15 @@ const Friends = () => {
             </div>
                  {/* button  */}
             <div className="grid grid-cols-2 gap-2 mt-4">
-              <button className="relative overflow-hidden px-6 py-2.5 rounded-2xl btn btn-primary  bg-primary group cursor-pointer">
+              <button  onClick={(e) => e.stopPropagation()} className="relative overflow-hidden px-6 py-2.5 rounded-2xl btn btn-primary  bg-primary group cursor-pointer">
+               
                 <span className="relative z-10 flex items-center gap-2">
                   <Phone size={16} /> Call
                 </span>
                 <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
               </button>
 
-              <button className="relative overflow-hidden border btn btn-primary border-gray-200 flex items-center gap-2 px-2 py-2 bg-white rounded-2xl group cursor-pointer">
+              <button  onClick={(e) => e.stopPropagation()} className="relative overflow-hidden border btn btn-primary border-gray-200 flex items-center gap-2 px-2 py-2 bg-white rounded-2xl group cursor-pointer">
                 <span className="relative z-10 text-secondary group-hover:text-white transition-colors duration-300 flex items-center gap-2">
                   <MessageSquare size={20} /> Chat
                 </span>
@@ -167,6 +172,14 @@ const Friends = () => {
           </div>
         ))}
       </div>
+
+      {/* friend modal  */}
+       {selectedFriend && (
+  <FriendProfileModal
+    friend={selectedFriend}
+    onClose={() => setSelectedFriend(null)}
+  />
+)}
 
        {/* Page couunt */}
       {totalPages > 1 && (
