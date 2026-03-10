@@ -22,7 +22,6 @@ const Chats = () => {
   });
 
   if (chatPartnersLoading) return <ComponentsLoader />;
-  console.log(chatPartners);
 
   return (
     <div>

@@ -43,7 +43,6 @@ export const getChatPartners = async (req, res) => {
     const chatPartners = await User.find({
       _id: { $in: chatPartnersId },
     }).select("-password");
-    console.log(chatPartners);
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
@@ -61,7 +60,8 @@ export const getMessagesByUserId = async (req, res) => {
         { senderId: userId, receiverId: loggedInUserId },
       ],
     }).populate("replyTo");
-    res.status(200).json(messages);
+    const partner = await User.findById(userId).select("-password");
+    res.status(200).json({ messages, partner });
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Internal server error" });

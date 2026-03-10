@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from "react-router";
 import {
   BellIcon,
   HomeIcon,
+  LucidePhone,
   MessagesSquare,
   PanelLeft,
   Settings,
@@ -27,6 +28,11 @@ const DashboardLayout = () => {
       title: "Chats",
       link: "/dashboard/chats",
       icon: <MessagesSquare className="size-5" />,
+    },
+    {
+      title: "Calls",
+      link: "/dashboard/calls",
+      icon: <LucidePhone className="size-5" />,
     },
     {
       title: "Notifications",

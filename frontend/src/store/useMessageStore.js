@@ -31,15 +31,12 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  getMessagesByUserEmail: async (userEmail) => {
+  getMessagesByUserId: async (userId) => {
     try {
-      set({ isMessagesLoading: true });
-      const res = await axiosSecure.get(`/api/messages/chats/${userEmail}`);
-      set({ messages: res.data });
+      const res = await axiosSecure.get(`/api/messages/chats/${userId}`);
+      return res.data;
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to load messages");
-    } finally {
-      set({ isMessagesLoading: false });
     }
   },
 
