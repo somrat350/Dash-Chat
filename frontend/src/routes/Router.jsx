@@ -6,17 +6,18 @@ import Register from "../pages/auth/Register";
 import About from "../pages/public/About";
 import Login from "../pages/auth/Login";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import ChatLayout from "../layout/ChatLayout";
 import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
+import ChatHome from "../pages/conversation/chat/ChatHome";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
-import DashboardLayout from "../layout/DashboardLayout";
-import DashHome from "../pages/dashboard/DashHome";
-import Friends from "../pages/dashboard/Friends";
-import Chats from "../pages/dashboard/Chats";
-import Notifications from "../pages/dashboard/Notifications";
-import Profile from "../pages/dashboard/Profile";
-import Settings from "../pages/dashboard/Settings";
+import ProfilePage from "../pages/conversation/Profile";
+import SettingPage from "../pages/conversation/chat/Setting";
+import Channel from "../pages/conversation/chat/Channel";
+import CallsLayout from "../layout/CallsLayout";
+import Community from "../pages/conversation/chat/Community";
+import Calls from "../components/conversation/calls/Calls";
 
 const router = createBrowserRouter([
   {
@@ -64,36 +65,58 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/dashboard",
+    path: "/conversation",
     element: (
       <ProtectedRoute>
-        <DashboardLayout />
+        <ChatLayout />
       </ProtectedRoute>
     ),
     children: [
       {
         index: true,
-        Component: DashHome,
+        Component: ChatHome,
       },
       {
-        path: "friends",
-        Component: Friends,
-      },
-      {
-        path: "chats",
-        Component: Chats,
-      },
-      {
-        path: "notifications",
-        Component: Notifications,
+        path: "chat",
+        Component: ChatHome,
       },
       {
         path: "profile",
-        Component: Profile,
+        element: <ProfilePage></ProfilePage>,
       },
       {
-        path: "settings",
-        Component: Settings,
+        path: "setting",
+        element: <SettingPage></SettingPage>,
+      },
+      {
+        path: "channel",
+        element: <Channel></Channel>,
+      },
+      {
+        path: "community",
+        element: <Community></Community>,
+      },
+      {
+        path: "calls",
+        element: <CallsLayout></CallsLayout>,
+        children: [
+          {
+            index: true,
+            element: <Calls mode="recent"></Calls>,
+          },
+          {
+            path: "recent",
+            element: <Calls mode="recent"></Calls>,
+          },
+          {
+            path: "missed",
+            element: <Calls mode="missed"></Calls>,
+          },
+          {
+            path: "scheduled",
+            element: <Calls mode="scheduled"></Calls>,
+          },
+        ],
       },
     ],
   },

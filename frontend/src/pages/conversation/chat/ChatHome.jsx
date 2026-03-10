@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import ChatHeader from "../../../components/conversation/chats/large-view/messages/ChatHeader";
 import EmptyChatState from "../../../components/conversation/chats/large-view/messages/EmptyChatState";
 import MessageContainer from "../../../components/conversation/chats/large-view/messages/MessageContainer";
@@ -9,13 +8,7 @@ import Home from "../../../components/conversation/chats/mobile-view/Home";
 import { useMessageStore } from "../../../store/useMessageStore";
 
 const ChatHome = () => {
-  const { selectedPartner,clearReplyMessage } = useMessageStore();
-
-  //  clear reply 
-  useEffect(() => {
-    clearReplyMessage(); 
-  }, [selectedPartner]);
-
+  const { selectedPartner } = useMessageStore();
   return (
     <>
       {/* Large view */}
