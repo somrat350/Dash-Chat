@@ -5,6 +5,7 @@ import { useAuthStore } from "./useAuthStore";
 
 export const useMessageStore = create((set, get) => ({
   selectedPartner: null,
+  replyMessage: null,
   messagePartners: [],
   messagePartnersLoading: false,
   messages: [],
@@ -48,6 +49,7 @@ export const useMessageStore = create((set, get) => ({
       set({ messagePartners: [], messagePartnersLoading: false });
     }
   },
+
   getMessagesByUserEmail: async (userEmail) => {
     try {
       set({ isMessagesLoading: true });
@@ -59,6 +61,7 @@ export const useMessageStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
+
   sendMessage: async (messageData) => {
     const { selectedPartner, messages } = get();
     try {
@@ -160,4 +163,30 @@ export const useMessageStore = create((set, get) => ({
     });
     set({ messages });
   },
+
+  // reply 
+   setReplyMessage: (msg) => set({ replyMessage: msg }),
+   clearReplyMessage: () => set({ replyMessage: null }),
+
+  //  forward 
+    forwardMessage: async (message, receiverEmail) => {
+  try {
+    const messageData = {
+      text: message.text,
+      forwarded: true,
+      originalSender: message.sender,
+    };
+    const res = await axiosSecure.post(
+      `/api/messages/send/${receiverEmail}`,
+      messageData
+    );
+    set((state) => ({
+      messages: [...state.messages, res.data],
+    }));
+  } catch (error) {
+    console.error("Forward failed", error);
+  }
+}
+
 }));
+
