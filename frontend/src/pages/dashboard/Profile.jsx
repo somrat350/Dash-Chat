@@ -1,197 +1,322 @@
-import { useState, useEffect, useRef } from "react";
-import { FiEdit2, FiCopy, FiCamera, FiLogOut } from "react-icons/fi";
+import { useState, useRef } from "react";
+import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import { useAuthStore } from "../../store/useAuthStore";
 
 export default function ProfilePage() {
-  const { authUser } = useAuthStore();
+  const {authUser } = useAuthStore();
 
   const fileRef = useRef(null);
 
-  const [profile, setProfile] = useState();
-  const [editing, setEditing] = useState(null);
-  const [temp, setTemp] = useState("");
+  // const [profilePic, setProfilePic] = useState(
+  //   "https://i.pravatar.cc/150"
+  // );
 
-  // Load saved profile
-  useEffect(() => {
-    const saved = localStorage.getItem("authUser");
-    if (saved) JSON.parse(saved);
-  }, []);
+  const [profile, setProfile] = useState({
+    name: "Michael Rodriguez",
+    title: "Product Designer",
+    location: "Los Angeles, California, USA",
+    firstName: "Michael",
+    lastName: "Rodriguez",
+    email: "rodriguez@gmail.com",
+    phone: "(213) 555-1234",
+    bio: "Product Designer"
+  });
 
-  // Save profile
-  useEffect(() => {
-    localStorage.setItem("authUser", JSON.stringify(authUser));
-  }, [authUser]);
+  const [tempProfile, setTempProfile] = useState(profile);
 
-  const startEdit = (field) => {
-    setEditing(field);
+  const [editHeader, setEditHeader] = useState(false);
+  const [editInfo, setEditInfo] = useState(false);
 
-    if (field === "name") {
-      setTemp(authUser.displayName);
-    } else {
-      setTemp(profile?.[field] || "");
-    }
+  // image click
+  const handleImageClick = () => {
+    fileRef.current.click();
   };
 
-  const saveEdit = () => {
-    setProfile({ ...profile, [editing]: temp });
-    setEditing(null);
-  };
+  // image change
+  const handleImageChange = (e) => {
 
-  const cancelEdit = () => {
-    setEditing(null);
-  };
-
-  // COPY EMAIL
-  const copyEmail = () => {
-    navigator.clipboard.writeText(authUser.email);
-    alert("Email copied!");
-  };
-
-  const changeImage = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      (imageUrl);
+    }
 
-    reader.onload = () => {
-      setProfile({ ...profile, image: reader.result });
-    };
-
-    reader.readAsDataURL(file);
   };
 
-  // const logout = () => {
-  //   localStorage.removeItem("profile");
-  //   alert("Logged out");
-  // };
+  // input change
+  const handleChange = (e) => {
+    setTempProfile({
+      ...tempProfile,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // save header
+  const saveHeader = () => {
+    setProfile(tempProfile);
+    setEditHeader(false);
+  };
+
+  // save personal info
+  const saveInfo = () => {
+    setProfile(tempProfile);
+    setEditInfo(false);
+  };
+
+  // cancel edit
+  const cancelEdit = () => {
+    setTempProfile(profile);
+    setEditHeader(false);
+    setEditInfo(false);
+  };
 
   return (
-    <div className="max-w-lg mx-auto p-6 space-y-6">
-      {/* PROFILE HEADER */}
 
-      <div className="bg-base-200 rounded-xl p-6 text-center shadow">
-        <div className="relative w-fit mx-auto">
-          <img
-            src={authUser.photoURL}
-            className="w-28 h-28 rounded-full object-cover"
-          />
+    <div className="p-8 bg-base-200 min-h-screen">
 
-          <button
-            onClick={() => fileRef.current.click()}
-            className="absolute bottom-0 right-0 bg-base-100 p-2 rounded-full shadow"
-          >
-            <FiCamera />
-          </button>
+      <h1 className="text-2xl font-bold mb-6">
+         Profile
+      </h1>
 
-          <input type="file" ref={fileRef} onChange={changeImage} hidden />
-        </div>
+      {/* Profile Header */}
 
-        {/* <h2 className="text-xl font-semibold mt-4">
-          {authUser.displayName}
-        </h2> */}
-      </div>
+      <div className="bg-base-100 rounded-xl p-6 flex justify-between shadow mb-6">
 
-      {/* PROFILE INFO */}
+        <div className="flex items-center gap-4">
 
-      <div className="bg-base-200 rounded-xl p-5 space-y-5 shadow">
-        <Field
-          label="Name"
-          value={authUser.displayName}
-          editing={editing === "name"}
-          temp={temp}
-          setTemp={setTemp}
-          startEdit={() => startEdit("name")}
-          save={saveEdit}
-          cancel={cancelEdit}
-        />
+          {/* Profile Image */}
 
-        {/* EMAIL WITH COPY BUTTON */}
+          <div className="relative">
 
-        <div>
-          <p className="text-sm text-gray-500">Email</p>
+            <img
+              src={authUser.photoURL}
+              className="w-20 h-20 rounded-full object-cover cursor-pointer"
+              onClick={handleImageClick}
+            />
 
-          <div className="flex items-center gap-2">
-            <p className="font-medium">{authUser.email}</p>
+            <div
+              onClick={handleImageClick}
+              className="absolute bottom-0 right-0 bg-black text-white p-1 rounded-full cursor-pointer"
+            >
+              <FiEdit2 size={14} />
+            </div>
 
-            <button onClick={copyEmail}>
-              <FiCopy size={16} />
-            </button>
+            <input
+              type="file"
+              ref={fileRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+
           </div>
+
+          {/* Profile Text */}
+
+          <div>
+
+            {editHeader ? (
+              <>
+                <input
+                  name="name"
+                  value={authUser.displayName}
+                  onChange={handleChange}
+                  className="input input-bordered mb-1"
+                />
+
+                <input
+                  name="title"
+                  value={tempProfile.title}
+                  onChange={handleChange}
+                  className="input input-bordered mb-1"
+                />
+
+                <input
+                  name="location"
+                  value={tempProfile.location}
+                  onChange={handleChange}
+                  className="input input-bordered"
+                />
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold">
+                  {authUser.displayName}
+                </h2>
+
+                <p className="text-gray-500 text-sm">
+                  {profile.title}
+                </p>
+
+                <p className="text-gray-400 text-sm">
+                  {profile.location}
+                </p>
+              </>
+            )}
+
+          </div>
+
         </div>
-      </div>
 
-      {/* SETTINGS */}
-
-      {/* <div className="bg-base-200 rounded-xl p-5 space-y-2 shadow">
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Notifications
-        </button>
-
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Privacy
-        </button>
-
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Security
-        </button>
-      </div> */}
-
-      {/* LOGOUT */}
-
-      {/* <button
-        onClick={logout}
-        className="flex items-center gap-2 text-red-500"
-      >
-        <FiLogOut />
-        Logout
-      </button> */}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  editing,
-  temp,
-  setTemp,
-  startEdit,
-  save,
-  cancel,
-}) {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-1">
-        <p className="text-sm text-gray-500">{label}</p>
-
-        {!editing ? (
-          <button onClick={startEdit}>
-            <FiEdit2 size={16} />
+        {!editHeader ? (
+          <button
+            onClick={() => setEditHeader(true)}
+            className="flex items-center gap-2 border px-4 py-2 rounded-2xl"
+          >
+            <FiEdit2 /> Edit
           </button>
         ) : (
-          <div className="flex gap-3 text-sm">
-            <button onClick={save} className="text-green-500">
-              Save
+          <div className="flex gap-2">
+
+            <button
+              onClick={saveHeader}
+              className="flex items-center gap-2 bg-primary text-white px-3 py-2 rounded"
+            >
+              <FiSave /> Save
             </button>
 
-            <button onClick={cancel} className="text-red-500">
-              Cancel
+            <button
+              onClick={cancelEdit}
+              className="flex items-center gap-2 border px-3 py-2 rounded"
+            >
+              <FiX /> Cancel
             </button>
+
           </div>
         )}
+
       </div>
 
-      {!editing ? (
-        <p className="font-medium">{value}</p>
-      ) : (
-        <input
-          value={temp}
-          onChange={(e) => setTemp(e.target.value)}
-          className="border rounded p-2 w-full"
-        />
-      )}
+      {/* Personal Information */}
+
+      <div className="bg-base-100 rounded-xl p-6 shadow">
+
+        <div className="flex justify-between mb-6">
+
+          <h2 className="text-lg font-semibold">
+            Personal Information
+          </h2>
+
+          {!editInfo ? (
+            <button
+              onClick={() => setEditInfo(true)}
+              className="flex items-center gap-2 border px-4 py-2 rounded-xl"
+            >
+              <FiEdit2 /> Edit
+            </button>
+          ) : (
+            <div className="flex gap-2">
+
+              <button
+                onClick={saveInfo}
+                className="bg-primary text-white px-3 py-2 rounded flex gap-2 items-center"
+              >
+                <FiSave /> Save
+              </button>
+
+              <button
+                onClick={cancelEdit}
+                className="border px-3 py-2 rounded flex gap-2 items-center"
+              >
+                <FiX /> Cancel
+              </button>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* Grid Fields */}
+
+        <div className="grid md:grid-cols-2 gap-6">
+
+          <Field
+            label="First Name"
+            name="firstName"
+            value={editInfo ? authUser.displayName : authUser.displayName}
+            editing={editInfo}
+            handleChange={handleChange}
+          />
+
+          <Field
+            label="Last Name"
+            name="lastName"
+            value={editInfo ? tempProfile.lastName : profile.lastName}
+            editing={editInfo}
+            handleChange={handleChange}
+          />
+
+          <Field
+            label="Email"
+            name="email"
+            value={editInfo ? authUser.email : authUser.email}
+            editing={editInfo}
+            handleChange={handleChange}
+          />
+
+          <Field
+            label="Phone"
+            name="phone"
+            value={editInfo ? tempProfile.phone : profile.phone}
+            editing={editInfo}
+            handleChange={handleChange}
+          />
+
+        </div>
+
+        {/* Bio */}
+
+        <div className="mt-6">
+
+          <label className="text-sm text-gray-500">
+            Bio
+          </label>
+
+          {editInfo ? (
+            <textarea
+              name="bio"
+              value={tempProfile.bio}
+              onChange={handleChange}
+              className="textarea textarea-bordered w-full mt-1"
+            />
+          ) : (
+            <p className="mt-1">
+              {profile.bio}
+            </p>
+          )}
+
+        </div>
+
+      </div>
+
     </div>
   );
 }
 
 
+function Field({ label, name, value, editing, handleChange }) {
+
+  return (
+    <div>
+
+      <label className="text-sm text-gray-500">
+        {label}
+      </label>
+
+      {editing ? (
+        <input
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className="input input-bordered w-full mt-1"
+        />
+      ) : (
+        <p className="mt-1">
+          {value}
+        </p>
+      )}
+
+    </div>
+  );
+}
