@@ -172,24 +172,6 @@ const MessageBubble = ({ message, authUser }) => {
 
         {/* delet modal  */}
 
-<<<<<<< HEAD
-        {showDeleteModal && (
-          <DeleteModal
-            isSender={isMe}
-            onDeleteForMe={() => {
-              deleteMessage(message._id, "me", authUser.email);
-              setShowDeleteModal(false);
-              setShowDropdown(false);
-            }}
-            onDeleteForEveryone={() => {
-              deleteMessage(message._id, "everyone", authUser.email);
-              setShowDeleteModal(false);
-              setShowDropdown(false);
-            }}
-            onCancel={() => setShowDeleteModal(false)}
-          />
-        )}
-=======
   {showDeleteModal && (
   <DeleteModal
     isSender={isMe}
@@ -214,7 +196,6 @@ const MessageBubble = ({ message, authUser }) => {
     onClose={() => setShowForwardModal(false)}
   />
 )}
->>>>>>> ad328cb (Implement Forward feature)
       </div>
     </div>
   );
