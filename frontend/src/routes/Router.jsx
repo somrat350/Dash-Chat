@@ -17,6 +17,8 @@ import Chats from "../pages/dashboard/Chats";
 import Notifications from "../pages/dashboard/Notifications";
 import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
+import Messages from "../pages/dashboard/Messages";
+import Calls from "../pages/dashboard/Calls";
 
 const router = createBrowserRouter([
   {
@@ -82,6 +84,14 @@ const router = createBrowserRouter([
       {
         path: "chats",
         Component: Chats,
+      },
+      {
+        path: "chats/:id",
+        Component: Messages,
+      },
+      {
+        path: "calls",
+        Component: Calls,
       },
       {
         path: "notifications",
