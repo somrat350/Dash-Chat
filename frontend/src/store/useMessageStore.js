@@ -4,16 +4,14 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
 export const useMessageStore = create((set, get) => ({
-  selectedPartner: null,
   replyMessage: null,
   messages: [],
   isMessagesLoading: false,
   isMessageSending: false,
+  isUserLoading: false,
 
   newChatSearchLoading: false,
   newChatSearchResults: [],
-
-  setSelectedPartner: (selectedPartner) => set({ selectedPartner }),
 
   searchNewChat: async (srcQuery) => {
     try {
@@ -31,40 +29,55 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  getMessagesByUserId: async (userId) => {
+  getUserById: async (userId) => {
     try {
-      const res = await axiosSecure.get(`/api/messages/chats/${userId}`);
+      set({ isUserLoading: true });
+      const res = await axiosSecure.get(`/api/users/${userId}`);
       return res.data;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to load messages");
+      toast.error(error?.response?.data?.message || "Failed to load user");
+    } finally {
+      set({ isUserLoading: false });
     }
   },
 
-  sendMessage: async (messageData) => {
-    const { selectedPartner, messages } = get();
+  getMessagesByUserId: async (userId) => {
+    try {
+      set({ isMessagesLoading: true });
+      const res = await axiosSecure.get(`/api/messages/chats/${userId}`);
+      set({ messages: res.data });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to load messages");
+    } finally {
+      set({ isMessagesLoading: false });
+    }
+  },
+
+  sendMessage: async (receiverId, messageData) => {
     try {
       set({ isMessageSending: true });
-      const res = await axiosSecure.post(
-        `/api/messages/send/${selectedPartner._id}`,
-        messageData,
-      );
-      set({ messages: [...messages, res.data] });
+      await axiosSecure.post(`/api/messages/send/${receiverId}`, messageData);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send message");
     } finally {
       set({ isMessageSending: false });
     }
   },
-  subscribeToMessage: () => {
-    const { selectedPartner } = get();
+
+  subscribeToMessage: (selectedPartner) => {
     if (!selectedPartner) return;
 
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+
+    socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedPartner =
-        newMessage.sender === selectedPartner.email;
-      if (!isMessageSentFromSelectedPartner) return;
+      const isChatMessage =
+        newMessage.senderId === selectedPartner ||
+        newMessage.receiverId === selectedPartner;
+
+      if (!isChatMessage) return;
 
       const currentMessages = get().messages;
       set({ messages: [...currentMessages, newMessage] });
@@ -76,8 +89,10 @@ export const useMessageStore = create((set, get) => ({
         .catch((e) => console.log("Audio play failed:", e));
     });
   },
+
   unsubscribeFromMessage: () => {
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
     socket.off("newMessage");
   },
 
