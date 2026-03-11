@@ -1,51 +1,66 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import FriendRequest from "../models/FriendRequest.js";
+
+export async function getMyFriends(req, res) {
+  try {
+    const user = await User.findById(req.user._id)
+      .select("friends")
+      .populate("friends", "name photoURL bio");
+
+    res.status(200).json(user.friends);
+  } catch (error) {
+    console.error("Error in getMyFriends controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
 
 export const sendRequest = async (req, res) => {
-  const { senderId, receiverId } = req.body;
+  const senderId = req.user._id;
+  const { receiverId } = req.params;
 
-  //checking existing friends
-  const receiver = await User.exists({ _id: receiverId });
+  // prevent sending req to yourself
+  if (senderId === receiverId) {
+    return res
+      .status(400)
+      .json({ message: "You can't send friend request to yourself" });
+  }
+
+  //checking existing user
+  const receiver = await User.findById(receiverId);
   if (!receiver) {
     return res.status(404).json({
-      message: "User Not Availavle",
+      message: "User Not Available.",
     });
   }
 
-  //block checker
-  const isBlocked = await User.exists({
-    _id: receiverId,
-    friends: { $elemMatch: { user: senderId, status: "blocked" } },
-  });
-
-  if (isBlocked) {
-    return res.status(403).json({ message: "User unavailable." });
+  // check if user is already friends
+  if (recipient.friends.includes(myId)) {
+    return res
+      .status(400)
+      .json({ message: "You are already friends with this user" });
   }
 
-  // existed friends checker
-  const alreadyExists = await User.exists({
-    _id: receiverId,
-    friends: { $elemMatch: { user: senderId } },
+  // check if a req already exists
+  const existingRequest = await FriendRequest.findOne({
+    $or: [
+      { sender: senderId, recipient: receiverId },
+      { sender: receiverId, recipient: senderId },
+    ],
   });
 
-  if (alreadyExists) {
+  if (existingRequest) {
     return res.status(400).json({
-      message: "Request already pending or users are already friends",
+      message: "A friend request already exists between you and this user",
     });
   }
-  //pushing to receiver user
-  await Promise.all([
-    User.findByIdAndUpdate(receiverId, {
-      $addToSet: { friends: { user: senderId, status: "pending" } },
-    }),
-    User.findByIdAndUpdate(senderId, {
-      $addToSet: { friends: { user: receiverId, status: "pending" } },
-    }),
-  ]);
 
-  res.status(200).json({
-    message: "Request has been sent successfully",
+  const friendRequest = await FriendRequest.create({
+    sender: senderId,
+    recipient: receiverId,
   });
+
+  res.status(200).json(friendRequest);
 };
 
 export const updateRequest = async (req, res) => {
@@ -66,19 +81,19 @@ export const updateRequest = async (req, res) => {
       .status(200)
       .json({ message: `Request has been ${action} successfully` });
   } else if (action === "blocked") {
-    await  User.updateOne(
-        { _id: userId, friends: {$elemMatch:{user: friendId}} },
-        { $set: { "friends.$.status": "blocked" } },
-      )
+    await User.updateOne(
+      { _id: userId, friends: { $elemMatch: { user: friendId } } },
+      { $set: { "friends.$.status": "blocked" } },
+    );
     return res.status(200).json({ message: "User has been blocked" });
   } else if (action === "accepted") {
     await Promise.all([
       User.updateOne(
-        { _id: userId, friends: {$elemMatch:{user: friendId}} },
+        { _id: userId, friends: { $elemMatch: { user: friendId } } },
         { $set: { "friends.$.status": "accepted" } },
       ),
       User.updateOne(
-        { _id: friendId, friends: {$elemMatch:{user: userId}} },
+        { _id: friendId, friends: { $elemMatch: { user: userId } } },
         { $set: { "friends.$.status": "accepted" } },
       ),
     ]);
@@ -89,7 +104,6 @@ export const updateRequest = async (req, res) => {
     return res.status(400).json({ message: `Invalid action: "${action}".` });
   }
 };
-
 
 ///scaled with ai , need to work no this in the feature
 export const acceptedFriendRequests = async (req, res) => {
@@ -108,7 +122,7 @@ export const acceptedFriendRequests = async (req, res) => {
     // 2. Deconstruct the friends array into individual documents
     { $unwind: "$friends" },
 
-    // 3. Filter to only "accepted" entries 
+    // 3. Filter to only "accepted" entries
     { $match: { "friends.status": "accepted" } },
 
     // 4. Join the friend's user document for profile details
@@ -116,12 +130,10 @@ export const acceptedFriendRequests = async (req, res) => {
       $lookup: {
         from: "users", // the underlying collection name for User model
         localField: "friends.user",
-        
+
         foreignField: "_id",
         as: "friends.userDetails",
-        pipeline: [
-          { $project: { name: 1, email: 1, photoURL: 1 } },
-        ],
+        pipeline: [{ $project: { name: 1, email: 1, photoURL: 1 } }],
       },
     },
 

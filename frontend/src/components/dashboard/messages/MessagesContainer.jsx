@@ -47,7 +47,7 @@ const MessagesContainer = () => {
               <div
                 className={`chat-bubble relative ${
                   msg.senderId === authUser._id
-                    ? "bg-primary/30"
+                    ? "bg-slate-800 text-white"
                     : "bg-slate-500 text-white"
                 }`}
               >

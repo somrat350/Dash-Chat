@@ -25,15 +25,8 @@ const userSchema = new Schema(
     },
     friends: [
       {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        status: {
-          type: String,
-          enum: ["pending", "accepted", "rejected", "blocked"],
-          default: "pending",
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
   },
