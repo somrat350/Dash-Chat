@@ -1,12 +1,17 @@
-import express from 'express'
-import { isAuthenticated } from '../middleware/auth.middleware.js'
-import { acceptedFriendRequests, sendRequest, unblockUser, updateRequest } from '../controllers/friends.controllers.js'
+import express from "express";
+import { isAuthenticated } from "../middleware/auth.middleware.js";
+import {
+  acceptedFriendRequests,
+  sendRequest,
+  unblockUser,
+  updateRequest,
+} from "../controllers/friends.controllers.js";
 
 const friendsRouter = express.Router();
 
 friendsRouter.use(isAuthenticated);
 
-friendsRouter.post("/send", sendRequest);
+friendsRouter.post("/send/:receiverId", sendRequest);
 
 friendsRouter.patch("/update", updateRequest);
 
