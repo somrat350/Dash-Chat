@@ -12,12 +12,15 @@ import ProtectedRoute from "./ProtectedRoute";
 import ChatHome from "../pages/conversation/chat/ChatHome";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
-import ProfilePage from "../pages/conversation/Profile";
-import SettingPage from "../pages/conversation/chat/Setting";
-import Channel from "../pages/conversation/chat/Channel";
-import CallsLayout from "../layout/CallsLayout";
-import Community from "../pages/conversation/chat/Community";
-import Calls from "../components/conversation/calls/Calls";
+import DashboardLayout from "../layout/DashboardLayout";
+import DashHome from "../pages/dashboard/DashHome";
+import Friends from "../pages/dashboard/Friends";
+import Chats from "../pages/dashboard/Chats";
+import Notifications from "../pages/dashboard/Notifications";
+import Profile from "../pages/dashboard/Profile";
+import Settings from "../pages/dashboard/Settings";
+import Messages from "../pages/dashboard/Messages";
+import Calls from "../pages/dashboard/Calls";
 
 const router = createBrowserRouter([
   {
@@ -77,8 +80,24 @@ const router = createBrowserRouter([
         Component: ChatHome,
       },
       {
-        path: "chat",
-        Component: ChatHome,
+        path: "friends",
+        Component: Friends,
+      },
+      {
+        path: "chats",
+        Component: Chats,
+      },
+      {
+        path: "chats/:id",
+        Component: Messages,
+      },
+      {
+        path: "calls",
+        Component: Calls,
+      },
+      {
+        path: "notifications",
+        Component: Notifications,
       },
       {
         path: "profile",
