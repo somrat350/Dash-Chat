@@ -102,20 +102,23 @@ export const useAuthStore = create((set, get) => ({
   },
   //Reset Password
   resetPassword: async () => {},
-  connectSocket: () => {
+  connectSocket: async () => {
     const { authUser, userLoading } = get();
     if (!authUser || userLoading || get().socket?.connected) return;
     const socket = io(BASE_URL, {
       withCredentials: true,
     });
     socket.connect();
-    set({ socket });
+    socket.on("connect", () => {
+      set({ socket });
+    });
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
   },
   disconnectSocket: () => {
+    if (!get().socket) return;
     if (get().socket?.connected) get().socket.disconnect();
   },
 }));

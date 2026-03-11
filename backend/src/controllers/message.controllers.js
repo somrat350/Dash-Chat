@@ -2,6 +2,22 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
+export const recentMessages = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const messages = await Message.find({
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(12);
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const searchChatNewPartners = async (req, res) => {
   try {
     const loggedInUserEmail = req.decoded_email;
@@ -89,9 +105,17 @@ export const sendMessage = async (req, res) => {
     const savedMessage = await newMessage.save();
 
     //web socket
-    const receiverSocketId = getReceiverSocketId(receiverEmail);
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    const senderSocketId = getReceiverSocketId(loggedInUserId);
+
+    // send to receiver
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", savedMessage);
+    }
+
+    // send to sender
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("newMessage", savedMessage);
     }
 
     res.status(201).json(savedMessage);

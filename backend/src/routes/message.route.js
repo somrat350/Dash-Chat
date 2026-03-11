@@ -4,7 +4,8 @@ import {
   deleteMessage,
   editMessage,
   getChatPartners,
-  getMessagesByEmail,
+  getMessagesByUserId,
+  recentMessages,
   searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
@@ -13,6 +14,7 @@ const messageRouter = express.Router();
 
 messageRouter.use(isAuthenticated);
 
+messageRouter.get("/recentMessages", recentMessages);
 messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
 messageRouter.get("/chats/:userEmail", getMessagesByEmail);
