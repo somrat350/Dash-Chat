@@ -10,7 +10,7 @@ const Logo = () => {
           alt="DashChat Logo"
           className="inline-block w-14 h-14"
         />
-        <span className="-ms-2">DashChat</span>
+        <span className="-ms-2  ">DashChat</span>
       </Link>
     </div>
   );
