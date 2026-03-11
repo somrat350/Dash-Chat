@@ -34,7 +34,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-8 bg-base-200 min-h-screen">
+    <div className="p-8 bg-base-200">
 
       <div className=" mx-auto space-y-10 w-full">
 

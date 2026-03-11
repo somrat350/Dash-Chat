@@ -1,21 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { MessagesSquare, Send } from "lucide-react";
 import { useParams } from "react-router";
-import { useMessageStore } from "../../store/useMessageStore";
-import ComponentsLoader from "../../components/ComponentsLoader";
 import Breadcrumb from "../../components/dashboard/Breadcrumb";
 import MessageHeader from "../../components/dashboard/messages/MessageHeader";
 import MessagesContainer from "../../components/dashboard/messages/MessagesContainer";
+import MessageInput from "../../components/dashboard/messages/MessageInput";
 
 const Messages = () => {
   const { id } = useParams();
-  const { getMessagesByUserId } = useMessageStore();
-  const { data = {}, isLoading: messagesLoading } = useQuery({
-    queryKey: ["messages", id],
-    queryFn: async () => getMessagesByUserId(id),
-  });
-
-  if (messagesLoading) return <ComponentsLoader />;
 
   const pageFlow = [
     {
@@ -31,11 +22,12 @@ const Messages = () => {
   ];
 
   return (
-    <div>
+    <div className="">
       <Breadcrumb items={pageFlow} />
-      <div className="flex-1 flex flex-col bg-base-200 backdrop-blur-sm p-4 rounded-2xl">
-        <MessageHeader partner={data.partner} />
-        <MessagesContainer messages={data.messages} />
+      <div className="h-[70vh] sm:h-[80vh] overflow-hidden relative flex flex-col bg-base-200 backdrop-blur-sm border border-primary/30 px-4 pb-4 rounded-2xl">
+        <MessageHeader />
+        <MessagesContainer />
+        <MessageInput />
       </div>
     </div>
   );

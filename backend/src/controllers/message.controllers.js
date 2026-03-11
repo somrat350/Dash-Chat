@@ -60,8 +60,7 @@ export const getMessagesByUserId = async (req, res) => {
         { senderId: userId, receiverId: loggedInUserId },
       ],
     }).populate("replyTo");
-    const partner = await User.findById(userId).select("-password");
-    res.status(200).json({ messages, partner });
+    res.status(200).json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -91,8 +90,16 @@ export const sendMessage = async (req, res) => {
 
     //web socket
     const receiverSocketId = getReceiverSocketId(receiverId);
+    const senderSocketId = getReceiverSocketId(loggedInUserId);
+
+    // send to receiver
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", savedMessage);
+    }
+
+    // send to sender
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("newMessage", savedMessage);
     }
 
     res.status(201).json(savedMessage);
