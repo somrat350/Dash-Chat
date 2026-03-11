@@ -41,24 +41,22 @@ export const searchChatNewPartners = async (req, res) => {
 
 export const getChatPartners = async (req, res) => {
   try {
-    const loggedInUserId = req.user._id;
+    const loggedInUserEmail = req.decoded_email;
     const messages = await Message.find({
-      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+      $or: [{ sender: loggedInUserEmail }, { receiver: loggedInUserEmail }],
     });
 
-    const chatPartnersId = [
+    const chatPartnersEmail = [
       ...new Set(
         messages.map((msg) =>
-          msg.senderId.toString() === loggedInUserId.toString()
-            ? msg.receiverId.toString()
-            : msg.senderId.toString(),
+          msg.sender === loggedInUserEmail ? msg.receiver : msg.sender,
         ),
       ),
     ];
 
     const chatPartners = await User.find({
-      _id: { $in: chatPartnersId },
-    }).select("-password");
+      email: { $in: chatPartnersEmail },
+    });
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
@@ -66,14 +64,14 @@ export const getChatPartners = async (req, res) => {
   }
 };
 
-export const getMessagesByUserId = async (req, res) => {
+export const getMessagesByEmail = async (req, res) => {
   try {
-    const loggedInUserId = req.user._id;
-    const { userId } = req.params;
+    const loggedInUserEmail = req.decoded_email;
+    const { userEmail } = req.params;
     const messages = await Message.find({
       $or: [
-        { senderId: loggedInUserId, receiverId: userId },
-        { senderId: userId, receiverId: loggedInUserId },
+        { sender: loggedInUserEmail, receiver: userEmail },
+        { sender: userEmail, receiver: loggedInUserEmail },
       ],
     });
     res.status(200).json(messages);
@@ -85,19 +83,21 @@ export const getMessagesByUserId = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo, forwarded, originalSender } = req.body;
-    const loggedInUserId = req.user._id;
-    const { userId: receiverId } = req.params;
+    const { text, image, replyTo,forwarded, originalSender} = req.body;
+    const loggedInUserEmail = req.decoded_email;
+    const { userEmail: receiverEmail } = req.params;
 
     if (!text && !image) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
+    let imageUrl;
+
     const newMessage = new Message({
-      senderId: loggedInUserId,
-      receiverId,
+      sender: loggedInUserEmail,
+      receiver: receiverEmail,
       text: text || null,
-      image: image || null,
+      image: imageUrl || null,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",

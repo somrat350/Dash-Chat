@@ -2,35 +2,40 @@ import mongoose, { Schema } from "mongoose";
 
 const messageSchema = new Schema(
   {
-    senderId: {
+    sender: {
       type: String,
       ref: "User",
       require: true,
     },
-    receiverId: {
+    receiver: {
       type: String,
       ref: "User",
       require: true,
     },
     text: {
       type: String,
+      require: true,
     },
     image: {
       type: String,
+      default: "",
     },
-    status: {
+     status: { 
       type: String,
-      default: "active",
-    },
+       default: "active" },
+    // hide: {
+    //   type: String,
+    //   default: 'false'
+    // },
     hiddenFor: { type: [String], default: [] },
-    // riplay
+    // riplay 
     replyTo: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
-      default: null,
-    },
-    // forword
-    forwarded: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Message",
+  default: null,
+},
+      // forword 
+        forwarded: {
       type: Boolean,
       default: false,
     },
