@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router";
 import { MessageCircle } from "lucide-react";
 import Logo from "./Logo";
 import { useEffect, useState } from "react";
+import ThemeSelector from "../ThemeSelector";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -24,7 +25,7 @@ const Navbar = () => {
 
 
   return (
-    <div className={`navbar bg-white shadow-sm px-4 md:px-10 transition-all duration-500 ${scrolled ? "bg-white/60 backdrop-blur-md shadow-md ":"bg-white"}`}>
+    <div className={`navbar bg-base-200 shadow-sm px-4 md:px-10 transition-all duration-500 ${scrolled ? " backdrop-blur-md shadow-md ":"bg-base-200"}`}>
       {/* Mobile View */}
       <div className="navbar-start">
         <div className="dropdown">
@@ -46,7 +47,7 @@ const Navbar = () => {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-white rounded-box w-52"
+            className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-200 rounded-box w-52"
           >
             {navLinks.map((link) => (
               <li key={link.name}>
@@ -54,7 +55,7 @@ const Navbar = () => {
                   to={link.path}
                   className={({ isActive }) =>
                     isActive
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-primary text-white"
                       : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
                   }
                 >
@@ -81,8 +82,8 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-[16px] font-medium transition ${
                     isActive
-                      ? "bg-green-100 text-green-700"
-                      : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                      ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
                   }`
                 }
               >
@@ -92,12 +93,13 @@ const Navbar = () => {
           ))}
         </ul>
       </div>
-
+       
       {/* Right Side - Button */}
-      <div className="navbar-end">
+      <div className=" gap-2 navbar-end">
+        <ThemeSelector></ThemeSelector>
         <Link
           to="/auth/login"
-          className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white transition text-[16px] md:text-[18px] lg:text-[20px] bg-white"
+          className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white text-base-content transition text-[16px] md:text-[18px] lg:text-[20px] bg-base-100"
         >
           <MessageCircle size={24} />
           Log in
