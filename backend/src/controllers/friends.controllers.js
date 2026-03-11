@@ -2,6 +2,19 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 
+export async function getMyFriends(req, res) {
+  try {
+    const user = await User.findById(req.user._id)
+      .select("friends")
+      .populate("friends", "name photoURL bio");
+
+    res.status(200).json(user.friends);
+  } catch (error) {
+    console.error("Error in getMyFriends controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
 export const sendRequest = async (req, res) => {
   const senderId = req.user._id;
   const { receiverId } = req.params;

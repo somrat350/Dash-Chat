@@ -2,6 +2,22 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
+export const recentMessages = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const messages = await Message.find({
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(12);
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const searchChatNewPartners = async (req, res) => {
   try {
     const loggedInUserEmail = req.decoded_email;

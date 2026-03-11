@@ -1,8 +1,9 @@
 import express from "express";
-import { getUserById } from "../controllers/user.controller.js";
+import { getNewestUsers, getUserById } from "../controllers/user.controller.js";
 
 const userRouter = express.Router();
 
 userRouter.get("/:id", getUserById);
+userRouter.get("/", getNewestUsers);
 
 export default userRouter;
