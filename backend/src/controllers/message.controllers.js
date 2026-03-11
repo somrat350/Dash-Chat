@@ -168,3 +168,34 @@ export const deleteMessage = async (req, res, next) => {
     next(error);
   }
 };
+
+export const addReaction = async (req, res) => {
+  try {
+    const msgId = req.params.id;
+    const { emoji } = req.body;
+    const message = await Message.findByIdAndUpdate(
+      msgId,
+      { reaction: emoji },
+      { new: true },
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // realtime emit
+    const receiverSocketId = getReceiverSocketId(message.receiverId);
+    const senderSocketId = getReceiverSocketId(message.senderId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdated", message);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdated", message);
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Reaction add error:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};

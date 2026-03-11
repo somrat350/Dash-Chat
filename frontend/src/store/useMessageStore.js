@@ -88,6 +88,14 @@ export const useMessageStore = create((set, get) => ({
         .play()
         .catch((e) => console.log("Audio play failed:", e));
     });
+
+    socket.on("reactionUpdated", (updatedMsg) => {
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg._id === updatedMsg._id ? updatedMsg : msg,
+        ),
+      }));
+    });
   },
 
   unsubscribeFromMessage: () => {

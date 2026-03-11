@@ -1,13 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import ComponentsLoader from "../../ComponentsLoader";
 import { useParams } from "react-router";
 import { useMessageStore } from "../../../store/useMessageStore";
 
+import MessageBubble from "./MessageBubble";
+
 const MessagesContainer = () => {
   const { id } = useParams();
   const messageEndRef = useRef(null);
   const { authUser, socket } = useAuthStore();
+  const [activeEmojiId, setActiveEmojiId] = useState(null);
+
   const {
     messages,
     messagesLoading,
@@ -36,38 +40,17 @@ const MessagesContainer = () => {
     }
   }, [messages]);
   return (
-    <div className="overflow-y-auto h-full flex-1 mb-16">
+    <div className="overflow-y-auto h-full flex-1 mb-20">
       {messages.length > 0 && !messagesLoading ? (
-        <div className="w-full p-4 flex flex-col gap-2">
+        <div className="w-full p-4 flex flex-col gap-3">
           {messages.map((msg) => (
-            <div
+            <MessageBubble
               key={msg._id}
-              className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            >
-              <div
-                className={`chat-bubble relative ${
-                  msg.senderId === authUser._id
-                    ? "bg-slate-800 text-white"
-                    : "bg-slate-500 text-white"
-                }`}
-              >
-                {msg.image && (
-                  <img
-                    src={msg.image}
-                    alt="Shared"
-                    className="rounded-lg h-48 object-cover"
-                  />
-                )}
-                {msg.text && <p className="mt-2">{msg.text}</p>}
-                <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
-                  {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </p>
-              </div>
-            </div>
+              msg={msg}
+              authUser={authUser}
+              isOpen={activeEmojiId === msg._id}
+              setIsOpen={(isOpen) => setActiveEmojiId(isOpen ? msg._id : null)}
+            />
           ))}
           {/* 👇 scroll target */}
           <div ref={messageEndRef} />
