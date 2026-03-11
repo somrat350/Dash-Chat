@@ -1,9 +1,19 @@
 import { Link } from "react-router";
 import { LucidePhone, MessagesSquare } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useCallStore } from "../../store/useCallStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ChatCard = ({ partner }) => {
   const { authUser, onlineUsers } = useAuthStore();
+  const { initiateCall } = useCallStore();
+  const queryClient = useQueryClient();
+
+  const handleCall = async (e) => {
+    e.preventDefault();
+    await initiateCall(partner._id, "audio");
+    queryClient.invalidateQueries({ queryKey: ["calls"] });
+  };
   const isFriend = () => {
     const isExist = partner.friends.some((friend) => friend === authUser._id);
     return isExist ? "Friend" : "Not Friend";
@@ -53,12 +63,12 @@ const ChatCard = ({ partner }) => {
               Messages
             </Link>
 
-            <Link
-              to={`/dashboard/calls/${partner._id}`}
+            <button
+              onClick={handleCall}
               className="btn btn-outline btn-primary btn-circle btn-sm md:btn-md"
             >
               <LucidePhone size={18} />
-            </Link>
+            </button>
           </div>
         </div>
       </div>
