@@ -4,12 +4,16 @@ const userSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
+    },
+    password: {
+      type: String,
+      required: false,
     },
     role: {
       type: String,
@@ -21,18 +25,10 @@ const userSchema = new Schema(
     },
     friends: [
       {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        status: {
-          type: String,
-          enum: ["pending", "accepted","rejected", "blocked"],
-          default: "pending",
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
-    default: "",
   },
   { timestamps: true },
 );

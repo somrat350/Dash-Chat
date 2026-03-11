@@ -14,18 +14,18 @@ io.use(socketAuthMiddleware);
 
 const userSocketMap = {};
 
-export function getReceiverSocketId(userEmail) {
-  return userSocketMap[userEmail];
+export function getReceiverSocketId(userId) {
+  return userSocketMap[userId];
 }
 
 io.on("connection", (socket) => {
-  const email = socket.email;
-  userSocketMap[email] = socket.id;
+  const userId = socket.userId;
+  userSocketMap[userId] = socket.id;
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    delete userSocketMap[email];
+    delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });

@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from "react-router";
 import {
   BellIcon,
   HomeIcon,
+  LucidePhone,
   MessagesSquare,
   PanelLeft,
   Settings,
@@ -29,6 +30,11 @@ const DashboardLayout = () => {
       icon: <MessagesSquare className="size-5" />,
     },
     {
+      title: "Calls",
+      link: "/dashboard/calls",
+      icon: <LucidePhone className="size-5" />,
+    },
+    {
       title: "Notifications",
       link: "/dashboard/notifications",
       icon: <BellIcon className="size-5" />,
@@ -53,7 +59,7 @@ const DashboardLayout = () => {
         type="checkbox"
         className="drawer-toggle"
       />
-      <div className="drawer-content h-screen overflow-y-auto relative">
+      <div className="drawer-content h-screen flex flex-col relative overflow-y-auto">
         {/* Navbar */}
         <nav className="navbar w-full bg-base-200 sticky top-0 z-50 pl-4">
           <label

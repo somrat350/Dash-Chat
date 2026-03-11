@@ -15,6 +15,8 @@ import ProfileDropdown from "./ProfileDropdown";
 import SearchDropdown from "./SearchDropdown";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import { useAuthStore } from "../../../../../store/useAuthStore";
+import { useCallStore } from "../../../../../store/useCallStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ChatHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,6 +24,14 @@ export default function ChatHeader() {
   const [openProfile, setOpenProfile] = useState(false);
   const { selectedPartner, setSelectedPartner } = useMessageStore();
   const { onlineUsers } = useAuthStore();
+  const { initiateCall } = useCallStore();
+  const queryClient = useQueryClient();
+
+  const handleCall = async (type) => {
+    if (!selectedPartner?._id) return;
+    await initiateCall(selectedPartner._id, type);
+    queryClient.invalidateQueries({ queryKey: ["calls"] });
+  };
   const isOnline = onlineUsers.includes(selectedPartner.email);
   const menuRef = useRef(null);
 
@@ -77,8 +87,16 @@ export default function ChatHeader() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-3 md:gap-4 lg:gap-5 relative">
-            <Video className="cursor-pointer text-gray-700" size={20} />
-            <Phone className="cursor-pointer text-gray-700" size={17} />
+            <Video
+              onClick={() => handleCall("video")}
+              className="cursor-pointer text-gray-700 hover:text-primary transition"
+              size={20}
+            />
+            <Phone
+              onClick={() => handleCall("audio")}
+              className="cursor-pointer text-gray-700 hover:text-primary transition"
+              size={17}
+            />
 
             <div className="hidden sm:block">
               {/* <SearchDropdown search={search} setSearch={setSearch} /> */}

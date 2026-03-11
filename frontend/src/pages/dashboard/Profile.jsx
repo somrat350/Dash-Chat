@@ -1,197 +1,200 @@
-import { useState, useEffect, useRef } from "react";
-import { FiEdit2, FiCopy, FiCamera, FiLogOut } from "react-icons/fi";
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 
 export default function ProfilePage() {
-  const { authUser } = useAuthStore();
+  const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+   const { authUser } = useAuthStore();
 
-  const fileRef = useRef(null);
+  const [profile, setProfile] = useState({
+    name: "Lili Akter",
+    email: "limaakter@gmail.com",
+    role: "Frontend Developer",
+    photo: "https://i.pravatar.cc/150?img=5",
+    bio: "I love building chat applications.",
+  });
 
-  const [profile, setProfile] = useState();
-  const [editing, setEditing] = useState(null);
-  const [temp, setTemp] = useState("");
+  const [temp, setTemp] = useState(profile);
 
-  // Load saved profile
-  useEffect(() => {
-    const saved = localStorage.getItem("authUser");
-    if (saved) JSON.parse(saved);
-  }, []);
-
-  // Save profile
-  useEffect(() => {
-    localStorage.setItem("authUser", JSON.stringify(authUser));
-  }, [authUser]);
-
-  const startEdit = (field) => {
-    setEditing(field);
-
-    if (field === "name") {
-      setTemp(authUser.displayName);
-    } else {
-      setTemp(profile?.[field] || "");
-    }
+  const handleChange = (e) => {
+    setTemp({ ...temp, [e.target.name]: e.target.value });
   };
 
-  const saveEdit = () => {
-    setProfile({ ...profile, [editing]: temp });
-    setEditing(null);
+  const handleSave = () => {
+    setProfile(temp);
+    setEditing(false);
   };
 
-  const cancelEdit = () => {
-    setEditing(null);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(profile.email);
+    setCopied(true);
+
+    setTimeout(() => setCopied(false), 1500);
   };
-
-  // COPY EMAIL
-  const copyEmail = () => {
-    navigator.clipboard.writeText(authUser.email);
-    alert("Email copied!");
-  };
-
-  const changeImage = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      setProfile({ ...profile, image: reader.result });
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  // const logout = () => {
-  //   localStorage.removeItem("profile");
-  //   alert("Logged out");
-  // };
 
   return (
-    <div className="max-w-lg mx-auto p-6 space-y-6">
-      {/* PROFILE HEADER */}
+    <div className="p-8 bg-base-200">
 
-      <div className="bg-base-200 rounded-xl p-6 text-center shadow">
-        <div className="relative w-fit mx-auto">
-          <img
-            src={authUser.photoURL}
-            className="w-28 h-28 rounded-full object-cover"
-          />
+      <div className=" mx-auto space-y-10 w-full">
 
-          <button
-            onClick={() => fileRef.current.click()}
-            className="absolute bottom-0 right-0 bg-base-100 p-2 rounded-full shadow"
-          >
-            <FiCamera />
-          </button>
+        {/* ---------- Preview Section ---------- */}
 
-          <input type="file" ref={fileRef} onChange={changeImage} hidden />
-        </div>
+        <div className=" flex-row gap-6 card bg-base-100  shadow p-6 ">
 
-        {/* <h2 className="text-xl font-semibold mt-4">
-          {authUser.displayName}
-        </h2> */}
-      </div>
-
-      {/* PROFILE INFO */}
-
-      <div className="bg-base-200 rounded-xl p-5 space-y-5 shadow">
-        <Field
-          label="Name"
-          value={authUser.displayName}
-          editing={editing === "name"}
-          temp={temp}
-          setTemp={setTemp}
-          startEdit={() => startEdit("name")}
-          save={saveEdit}
-          cancel={cancelEdit}
-        />
-
-        {/* EMAIL WITH COPY BUTTON */}
-
-        <div>
-          <p className="text-sm text-gray-500">Email</p>
-
-          <div className="flex items-center gap-2">
-            <p className="font-medium">{authUser.email}</p>
-
-            <button onClick={copyEmail}>
-              <FiCopy size={16} />
-            </button>
+          <div className="avatar ">
+            <div className=" rounded-full">
+              <img src={authUser.photoURL} />
+            </div>
           </div>
+
+          <div className="space-y-1 ">
+
+            <h2 className="text-lg font-semibold">
+              {authUser.displayName}
+            </h2>
+
+            <div className="flex items-center gap-2 text-sm opacity-70">
+              {authUser.email}
+
+              <button onClick={handleCopy}>
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+            </div>
+
+            <p className="text-sm">{profile.role}</p>
+
+            <p className="text-xs opacity-70">{profile.bio}</p>
+
+          </div>
+
         </div>
+
+        {/* ---------- Edit Section ---------- */}
+
+        <div className="card bg-base-100 shadow p-10">
+
+          <div className="flex justify-between mb-6">
+
+            <h2 className="font-semibold text-lg">
+              Profile Information
+            </h2>
+
+            {!editing ? (
+              <button
+                onClick={() => setEditing(true)}
+                className="btn btn-sm btn-primary"
+              >
+                Edit
+              </button>
+            ) : (
+              <button
+                onClick={handleSave}
+                className="btn btn-sm btn-primary "
+              >
+                Save
+              </button>
+            )}
+
+          </div>
+
+          <div className="grid grid-cols-2 gap-10">
+
+            {/* Name */}
+
+            <div>
+              <label className="text-sm">Name</label>
+
+              {editing ? (
+                <input
+                  name="name"
+                  value={authUser.displayName}
+                  onChange={handleChange}
+                  className="input mt-2 input-bordered p-4 w-full"
+                />
+              ) : (
+                <p className="mt-1">{authUser.displayName}</p>
+              )}
+            </div>
+
+            {/* Email */}
+
+            <div>
+              <label className="text-sm">Email</label>
+
+              {editing ? (
+                <input
+                  name="email"
+                  value={authUser.email}
+                  onChange={handleChange}
+                  className="input mt-2 p-4 input-bordered  w-full"
+                />
+              ) : (
+                <p className="mt-1">{authUser.email}</p>
+              )}
+            </div>
+
+            {/* Photo URL */}
+
+            <div>
+              <label className="text-sm">Profile Photo</label>
+
+              {editing ? (
+                <input
+                  name="photo"
+                  value={authUser.photoURL}
+                  onChange={handleChange}
+                  className="input mt-2 p-4 input-bordered w-full"
+                />
+              ) : (
+                <p className="mt-1 break-all">
+                  {authUser.photoURL}
+                </p>
+              )}
+            </div>
+
+            {/* Role */}
+
+            <div>
+              <label className="text-sm">Role</label>
+
+              {editing ? (
+                <input
+                  name="role"
+                  value={temp.role}
+                  onChange={handleChange}
+                  className="input mt-2 p-4 input-bordered w-full"
+                />
+              ) : (
+                <p className="mt-1">{profile.role}</p>
+              )}
+            </div>
+
+          </div>
+
+          {/* Bio */}
+
+          <div className="mt-8">
+
+            <label className="text-sm">Bio</label>
+
+            {editing ? (
+              <textarea
+                name="bio"
+                value={temp.bio}
+                onChange={handleChange}
+                className="textarea mt-2 p-5 textarea-bordered w-full"
+              />
+            ) : (
+              <p className="mt-1">{profile.bio}</p>
+            )}
+
+          </div>
+
+        </div>
+
       </div>
 
-      {/* SETTINGS */}
-
-      {/* <div className="bg-base-200 rounded-xl p-5 space-y-2 shadow">
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Notifications
-        </button>
-
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Privacy
-        </button>
-
-        <button className="w-full text-left hover:bg-base-300 p-3 rounded-lg">
-          Security
-        </button>
-      </div> */}
-
-      {/* LOGOUT */}
-
-      {/* <button
-        onClick={logout}
-        className="flex items-center gap-2 text-red-500"
-      >
-        <FiLogOut />
-        Logout
-      </button> */}
     </div>
   );
 }
-
-function Field({
-  label,
-  value,
-  editing,
-  temp,
-  setTemp,
-  startEdit,
-  save,
-  cancel,
-}) {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-1">
-        <p className="text-sm text-gray-500">{label}</p>
-
-        {!editing ? (
-          <button onClick={startEdit}>
-            <FiEdit2 size={16} />
-          </button>
-        ) : (
-          <div className="flex gap-3 text-sm">
-            <button onClick={save} className="text-green-500">
-              Save
-            </button>
-
-            <button onClick={cancel} className="text-red-500">
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
-
-      {!editing ? (
-        <p className="font-medium">{value}</p>
-      ) : (
-        <input
-          value={temp}
-          onChange={(e) => setTemp(e.target.value)}
-          className="border rounded p-2 w-full"
-        />
-      )}
-    </div>
-  );
-}
-
-
