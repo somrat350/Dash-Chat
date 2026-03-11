@@ -2,6 +2,22 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
+export const recentMessages = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const messages = await Message.find({
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(12);
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const searchChatNewPartners = async (req, res) => {
   try {
     const loggedInUserEmail = req.decoded_email;
@@ -67,7 +83,7 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo,forwarded, originalSender} = req.body;
     const loggedInUserEmail = req.decoded_email;
     const { userEmail: receiverEmail } = req.params;
 
@@ -82,13 +98,24 @@ export const sendMessage = async (req, res) => {
       receiver: receiverEmail,
       text: text || null,
       image: imageUrl || null,
+      replyTo: replyTo || null,
+      forwarded: forwarded || false,
+      originalSender: forwarded ? originalSender : "",
     });
     const savedMessage = await newMessage.save();
 
     //web socket
-    const receiverSocketId = getReceiverSocketId(receiverEmail);
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    const senderSocketId = getReceiverSocketId(loggedInUserId);
+
+    // send to receiver
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", savedMessage);
+    }
+
+    // send to sender
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("newMessage", savedMessage);
     }
 
     res.status(201).json(savedMessage);
@@ -139,5 +166,36 @@ export const deleteMessage = async (req, res, next) => {
     console.error("Error deleting message:", error);
     res.status(500).json({ message: "Internal server error" });
     next(error);
+  }
+};
+
+export const addReaction = async (req, res) => {
+  try {
+    const msgId = req.params.id;
+    const { emoji } = req.body;
+    const message = await Message.findByIdAndUpdate(
+      msgId,
+      { reaction: emoji },
+      { new: true },
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // realtime emit
+    const receiverSocketId = getReceiverSocketId(message.receiverId);
+    const senderSocketId = getReceiverSocketId(message.senderId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdated", message);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdated", message);
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Reaction add error:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
