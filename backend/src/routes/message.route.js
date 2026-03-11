@@ -1,6 +1,7 @@
 import express from "express";
 import { isAuthenticated } from "../middleware/auth.middleware.js";
 import {
+  addReaction,
   deleteMessage,
   editMessage,
   getChatPartners,
@@ -21,5 +22,7 @@ messageRouter.get("/chats/:userId", getMessagesByUserId);
 messageRouter.post("/send/:userId", sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
+
+messageRouter.patch("/:id/addReaction", addReaction);
 
 export default messageRouter;
