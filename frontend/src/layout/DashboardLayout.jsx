@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from "react-router";
 import {
   BellIcon,
   HomeIcon,
+  LucidePhone,
   MessagesSquare,
   PanelLeft,
   Settings,
@@ -10,6 +11,7 @@ import {
   UsersIcon,
 } from "lucide-react";
 import ThemeSelector from "../components/ThemeSelector";
+import { Toaster } from "react-hot-toast";
 
 const DashboardLayout = () => {
   const sideMenus = [
@@ -27,6 +29,11 @@ const DashboardLayout = () => {
       title: "Chats",
       link: "/dashboard/chats",
       icon: <MessagesSquare className="size-5" />,
+    },
+    {
+      title: "Calls",
+      link: "/dashboard/calls",
+      icon: <LucidePhone className="size-5" />,
     },
     {
       title: "Notifications",
@@ -47,6 +54,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="drawer lg:drawer-open">
+      <Toaster />
       <input
         id="my-drawer-4"
         defaultChecked
