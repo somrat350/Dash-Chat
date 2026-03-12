@@ -14,15 +14,12 @@ import DashboardLayout from "../layout/DashboardLayout";
 import DashHome from "../pages/dashboard/DashHome";
 import Friends from "../pages/dashboard/Friends";
 import Chats from "../pages/dashboard/Chats";
-import Notifications from "../pages/dashboard/Notifications";
+
 import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
-import BannerSettings from "../pages/dashboard/BannerSettings";
-import BadgeSettings from "../pages/dashboard/BadgeSettings";
+
 import SettingsDashboard from "../pages/dashboard/Settings";
 import HelpandFeadback from "../pages/dashboard/HelpandFeadback";
-// import SettingsDashboard from "../pages/dashboard/Settings";
-;
 
 const router = createBrowserRouter([
   {
@@ -89,44 +86,27 @@ const router = createBrowserRouter([
         path: "chats",
         Component: Chats,
       },
-      {
-        path: "notifications",
-        Component: Notifications,
-      },
+
       {
         path: "profile",
         Component: Profile,
       },
-      
+
       {
         path: "settings",
-        Component:Settings
+        Component: Settings,
       },
-    
     ],
   },
-    {
-        path:"/banner-settings",
-        element:<BannerSettings></BannerSettings>
-    },
-    {
-      path:"/badge-settings",
-      element:<BadgeSettings></BadgeSettings>
-    },
-    {
-      path:"/settings",
-      element:<SettingsDashboard></SettingsDashboard>
-    },
-    {
-     path:"/settings/notifications",
-     element:<Notifications></Notifications>
-    },
-    {
-      path:"/settings/help-feedback",
-      element:<HelpandFeadback></HelpandFeadback>
-    },
- 
 
- 
+  {
+    path: "/settings",
+    element: <SettingsDashboard></SettingsDashboard>,
+  },
+
+  {
+    path: "/settings/help-feedback",
+    element: <HelpandFeadback></HelpandFeadback>,
+  },
 ]);
 export default router;
