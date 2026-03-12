@@ -20,6 +20,7 @@ import Settings from "../pages/dashboard/Settings";
 import BannerSettings from "../pages/dashboard/BannerSettings";
 import BadgeSettings from "../pages/dashboard/BadgeSettings";
 import SettingsDashboard from "../pages/dashboard/Settings";
+import HelpandFeadback from "../pages/dashboard/HelpandFeadback";
 // import SettingsDashboard from "../pages/dashboard/Settings";
 ;
 
@@ -119,6 +120,10 @@ const router = createBrowserRouter([
     {
      path:"/settings/notifications",
      element:<Notifications></Notifications>
+    },
+    {
+      path:"/settings/help-feedback",
+      element:<HelpandFeadback></HelpandFeadback>
     },
  
 

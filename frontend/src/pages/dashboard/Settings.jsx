@@ -146,47 +146,148 @@ const Profile = () => {
 
 // ================== Notifications Component ==================
 const Notifications = () => {
-  // const [email, setEmail] = useState(true);
-  // const [push, setPush] = useState(false);
-
-  return (
+ 
+ return (
     <div className="">
-      {/* <h2 className="text-2xl font-bold mb-4">Notifications</h2> */}
-      {/* <label className="flex justify-between items-center">
-        Email Notifications
-        <input type="checkbox" checked={email} onChange={() => setEmail(!email)} />
-      </label>
-      <label className="flex justify-between items-center">
-        Push Notifications
-        <input type="checkbox" checked={push} onChange={() => setPush(!push)} />
-      </label> */}
+    
     </div>
   );
 };
 
 // ================== Keyboard Shortcuts Component ==================
-const KeyboardShortcuts = () => (
-  <div className="max-w-xl mx-auto bg-white p-6 shadow rounded-xl space-y-4">
-    <h2 className="text-2xl font-bold mb-4">Keyboard Shortcuts</h2>
-    <ul className="list-disc ml-5 space-y-1">
-      <li>Ctrl + N → New Chat</li>
-      <li>Ctrl + K → Search</li>
-      <li>Ctrl + Enter → Send Message</li>
-    </ul>
-  </div>
-);
+
+const KeyboardShortcuts = () => {
+  const [showClose, setShowClose] = useState(false); // optional: show close button
+
+  const shortcuts = [
+    { keys: "Ctrl + N", action: "New Chat" },
+    { keys: "Ctrl + K", action: "Search" },
+    { keys: "Ctrl + Enter", action: "Send Message" },
+    { keys: "Esc", action: "Close current panel / Exit" },
+    { keys: "Ctrl + L", action: "Clear Chat" },
+    { keys: "Ctrl + S", action: "Save Chat" },
+    { keys: "Ctrl + /", action: "Show Shortcuts" },
+  ];
+
+  return (
+    <div className="w-full mx-auto bg-white p-6 shadow rounded-xl space-y-4 relative">
+      {/* Optional Close Button (if you want user to collapse the panel) */}
+      {showClose && (
+        <button
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          onClick={() => setShowClose(false)}
+        >
+          <XIcon size={20} />
+        </button>
+      )}
+
+      <h2 className="text-2xl font-bold mb-4">Keyboard Shortcuts</h2>
+      <ul className="list-disc ml-5 space-y-2">
+        {shortcuts.map((sc) => (
+          <li key={sc.keys}>
+            <span className="font-mono bg-gray-100 px-2 py-1 rounded mr-2">
+              {sc.keys}
+            </span>
+            → {sc.action}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+
+
+
+
+
+
+
+
 
 // ================== Help & Feedback Component ==================
-const HelpFeedback = () => (
-  <div className="max-w-xl mx-auto bg-white p-6 shadow rounded-xl space-y-4">
-    <h2 className="text-2xl font-bold mb-4">Help & Feedback</h2>
-    <textarea
-      placeholder="Write your feedback..."
-      className="border w-full p-3 rounded h-32"
-    />
-    <button className="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
-  </div>
-);
+
+
+const HelpFeedback = () => {
+  const [message, setMessage] = useState("");
+  const [category, setCategory] = useState("General");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // send message to backend or API here
+    console.log({ category, message });
+    setSubmitted(true);
+    setMessage("");
+  };
+
+  return (
+    <div className="max-w-lg mx-auto bg-white p-6 shadow rounded-xl space-y-6">
+      <h2 className="text-2xl font-bold">Help & Feedback</h2>
+      <p className="text-gray-500 text-sm">
+        We’d love to hear your suggestions or report a problem.
+      </p>
+
+      {submitted && (
+        <div className="bg-green-100 text-green-700 p-3 rounded">
+          Your feedback has been submitted successfully!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Category Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            Category
+          </label>
+          <select
+            className="w-full border rounded p-2"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="General">General</option>
+            <option value="Bug">Bug</option>
+            <option value="Feature">Feature Request</option>
+          </select>
+        </div>
+
+        {/* Feedback Message */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            Message
+          </label>
+          <textarea
+            className="w-full border rounded p-2 h-32 resize-none focus:ring focus:ring-blue-200"
+            placeholder="Describe your issue or suggestion..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Optional Attach Button */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="text-sm text-blue-500 hover:underline"
+          >
+            + Attach file
+          </button>
+          <span className="text-gray-400 text-sm">PNG, JPG, PDF</span>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={!message.trim()}
+          className={`w-full py-2 rounded bg-blue-500 text-white font-semibold 
+            ${!message.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
+        >
+          Submit
+        </button>
+      </form>
+    </div>);
+}
 
 // ================== Main SettingsDashboard ==================
 
@@ -244,9 +345,13 @@ const SettingsDashboard = () => {
               onClick={() => {
                 if (item.name === "Notifications") {
                   navigate("/settings/notifications");
-                } else {
+                }
+                else if (item.name === "Help & Feedback")
+                   {navigate("/settings/help-feedback"); }// new route
+                 else {
                   setActive(item.name);
                 }
+               
               }}
             >
               <item.icon size={20} />
