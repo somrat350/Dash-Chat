@@ -18,7 +18,7 @@ messageRouter.use(isAuthenticated);
 messageRouter.get("/recentMessages", recentMessages);
 messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
-messageRouter.get("/chats/:userEmail", getMessagesByEmail);
+messageRouter.get("/chats/:userEmail", getMessagesByUserId);
 messageRouter.post("/send/:userEmail", sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
