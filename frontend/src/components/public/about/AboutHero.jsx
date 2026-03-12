@@ -61,17 +61,20 @@ const AboutHero = () => {
   ];
   return (
     <div>
+      {/* hero section */}
       <section className="relative min-h-150 flex items-center overflow-hidden rounded-3xl">
-        {/* Background Image */}
-        <div className="absolute inset-0">
+        
+        <div className="group absolute inset-0">
           <img
             src="https://i.ibb.co/99rrcM8v/about.jpg"
             alt="About DashChat Background"
             className="w-full h-full object-cover"
           />
+        
+            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-linear-to-r from-black/70 to-black/40"></div>
+          
+          <div className="absolute inset-0 bg-linear-to-r from-black/50 to-black/40"></div>
         </div>
 
         {/* Content */}
@@ -119,129 +122,150 @@ const AboutHero = () => {
       </section>
 
       {/* Stats Section  */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="text-center p-6 rounded-xl bg-gray-50 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex justify-center text-blue-600 mb-3">
-                  {stat.icon}
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
+     <section className="py-16 bg-base-100">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 justify-items-center">
+      {stats.map((stat, index) => (
+        <div
+          key={index}
+          className="relative group bg-base-200 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all w-72 text-center"
+        >
+          
+          <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+          
+          <div className="flex justify-center mb-4 text-primary text-3xl">
+            {stat.icon}
           </div>
+
+          
+          <div className="text-3xl font-bold text-base-content mb-2">
+            {stat.value}
+          </div>
+
+          
+          <div className="text-base-content/70 text-sm">{stat.label}</div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Story Section  */}
 
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* story  */}
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Our Story
-              </h2>
-              <p className="text-lg text-gray-700 mb-4 leading-relaxed">
-                DashChat was born from a simple idea: communication should be
-                instant, secure, and accessible to everyone. Founded in 2024,
-                we've grown from a small startup to a global platform connecting
-                millions of users daily.
-              </p>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                Our mission is to break down communication barriers and bring
-                people closer together, whether they're across the street or
-                across the globe.
-              </p>
-              <div className="flex gap-4">
-                {/* lift */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="text-gray-700">Founded in 2025</span>
-                </div>
-                {/* right */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="text-gray-700">Global Team</span>
-                </div>
-              </div>
-            </div>
-            {/* image  */}
-            <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3"
-                alt="Team collaboration"
-                className="rounded-2xl shadow-2xl"
-              />
-              <div className="absolute -bottom-5 -left-5 bg-white p-4 rounded-lg shadow-lg">
-                <p className="text-sm font-semibold text-gray-900">
-                  Trusted by
-                </p>
-                <p className="text-2xl font-bold text-primary">50K+ Users</p>
-              </div>
-            </div>
+     <section className="py-16 bg-base-100">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10">
+    <div className="grid md:grid-cols-2 gap-12 items-center">
+      
+      <div>
+        <h2 className="text-4xl font-bold text-primary mb-6">
+          Our Story
+        </h2>
+        <p className="text-lg text-base-content/80 mb-4 leading-relaxed">
+          DashChat was born from a simple idea: communication should be
+          instant, secure, and accessible to everyone. Founded in 2025,
+          we've grown from a small startup to a global platform connecting
+          millions of users daily.
+        </p>
+        <p className="text-lg text-base-content/80 mb-6 leading-relaxed">
+          Our mission is to break down communication barriers and bring
+          people closer together, whether they're across the street or
+          across the globe.
+        </p>
+
+        <div className="flex gap-6">
+          
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-primary rounded-full"></div>
+            <span className="text-base-content/70">Founded in 2025</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-primary rounded-full"></div>
+            <span className="text-base-content/70">Global Team</span>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Image */}
+      <div className=" group relative">
+        <img
+          src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3"
+          alt="Team collaboration"
+          className="rounded-2xl shadow-2xl"
+        />
+          {/* Hover Border */}
+            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        <div className="group  absolute -bottom-5 -left-5 bg-base-200 p-4 rounded-lg shadow-lg">
+          <p className="text-sm font-semibold text-base-content/70">
+            Trusted by
+          </p>
+          
+            <p className="text-2xl  font-bold text-primary">50K+ Users</p>
+            
+            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Team Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Section Heading */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Meet Our <span className="text-primary">Expert Team</span>
-            </h2>
-          </div>
+      <section className="py-20 bg-base-100">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10">
+    
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-bold text-base-content mb-4">
+        Meet Our <span className="text-primary">Expert Team</span>
+      </h2>
+    </div>
 
-          {/* Team Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <div key={member.id} className="flex justify-center">
-                <div
-                  className="
-              bg-linear-to-br from-green-50 to-white-50
-
+    {/* Team Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+      {teamMembers.map((member) => (
+        <div key={member.id} className="flex justify-center">
+          <div
+            className="
+              relative
+           group
+              bg-base-200
               p-8
               rounded-2xl
               shadow-lg
-              transform rotate-[-4deg]
-              hover:rotate-0
-              hover:scale-105
+              transform -rotate-2 hover:rotate-0 hover:scale-105
               transition-all duration-300
               flex flex-col items-center
-              w-full h-85 max-w-xs
+              w-72
             "
-                >
-                  <div className="w-50 h-50 mb-6">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover rounded-xl shadow-md"
-                    />
-                  </div>
+          >
+            
+            <div className="w-36 h-36 mb-6">
+              <img
+                src={member.image}
+                alt={member.name}
+                className="w-full h-full object-cover rounded-xl shadow-md"
+              />
+            </div>
+          
+            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                  <h3 className="text-xl font-semibold text-gray-900 text-center">
-                    {member.name}
-                  </h3>
+           
+            <h3 className="text-xl font-semibold text-base-content text-center">
+              {member.name}
+            </h3>
 
-                  <p className="text-gray-500 text-center mt-2">
-                    {member.role}
-                  </p>
-                </div>
-              </div>
-            ))}
+            
+            <p className="text-base-content/70 text-center mt-2">
+              {member.role}
+            </p>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
     </div>
   );
 };
