@@ -16,11 +16,14 @@ import DashboardLayout from "../layout/DashboardLayout";
 import DashHome from "../pages/dashboard/DashHome";
 import Friends from "../pages/dashboard/Friends";
 import Chats from "../pages/dashboard/Chats";
-import Notifications from "../pages/dashboard/Notifications";
+
 import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
 import Messages from "../pages/dashboard/Messages";
 import Calls from "../pages/dashboard/Calls";
+
+import SettingsDashboard from "../pages/dashboard/Settings";
+import HelpandFeadback from "../pages/dashboard/HelpandFeadback";
 
 const router = createBrowserRouter([
   {
@@ -103,6 +106,7 @@ const router = createBrowserRouter([
         path: "profile",
         element: <ProfilePage></ProfilePage>,
       },
+
       {
         path: "setting",
         element: <SettingPage></SettingPage>,
@@ -138,6 +142,16 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+
+  {
+    path: "/settings",
+    element: <SettingsDashboard></SettingsDashboard>,
+  },
+
+  {
+    path: "/settings/help-feedback",
+    element: <HelpandFeadback></HelpandFeadback>,
   },
 ]);
 export default router;

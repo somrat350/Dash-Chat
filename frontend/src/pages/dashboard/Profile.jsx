@@ -26,6 +26,10 @@ export default function ProfilePage() {
     await updateProfile(data);
     setEditing(false);
   };
+  const handleCancel = () => {
+    setTemp(profile);
+    setEditing(false);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(authUser?.email);
