@@ -72,8 +72,7 @@ export default function ProfilePage() {
   };
 
   return (
-
-    <div className="p-8 bg-base-200 min-h-screen">
+    <div className="p-8 bg-base-200">
 
       <h1 className="text-2xl font-bold mb-6">
          Profile

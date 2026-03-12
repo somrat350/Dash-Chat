@@ -2,6 +2,22 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
+export const recentMessages = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const messages = await Message.find({
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(12);
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error fetching chat partners:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const searchChatNewPartners = async (req, res) => {
   try {
     const loggedInUserEmail = req.decoded_email;
@@ -25,22 +41,24 @@ export const searchChatNewPartners = async (req, res) => {
 
 export const getChatPartners = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
+    const loggedInUserId = req.user._id;
     const messages = await Message.find({
-      $or: [{ sender: loggedInUserEmail }, { receiver: loggedInUserEmail }],
+      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
     });
 
-    const chatPartnersEmail = [
+    const chatPartnersId = [
       ...new Set(
         messages.map((msg) =>
-          msg.sender === loggedInUserEmail ? msg.receiver : msg.sender,
+          msg.senderId.toString() === loggedInUserId.toString()
+            ? msg.receiverId.toString()
+            : msg.senderId.toString(),
         ),
       ),
     ];
 
     const chatPartners = await User.find({
-      email: { $in: chatPartnersEmail },
-    });
+      _id: { $in: chatPartnersId },
+    }).select("-password");
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
@@ -48,14 +66,14 @@ export const getChatPartners = async (req, res) => {
   }
 };
 
-export const getMessagesByEmail = async (req, res) => {
+export const getMessagesByUserId = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
-    const { userEmail } = req.params;
+    const loggedInUserId = req.user._id;
+    const { userId } = req.params;
     const messages = await Message.find({
       $or: [
-        { sender: loggedInUserEmail, receiver: userEmail },
-        { sender: userEmail, receiver: loggedInUserEmail },
+        { senderId: loggedInUserId, receiverId: userId },
+        { senderId: userId, receiverId: loggedInUserId },
       ],
     }).populate("replyTo");
     res.status(200).json(messages);
@@ -67,31 +85,38 @@ export const getMessagesByEmail = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo,forwarded, originalSender} = req.body;
-    const loggedInUserEmail = req.decoded_email;
-    const { userEmail: receiverEmail } = req.params;
+    const { text, image, replyTo, forwarded, originalSender } = req.body;
+    const loggedInUserId = req.user._id;
+    const { userId: receiverId } = req.params;
 
     if (!text && !image) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
-    let imageUrl;
-
     const newMessage = new Message({
-      sender: loggedInUserEmail,
-      receiver: receiverEmail,
+      senderId: loggedInUserId,
+      receiverId,
       text: text || null,
-      image: imageUrl || null,
+      image: image || null,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",
     });
-    const savedMessage = await newMessage.save();
+    let savedMessage = await newMessage.save();
+    savedMessage = await savedMessage.populate("replyTo");
 
     //web socket
-    const receiverSocketId = getReceiverSocketId(receiverEmail);
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    const senderSocketId = getReceiverSocketId(loggedInUserId);
+
+    // send to receiver
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", savedMessage);
+    }
+
+    // send to sender
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("newMessage", savedMessage);
     }
 
     res.status(201).json(savedMessage);
@@ -142,5 +167,36 @@ export const deleteMessage = async (req, res, next) => {
     console.error("Error deleting message:", error);
     res.status(500).json({ message: "Internal server error" });
     next(error);
+  }
+};
+
+export const addReaction = async (req, res) => {
+  try {
+    const msgId = req.params.id;
+    const { emoji } = req.body;
+    const message = await Message.findByIdAndUpdate(
+      msgId,
+      { reaction: emoji },
+      { new: true },
+    );
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // realtime emit
+    const receiverSocketId = getReceiverSocketId(message.receiverId);
+    const senderSocketId = getReceiverSocketId(message.senderId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdated", message);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdated", message);
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Reaction add error:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };

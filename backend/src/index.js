@@ -10,6 +10,9 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import messageRouter from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 import friendsRouter from "./routes/friends.route.js";
+import userRouter from "./routes/user.route.js";
+import callRouter from "./routes/call.route.js";
+import { isAuthenticated } from "./middleware/auth.middleware.js";
 
 const port = ENV.PORT || 3000;
 const __dirname = path.resolve();
@@ -24,6 +27,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/messages", messageRouter);
 //friends routes
 app.use("/api/friends", friendsRouter);
+app.use("/api/calls", callRouter);
+app.use("/api/users", isAuthenticated, userRouter);
 
 // Ready for deploy into single domain
 const singleDomainDeploy = () => {

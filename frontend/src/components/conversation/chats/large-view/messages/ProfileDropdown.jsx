@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useMessageStore } from "../../../../../store/useMessageStore";
+import { useCallStore } from "../../../../../store/useCallStore";
+import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ChevronDown, Phone, PhoneCall, Search, Video } from "lucide-react";
@@ -9,6 +11,14 @@ dayjs.extend(relativeTime);
 export default function ProfileDropdown({ openProfile, setOpenProfile }) {
   const dropdownRef = useRef(null);
   const { selectedPartner } = useMessageStore();
+  const { initiateCall } = useCallStore();
+  const queryClient = useQueryClient();
+
+  const handleCall = async (type) => {
+    if (!selectedPartner?._id) return;
+    await initiateCall(selectedPartner._id, type);
+    queryClient.invalidateQueries({ queryKey: ["calls"] });
+  };
 
   // Outside click detect
   useEffect(() => {
@@ -45,7 +55,7 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
         />
         <h2 className="text-lg font-semibold">{selectedPartner.name}</h2>
         <p>contac no</p>
-      
+
         <div className="mt-10 w-full flex  gap-4">
           {/* Search */}
           <div className="flex flex-col justify-center items-center gap-3 border rounded-2xl p-4 hover:bg-gray-50 cursor-pointer">
@@ -54,32 +64,38 @@ export default function ProfileDropdown({ openProfile, setOpenProfile }) {
           </div>
 
           {/* Video Call */}
-          <div className="flex flex-col justify-center items-center gap-3 border rounded-2xl p-4 hover:bg-gray-50 cursor-pointer">
+          <div
+            onClick={() => handleCall("video")}
+            className="flex flex-col justify-center items-center gap-3 border rounded-2xl p-4 hover:bg-gray-50 cursor-pointer"
+          >
             <Video className="text-green-600" size={22} />
             <span className="text-gray-700 font-medium">Video</span>
           </div>
 
           {/* Voice Call */}
-          <div className="flex flex-col justify-center items-center gap-3 border rounded-2xl p-4 hover:bg-gray-50 cursor-pointer">
+          <div
+            onClick={() => handleCall("audio")}
+            className="flex flex-col justify-center items-center gap-3 border rounded-2xl p-4 hover:bg-gray-50 cursor-pointer"
+          >
             <PhoneCall className="text-green-600" size={22} />
             <span className="text-gray-700 font-medium">Voice</span>
           </div>
         </div>
       </div>
-        {/* Contact info */}
-        <div className="mt-6 space-y-3">
-          <div>
-            <p className="text-gray-400 text-sm">About</p>
-            <p className="font-medium">
-              {selectedPartner.about || "Hey there! I am using Dash-chat."}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-400 text-sm">Email</p>
-            <p className="font-medium">{selectedPartner.email}</p>
-          </div>
+      {/* Contact info */}
+      <div className="mt-6 space-y-3">
+        <div>
+          <p className="text-gray-400 text-sm">About</p>
+          <p className="font-medium">
+            {selectedPartner.about || "Hey there! I am using Dash-chat."}
+          </p>
         </div>
+
+        <div>
+          <p className="text-gray-400 text-sm">Email</p>
+          <p className="font-medium">{selectedPartner.email}</p>
+        </div>
+      </div>
     </div>
   );
 }

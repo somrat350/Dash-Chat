@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Check, CheckSquare, ChevronDown, CornerUpRight, Smile } from "lucide-react";
+import {
+  Check,
+  CheckSquare,
+  ChevronDown,
+  CornerUpRight,
+  Smile,
+} from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import DropdownMenu from "./DropdownMenu";
 import { useMessageStore } from "../../../../../store/useMessageStore";
@@ -14,7 +20,7 @@ const MessageBubble = ({ message, authUser }) => {
     (message.hiddenFor && message.hiddenFor.includes(authUser.email)) ||
     message.text === "This message was deleted";
 
-  const { addReaction,deleteMessage,setReplyMessage } = useMessageStore();
+  const { addReaction, deleteMessage, setReplyMessage } = useMessageStore();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
@@ -22,8 +28,8 @@ const MessageBubble = ({ message, authUser }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const handleForward = () => {
-  setShowForwardModal(true);
-};
+    setShowForwardModal(true);
+  };
 
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], {
@@ -48,29 +54,22 @@ const MessageBubble = ({ message, authUser }) => {
           className={`px-4 py-2 rounded-2xl max-w-xs md:max-w-md text-sm shadow-md wrap-break-word
           ${isMe ? "bg-green-500 text-white rounded-br-sm" : "bg-white text-black rounded-bl-sm"}`}
         >
+          {/* reply  */}
+          {message.replyTo && (
+            <div className="bg-gray-200 p-2 text-black  rounded-lg mb-1 text-xs border-l-4 border-green-500">
+              <p className="font-semibold">{message.replyTo.sender}</p>
 
-{/* reply  */}
-{message.replyTo && (
-  <div className="bg-gray-200 p-2 text-black  rounded-lg mb-1 text-xs border-l-4 border-green-500">
+              <p className="truncate">{message.replyTo.text}</p>
+            </div>
+          )}
+          {/* forword  */}
 
-    <p className="font-semibold">
-      {message.replyTo.sender}
-    </p>
-
-    <p className="truncate">
-      {message.replyTo.text}
-    </p>
-
-  </div>
-)}
-              {/* forword  */}
-
-            {message.forwarded && (
+          {message.forwarded && (
             <p className="flex items-center text-[10px] text-gray-700 mb-1 italic gap-1">
-          <CornerUpRight size={12} /> Forwarded
-        </p>
-         )}
-         
+              <CornerUpRight size={12} /> Forwarded
+            </p>
+          )}
+
           <p>
             {message.status === "hide" ||
             message.hiddenFor?.includes(authUser.email)
@@ -145,21 +144,21 @@ const MessageBubble = ({ message, authUser }) => {
         {/* dropdown menu */}
         {showDropdown && (
           <div
-       className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
-       onClick={(e) => e.stopPropagation()}
-      >
-    <DropdownMenu
-    message={message}
-    isMe={isMe}
-    isDeleted={isDeleted}
-    openDeleteModal={() => setShowDeleteModal(true)}
-    onEdit={() => setShowEditModal(true)}
-    onClose={() => setShowDropdown(false)}
-    onReply={(msg) => setReplyMessage(msg)}
-      onForward={handleForward}
-    />
-   </div>
-   )}
+            className={`absolute mt-1 z-50 ${isMe ? "right-0" : "-right-30"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DropdownMenu
+              message={message}
+              isMe={isMe}
+              isDeleted={isDeleted}
+              openDeleteModal={() => setShowDeleteModal(true)}
+              onEdit={() => setShowEditModal(true)}
+              onClose={() => setShowDropdown(false)}
+              onReply={(msg) => setReplyMessage(msg)}
+              onForward={handleForward}
+            />
+          </div>
+        )}
 
         {/* edit modal */}
 
@@ -172,7 +171,6 @@ const MessageBubble = ({ message, authUser }) => {
 
         {/* delet modal  */}
 
-<<<<<<< HEAD
         {showDeleteModal && (
           <DeleteModal
             isSender={isMe}
@@ -189,32 +187,14 @@ const MessageBubble = ({ message, authUser }) => {
             onCancel={() => setShowDeleteModal(false)}
           />
         )}
-=======
-  {showDeleteModal && (
-  <DeleteModal
-    isSender={isMe}
-    onDeleteForMe={() => {
-      deleteMessage(message._id, "me", authUser.email);
-      setShowDeleteModal(false);
-      setShowDropdown(false);
-    }}
-    onDeleteForEveryone={() => {
-      deleteMessage(message._id, "everyone", authUser.email);
-      setShowDeleteModal(false);
-      setShowDropdown(false);
-    }}
-    onCancel={() => setShowDeleteModal(false)}
-  />
-)}
 
-  {/* forward modal  */}
-   {showForwardModal && (
-  <ForwardModal
-    message={message}
-    onClose={() => setShowForwardModal(false)}
-  />
-)}
->>>>>>> ad328cb (Implement Forward feature)
+        {/* forward modal  */}
+        {showForwardModal && (
+          <ForwardModal
+            message={message}
+            onClose={() => setShowForwardModal(false)}
+          />
+        )}
       </div>
     </div>
   );
