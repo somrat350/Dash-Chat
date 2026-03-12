@@ -17,6 +17,11 @@ import Chats from "../pages/dashboard/Chats";
 import Notifications from "../pages/dashboard/Notifications";
 import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
+import BannerSettings from "../pages/dashboard/BannerSettings";
+import BadgeSettings from "../pages/dashboard/BadgeSettings";
+import SettingsDashboard from "../pages/dashboard/Settings";
+// import SettingsDashboard from "../pages/dashboard/Settings";
+;
 
 const router = createBrowserRouter([
   {
@@ -91,11 +96,32 @@ const router = createBrowserRouter([
         path: "profile",
         Component: Profile,
       },
+      
       {
         path: "settings",
-        Component: Settings,
+        Component:Settings
       },
+    
     ],
   },
+    {
+        path:"/banner-settings",
+        element:<BannerSettings></BannerSettings>
+    },
+    {
+      path:"/badge-settings",
+      element:<BadgeSettings></BadgeSettings>
+    },
+    {
+      path:"/settings",
+      element:<SettingsDashboard></SettingsDashboard>
+    },
+    {
+     path:"/settings/notifications",
+     element:<Notifications></Notifications>
+    },
+ 
+
+ 
 ]);
 export default router;

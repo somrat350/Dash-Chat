@@ -5,7 +5,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
-   const { authUser } = useAuthStore();
+  const { authUser } = useAuthStore();
 
   const [profile, setProfile] = useState({
     name: "Lili Akter",
@@ -25,6 +25,10 @@ export default function ProfilePage() {
     setProfile(temp);
     setEditing(false);
   };
+  const handleCancel = () => {
+    setTemp(profile);
+    setEditing(false);
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(profile.email);
@@ -35,24 +39,18 @@ export default function ProfilePage() {
 
   return (
     <div className="p-8 bg-base-200 min-h-screen">
-
       <div className=" mx-auto space-y-10 w-full">
-
         {/* ---------- Preview Section ---------- */}
 
         <div className=" flex-row gap-6 card bg-base-100  shadow p-6 ">
-
           <div className="avatar ">
-            <div className=" rounded-full">
-              <img src={authUser.photoURL} />
+            <div className="w-20 rounded-full">
+              <img src={authUser?.photoURL || profile.photo} />
             </div>
           </div>
 
           <div className="space-y-1 ">
-
-            <h2 className="text-lg font-semibold">
-              {authUser.displayName}
-            </h2>
+            <h2 className="text-lg font-semibold">{authUser.displayName}</h2>
 
             <div className="flex items-center gap-2 text-sm opacity-70">
               {authUser.email}
@@ -65,20 +63,14 @@ export default function ProfilePage() {
             <p className="text-sm">{profile.role}</p>
 
             <p className="text-xs opacity-70">{profile.bio}</p>
-
           </div>
-
         </div>
 
         {/* ---------- Edit Section ---------- */}
 
         <div className="card bg-base-100 shadow p-10">
-
           <div className="flex justify-between mb-6">
-
-            <h2 className="font-semibold text-lg">
-              Profile Information
-            </h2>
+            <h2 className="font-semibold text-lg">Profile Information</h2>
 
             {!editing ? (
               <button
@@ -88,18 +80,19 @@ export default function ProfilePage() {
                 Edit
               </button>
             ) : (
-              <button
-                onClick={handleSave}
-                className="btn btn-sm btn-primary "
-              >
-                Save
-              </button>
-            )}
+              <div className="flex gap-2">
+                <button onClick={handleSave} className="btn btn-sm btn-primary">
+                  Save
+                </button>
 
+                <button onClick={handleCancel} className="btn btn-sm btn-primary">
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-10">
-
             {/* Name */}
 
             <div>
@@ -122,16 +115,7 @@ export default function ProfilePage() {
             <div>
               <label className="text-sm">Email</label>
 
-              {editing ? (
-                <input
-                  name="email"
-                  value={authUser.email}
-                  onChange={handleChange}
-                  className="input mt-2 p-4 input-bordered  w-full"
-                />
-              ) : (
-                <p className="mt-1">{authUser.email}</p>
-              )}
+              <p className="mt-1">{authUser.email}</p>
             </div>
 
             {/* Photo URL */}
@@ -147,9 +131,7 @@ export default function ProfilePage() {
                   className="input mt-2 p-4 input-bordered w-full"
                 />
               ) : (
-                <p className="mt-1 break-all">
-                  {authUser.photoURL}
-                </p>
+                <p className="mt-1 break-all">{authUser.photoURL}</p>
               )}
             </div>
 
@@ -169,13 +151,11 @@ export default function ProfilePage() {
                 <p className="mt-1">{profile.role}</p>
               )}
             </div>
-
           </div>
 
           {/* Bio */}
 
           <div className="mt-8">
-
             <label className="text-sm">Bio</label>
 
             {editing ? (
@@ -183,18 +163,14 @@ export default function ProfilePage() {
                 name="bio"
                 value={temp.bio}
                 onChange={handleChange}
-                className="textarea mt-2 p-5 textarea-bordered w-full"
+                className="textarea mt-2 p-4 textarea-bordered w-full"
               />
             ) : (
               <p className="mt-1">{profile.bio}</p>
             )}
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

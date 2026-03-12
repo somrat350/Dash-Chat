@@ -44,6 +44,7 @@ const DashboardLayout = () => {
       link: "/dashboard/settings",
       icon: <Settings className="size-5" />,
     },
+   
   ];
 
   return (
