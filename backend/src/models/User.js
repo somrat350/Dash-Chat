@@ -4,12 +4,16 @@ const userSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
+    },
+    password: {
+      type: String,
+      required: false,
     },
     role: {
       type: String,
@@ -19,7 +23,12 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
-    
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true },
 );

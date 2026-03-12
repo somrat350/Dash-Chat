@@ -11,7 +11,6 @@ const DropdownMenu = ({
   isMe,
   isDeleted,
   openDeleteModal,
-  onReply,
 }) => {
   const { addReaction, forwardMessage, removeMessageFromUI } =
     useMessageStore();
@@ -34,16 +33,9 @@ const DropdownMenu = ({
       ) : (
         <>
           {/* reply */}
-         <button
-  className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm cursor-pointer"
-  onClick={() => {
-    onReply(message);
-    onClose();
-  }}
->
-  <CornerUpLeft size={16} className="text-gray-500" />
-  Reply
-</button>
+          <button className="p-2 flex items-center gap-2 hover:bg-gray-100 text-sm cursor-pointer">
+            <CornerUpLeft size={16} /> Reply
+          </button>
 
           {/* copy */}
           <button

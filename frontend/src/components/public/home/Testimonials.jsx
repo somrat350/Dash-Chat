@@ -31,36 +31,43 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div>
-          <h1 className="text-3xl font-bold text-center">Testimonials</h1>
-          <div className="grid grid-cols-1 mt-5 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
-            {testimonials.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 w-72 text-center"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                />
+    <section className="py-16 bg-base-100">
+  <div className="max-w-7xl mx-auto px-4">
+    <div>
+      {/* Section Heading */}
+      <h1 className="text-3xl font-bold text-center text-primary mb-10">Testimonials</h1>
 
-                <p className="text-gray-700 text-sm mb-4 ">"{item.text}"</p>
-                <div className="flex justify-between">
-                  <h1 className="text-xs font-bold text-gray-500">
-                    {item.name}
-                  </h1>
+      
+      <div className="grid grid-cols-1 mt-5 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
+        {testimonials.map((item) => (
+          <div
+            key={item.id}
+            className="relative group bg-base-200 p-6 rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 w-72 text-center"
+          >
+           
+            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                  <p className="text-xs font-bold text-gray-500">{item.role}</p>
-                </div>
-              </div>
-            ))}
+            
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+            />
+
+            
+            <p className="text-base-content/70 text-sm mb-4">"{item.text}"</p>
+
+           
+            <div className="flex justify-between text-xs font-bold text-base-content/50">
+              <h1>{item.name}</h1>
+              <p>{item.role}</p>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-    </section>
+    </div>
+  </div>
+</section>
   );
 };
 

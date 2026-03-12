@@ -1,9 +1,7 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: all;
-}
+@plugin "daisyui";
 
-/* @theme {
+@theme {
   --color-primary: #25D366;
   --color-secondary: #1C1E21;
 }
@@ -37,4 +35,4 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   
 }
- */
+

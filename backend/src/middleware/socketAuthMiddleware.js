@@ -1,31 +1,41 @@
-import admin from "../lib/firebase.js";
+import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { ENV } from "../lib/env.js";
 
 export const socketAuthMiddleware = async (socket, next) => {
   try {
-    const token = socket.handshake.auth.token;
+    // extract token from http-only cookies
+    const token = socket.handshake.headers.cookie
+      ?.split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
 
     if (!token) {
-      return next(new Error("Unauthorized - No token"));
+      console.log("Socket connection rejected: No token provided");
+      return next(new Error("Unauthorized - No Token Provided"));
     }
 
-    const decoded = await admin.auth().verifyIdToken(token);
+    // verify the token
+    const decoded = jwt.verify(token, ENV.JWT_SECRET);
     if (!decoded) {
-      return next(new Error("Unauthorized - Invalid token"));
+      console.log("Socket connection rejected: Invalid token");
+      return next(new Error("Unauthorized - Invalid Token"));
     }
 
-    const user = await User.findOne({ email: decoded.email });
+    // find the user from db
+    const user = await User.findById(decoded.userId).select("-password");
     if (!user) {
       console.log("Socket connection rejected: User not found");
       return next(new Error("User not found"));
     }
 
+    // attach user info to socket
     socket.user = user;
-    socket.email = user.email;
+    socket.userId = user._id.toString();
 
     next();
   } catch (error) {
-    console.log("Error in socket authentication:", error);
-    next(new Error("Authentication failed"));
+    console.log("Error in socket authentication:", error.message);
+    next(new Error("Unauthorized - Authentication failed"));
   }
 };

@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from "react-router";
 import {
   BellIcon,
   HomeIcon,
+  LucidePhone,
   MessagesSquare,
   PanelLeft,
   Settings,
@@ -10,9 +11,9 @@ import {
   UsersIcon,
 } from "lucide-react";
 import ThemeSelector from "../components/ThemeSelector";
+import { Toaster } from "react-hot-toast";
 
 const DashboardLayout = () => {
-
   const sideMenus = [
     {
       title: "Home",
@@ -28,6 +29,11 @@ const DashboardLayout = () => {
       title: "Chats",
       link: "/dashboard/chats",
       icon: <MessagesSquare className="size-5" />,
+    },
+    {
+      title: "Calls",
+      link: "/dashboard/calls",
+      icon: <LucidePhone className="size-5" />,
     },
     {
       title: "Notifications",
@@ -49,29 +55,30 @@ const DashboardLayout = () => {
 
   return (
     <div className="drawer lg:drawer-open">
+      <Toaster />
       <input
         id="my-drawer-4"
         defaultChecked
         type="checkbox"
         className="drawer-toggle"
       />
-      <div className="drawer-content">
+      <div className="drawer-content h-screen flex flex-col relative overflow-y-auto">
         {/* Navbar */}
-        <nav className="navbar w-full bg-base-300">
+        <nav className="navbar w-full bg-base-200 sticky top-0 z-50 pl-4">
           <label
             htmlFor="my-drawer-4"
             aria-label="open sidebar"
-            className="btn btn-circle btn-primary"
+            className="btn btn-circle btn-primary btn-sm"
           >
             {/* Sidebar toggle icon */}
-            <PanelLeft />
+            <PanelLeft size={20} />
           </label>
           <div className="px-4 flex justify-end w-full">
             <ThemeSelector />
           </div>
         </nav>
         {/* Page content here */}
-        <div className="p-4">
+        <div className="p-4 sm:p-6">
           <Outlet />
         </div>
       </div>

@@ -7,37 +7,48 @@ import {
 import { Link } from "react-router";
 import NoFriendsFound from "../../components/dashboard/NoFriendsFound";
 import FriendCard from "../../components/dashboard/FriendCard";
+import { useQuery } from "@tanstack/react-query";
+import { axiosInstance } from "../../lib/axios";
+import FeatureUnderDeveloping from "../../components/FeatureUnderDeveloping";
 
 const DashHome = () => {
-  const loadingFriends = false;
-  const friends = [];
-  const loadingUsers = false;
-  const recommendedUsers = [];
+  const developing = true;
+  const { data: recommendedUsers = [], isLoading: loadingUsers } = useQuery({
+    queryKey: ["recommendedUsers"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/api/users");
+      return res.data;
+    },
+  });
+  const { data: recentMessages = [], isLoading: loadingRecentMessages } =
+    useQuery({
+      queryKey: ["recentMessages"],
+      queryFn: async () => {
+        const res = await axiosInstance.get("/api/messages/recentMessages");
+        return res.data;
+      },
+    });
+
+  if (developing) return <FeatureUnderDeveloping />;
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div>
       <div className="container mx-auto space-y-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Your Friends
+            Recent Messages
           </h2>
-          <Link
-            to="/dashboard/notifications"
-            className="btn btn-primary btn-sm rounded-full"
-          >
-            <UsersIcon className="mr-2 size-4" />
-            Friend Requests
-          </Link>
         </div>
 
-        {loadingFriends ? (
+        {loadingRecentMessages ? (
           <div className="flex justify-center py-12">
             <span className="loading loading-spinner loading-lg" />
           </div>
-        ) : friends.length === 0 ? (
+        ) : recentMessages.length === 0 ? (
           <NoFriendsFound />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {friends.map((friend) => (
+            {recentMessages.map((friend) => (
               <FriendCard key={friend._id} friend={friend} />
             ))}
           </div>
@@ -47,7 +58,7 @@ const DashHome = () => {
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Meet New Learners
+                Meet New Users
               </h2>
             </div>
           </div>
@@ -62,61 +73,40 @@ const DashHome = () => {
                 No recommendations available
               </h3>
               <p className="text-base-content opacity-70">
-                Check back later for new language partners!
+                Check back later for new message partners!
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {recommendedUsers.map((user) => {
                 return (
-                  <div
-                    key={user._id}
-                    className="card bg-base-200 hover:shadow-lg transition-all duration-300"
-                  >
-                    <div className="card-body p-5 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="avatar size-16 rounded-full">
-                          <img src="/default-avatar.jpg" alt="" />
-                        </div>
+                  <div className="card w-full max-w-sm bg-base-200 shadow-xl border border-base-200">
+                    {/* User Image */}
+                    <figure className="px-10 pt-10">
+                      <img
+                        src={user.photoURL || "/default-avatar.jpg"}
+                        alt={user.name}
+                        className="rounded-full w-32 h-32 object-cover border-4 border-primary/10"
+                      />
+                    </figure>
 
-                        <div>
-                          <h3 className="font-semibold text-lg"></h3>
-                          {user.location && (
-                            <div className="flex items-center text-xs opacity-70 mt-1">
-                              <MapPinIcon className="size-3 mr-1" />
-                            </div>
-                          )}
-                        </div>
+                    <div className="card-body items-center text-center">
+                      {/* Name */}
+                      <h2 className="card-title text-xl font-bold">
+                        {user.name}
+                      </h2>
+
+                      {/* Bio with 2-line clamp */}
+                      <p className="text-sm opacity-70 line-clamp-2">
+                        {user.bio}
+                      </p>
+
+                      {/* Action Button */}
+                      <div className="card-actions mt-4 w-full">
+                        <button className="btn btn-primary btn-block normal-case">
+                          Add Friend
+                        </button>
                       </div>
-
-                      {/* Languages with flags */}
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="badge badge-secondary">Native:</span>
-                        <span className="badge badge-outline">Learning</span>
-                      </div>
-
-                      {user.bio && (
-                        <p className="text-sm opacity-70">{user.bio}</p>
-                      )}
-
-                      {/* Action button */}
-                      <button
-                        className={`btn w-full mt-2 ${
-                          true ? "btn-disabled" : "btn-primary"
-                        } `}
-                      >
-                        {true ? (
-                          <>
-                            <CheckCircleIcon className="size-4 mr-2" />
-                            Request Sent
-                          </>
-                        ) : (
-                          <>
-                            <UserPlusIcon className="size-4 mr-2" />
-                            Send Friend Request
-                          </>
-                        )}
-                      </button>
                     </div>
                   </div>
                 );

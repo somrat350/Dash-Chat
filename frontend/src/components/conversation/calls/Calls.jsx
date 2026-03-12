@@ -1,37 +1,39 @@
-import React from "react";
 import { Video, Phone } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { axiosSecure } from "../../../lib/axios";
+import { useAuthStore } from "../../../store/useAuthStore";
+import ComponentsLoader from "../../ComponentsLoader";
 
 const Calls = ({ mode = "recent" }) => {
-  const allCalls = [
-    {
-      id: 1,
-      name: "John Doe",
-      type: "Incoming",
-      time: "3 March, 7:03 PM",
-      status: "missed",
+  const { authUser } = useAuthStore();
+
+  const { data: rawCalls = [], isLoading } = useQuery({
+    queryKey: ["calls"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/api/calls");
+      return res.data;
     },
-    {
-      id: 2,
-      name: "Jane Smith",
-      type: "Outgoing",
-      time: "4 March, 10:15 AM",
-      status: "recent",
-    },
-    {
-      id: 3,
-      name: "Alex Roy",
-      type: "Scheduled",
-      time: "7 March, 9:00 PM",
-      status: "scheduled",
-    },
-    {
-      id: 4,
-      name: "Nadim Ahmed",
-      type: "Incoming",
-      time: "2 March, 11:40 AM",
-      status: "recent",
-    },
-  ];
+  });
+
+  const allCalls = rawCalls.map((call) => {
+    const isIncoming = call.receiver._id === authUser?._id;
+    const otherUser = isIncoming ? call.caller : call.receiver;
+    return {
+      id: call._id,
+      name: otherUser.name,
+      avatar: otherUser.photoURL || "/default-avatar.jpg",
+      type: call.status === "scheduled"
+        ? "Scheduled"
+        : isIncoming
+          ? "Incoming"
+          : "Outgoing",
+      time: new Date(call.scheduledAt || call.createdAt).toLocaleString(
+        "en-US",
+        { day: "numeric", month: "long", hour: "numeric", minute: "2-digit", hour12: true },
+      ),
+      status: call.status === "missed" ? "missed" : call.status === "scheduled" ? "scheduled" : "recent",
+    };
+  });
 
   const titleMap = {
     recent: "Recent Calls",
@@ -43,6 +45,8 @@ const Calls = ({ mode = "recent" }) => {
     mode === "recent"
       ? allCalls
       : allCalls.filter((call) => call.status === mode);
+
+  if (isLoading) return <ComponentsLoader />;
 
   return (
     <div className="p-4 md:p-6 h-full overflow-y-auto">
@@ -60,13 +64,10 @@ const Calls = ({ mode = "recent" }) => {
               className="flex justify-between items-center p-3 bg-base-200 rounded-md hover:bg-base-300 transition"
             >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-primary/15 text-primary flex items-center justify-center font-semibold">
-                  {call.name
-                    .split(" ")
-                    .map((part) => part[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
+                <div className="avatar">
+                  <div className="w-11 h-11 rounded-full">
+                    <img src={call.avatar} alt={call.name} />
+                  </div>
                 </div>
                 <div>
                   <p className="font-semibold">{call.name}</p>
