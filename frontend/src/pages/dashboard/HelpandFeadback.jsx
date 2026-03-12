@@ -22,11 +22,11 @@ export default function HelpandFeadback() {
       {/* help center */}
         <div
         onClick={() => navigate("")}
-        className="flex justify-between items-center  py-4 cursor-pointer"
+        className="flex justify-between hover:bg-primary px-4 items-center  py-4 cursor-pointer"
       >
         <div>
           <p>Help Center</p>
-          <p className="text-gray-500 text-sm">Frequently ask question</p>
+          <p className="text-gray-500  text-sm">Frequently ask question</p>
         </div>
 
        
@@ -35,7 +35,7 @@ export default function HelpandFeadback() {
       {/* contacus*/}
       <div
         onClick={() => navigate("")}
-        className="flex justify-between items-center  py-4 cursor-pointer"
+        className="flex justify-between items-center hover:bg-primary px-4  py-4 cursor-pointer"
       >
         <div>
           <p>Contac Us</p>
@@ -47,7 +47,7 @@ export default function HelpandFeadback() {
        {/* sendFeedback*/}
       <div
         onClick={() => navigate("")}
-        className="flex justify-between items-center  py-4 cursor-pointer"
+        className="flex justify-between hover:bg-primary px-4 items-center  py-4 cursor-pointer"
       >
         <div>
           <p>Send feedback</p>
@@ -59,7 +59,7 @@ export default function HelpandFeadback() {
        {/* sendFeedback*/}
       <div
         onClick={() => navigate("")}
-        className="flex justify-between items-center  py-4 cursor-pointer"
+        className="flex justify-between items-center hover:bg-primary px-y py-4 cursor-pointer"
       >
         <div>
           <p>Terms and Privecy Policy</p>
