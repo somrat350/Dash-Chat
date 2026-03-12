@@ -1,8 +1,44 @@
+<<<<<<< HEAD
+import { useState } from "react";
+import { Copy, Check, UserRoundPen, User } from "lucide-react";
+=======
 import { useState, useRef } from "react";
 import { FiEdit2, FiSave, FiX } from "react-icons/fi";
+>>>>>>> f8cc41d835216ab413aa6d515d2af9981d7c151b
 import { useAuthStore } from "../../store/useAuthStore";
+import ComponentsLoader from "../../components/ComponentsLoader";
+import toast from "react-hot-toast";
+import Breadcrumb from "../../components/dashboard/Breadcrumb";
+import { useForm } from "react-hook-form";
+
+const pageFlow = [
+  {
+    label: "Profile",
+    link: "/dashboard/profile",
+    icon: <UserRoundPen size={16} />,
+  },
+];
 
 export default function ProfilePage() {
+<<<<<<< HEAD
+  const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { authUser, userLoading, updateProfile } = useAuthStore();
+  const { register, handleSubmit } = useForm();
+
+  if (userLoading) return <ComponentsLoader />;
+
+  const handleUpdate = async (data) => {
+    await updateProfile(data);
+    setEditing(false);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(authUser?.email);
+    setCopied(true);
+    toast.success("Email copied success.");
+    setTimeout(() => setCopied(false), 1500);
+=======
   const {authUser } = useAuthStore();
 
   const fileRef = useRef(null);
@@ -69,36 +105,38 @@ export default function ProfilePage() {
     setTempProfile(profile);
     setEditHeader(false);
     setEditInfo(false);
+>>>>>>> f8cc41d835216ab413aa6d515d2af9981d7c151b
   };
 
   return (
-    <div className="p-8 bg-base-200">
+    <>
+      <div>
+        <Breadcrumb items={pageFlow} />
+        <div className=" mx-auto space-y-10 w-full">
+          {/* ---------- Preview Section ---------- */}
 
-      <h1 className="text-2xl font-bold mb-6">
-         Profile
-      </h1>
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-base-200 rounded-2xl shadow p-6 ">
+            <div className="avatar rounded-full w-24 h-24 overflow-hidden">
+              <img
+                src={authUser.photoURL || "/default-avatar.jpg"}
+                alt={authUser.name}
+              />
+            </div>
 
-      {/* Profile Header */}
+            <div className="flex-1 space-y-1 ">
+              <h2 className="text-lg font-semibold">{authUser.name}</h2>
 
-      <div className="bg-base-100 rounded-xl p-6 flex justify-between shadow mb-6">
+              <div className="flex items-center gap-2 text-sm opacity-70">
+                <span className="break-all">{authUser.email}</span>
 
-        <div className="flex items-center gap-4">
+                <button onClick={handleCopy}>
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              </div>
 
-          {/* Profile Image */}
+              <p className="text-sm text-primary">{authUser.role}</p>
 
-          <div className="relative">
-
-            <img
-              src={authUser.photoURL}
-              className="w-20 h-20 rounded-full object-cover cursor-pointer"
-              onClick={handleImageClick}
-            />
-
-            <div
-              onClick={handleImageClick}
-              className="absolute bottom-0 right-0 bg-black text-white p-1 rounded-full cursor-pointer"
-            >
-              <FiEdit2 size={14} />
+              <p className="text-xs opacity-70">{authUser.bio}</p>
             </div>
 
             <input
@@ -111,211 +149,119 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* Profile Text */}
+          {/* ---------- Edit Section ---------- */}
 
-          <div>
+          <div className="flex justify-between mb-6">
+            <h2 className="font-semibold text-lg">Profile Information</h2>
 
-            {editHeader ? (
-              <>
-                <input
-                  name="name"
-                  value={authUser.displayName}
-                  onChange={handleChange}
-                  className="input input-bordered mb-1"
-                />
-
-                <input
-                  name="title"
-                  value={tempProfile.title}
-                  onChange={handleChange}
-                  className="input input-bordered mb-1"
-                />
-
-                <input
-                  name="location"
-                  value={tempProfile.location}
-                  onChange={handleChange}
-                  className="input input-bordered"
-                />
-              </>
-            ) : (
-              <>
-                <h2 className="text-lg font-semibold">
-                  {authUser.displayName}
-                </h2>
-
-                <p className="text-gray-500 text-sm">
-                  {profile.title}
-                </p>
-
-                <p className="text-gray-400 text-sm">
-                  {profile.location}
-                </p>
-              </>
-            )}
-
+            <div className="flex items-center gap-4">
+              {!editing ? (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="btn btn-sm btn-primary"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="btn btn-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    form="profileForm"
+                    type="submit"
+                    className="btn btn-sm btn-primary"
+                  >
+                    Save Changes
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
-        </div>
-
-        {!editHeader ? (
-          <button
-            onClick={() => setEditHeader(true)}
-            className="flex items-center gap-2 border px-4 py-2 rounded-2xl"
+          <form
+            id="profileForm"
+            onSubmit={handleSubmit(handleUpdate)}
+            className="grid sm:grid-cols-2 gap-5"
           >
-            <FiEdit2 /> Edit
-          </button>
-        ) : (
-          <div className="flex gap-2">
-
-            <button
-              onClick={saveHeader}
-              className="flex items-center gap-2 bg-primary text-white px-3 py-2 rounded"
-            >
-              <FiSave /> Save
-            </button>
-
-            <button
-              onClick={cancelEdit}
-              className="flex items-center gap-2 border px-3 py-2 rounded"
-            >
-              <FiX /> Cancel
-            </button>
-
-          </div>
-        )}
-
-      </div>
-
-      {/* Personal Information */}
-
-      <div className="bg-base-100 rounded-xl p-6 shadow">
-
-        <div className="flex justify-between mb-6">
-
-          <h2 className="text-lg font-semibold">
-            Personal Information
-          </h2>
-
-          {!editInfo ? (
-            <button
-              onClick={() => setEditInfo(true)}
-              className="flex items-center gap-2 border px-4 py-2 rounded-xl"
-            >
-              <FiEdit2 /> Edit
-            </button>
-          ) : (
-            <div className="flex gap-2">
-
-              <button
-                onClick={saveInfo}
-                className="bg-primary text-white px-3 py-2 rounded flex gap-2 items-center"
-              >
-                <FiSave /> Save
-              </button>
-
-              <button
-                onClick={cancelEdit}
-                className="border px-3 py-2 rounded flex gap-2 items-center"
-              >
-                <FiX /> Cancel
-              </button>
-
+            {/* Name */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name">Name</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  defaultValue={authUser?.name}
+                  disabled={!editing}
+                  {...register("name")}
+                  id="name"
+                  placeholder="Name"
+                  className="input input-primary w-full rounded-2xl"
+                />
+              </div>
             </div>
           )}
 
+            {/* Email -- Never Editable */}
+            <div className="flex flex-col gap-2">
+              <label>Email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={authUser?.email}
+                  disabled={true}
+                  className="input input-primary w-full rounded-2xl"
+                />
+              </div>
+            </div>
+
+            {/* Profile image */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="photoURL">Image</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  disabled={!editing}
+                  // {...register("photoURL")}
+                  id="photoURL"
+                  className="file-input file-input-primary w-full rounded-2xl"
+                />
+              </div>
+            </div>
+
+            {/* Role */}
+            <div className="flex flex-col gap-2">
+              <label>Role</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={authUser?.role}
+                  disabled={true}
+                  className="input input-primary w-full rounded-2xl"
+                />
+              </div>
+            </div>
+
+            {/* Bio */}
+            <div className="flex flex-col gap-2 col-span-full">
+              <label htmlFor="bio">Bio</label>
+              <div className="relative">
+                <textarea
+                  id="bio"
+                  className="textarea textarea-primary w-full rounded-2xl"
+                  defaultValue={authUser?.bio}
+                  placeholder="Write about your self..."
+                  {...register("bio")}
+                  disabled={!editing}
+                ></textarea>
+              </div>
+            </div>
+          </form>
         </div>
-
-        {/* Grid Fields */}
-
-        <div className="grid md:grid-cols-2 gap-6">
-
-          <Field
-            label="First Name"
-            name="firstName"
-            value={editInfo ? authUser.displayName : authUser.displayName}
-            editing={editInfo}
-            handleChange={handleChange}
-          />
-
-          <Field
-            label="Last Name"
-            name="lastName"
-            value={editInfo ? tempProfile.lastName : profile.lastName}
-            editing={editInfo}
-            handleChange={handleChange}
-          />
-
-          <Field
-            label="Email"
-            name="email"
-            value={editInfo ? authUser.email : authUser.email}
-            editing={editInfo}
-            handleChange={handleChange}
-          />
-
-          <Field
-            label="Phone"
-            name="phone"
-            value={editInfo ? tempProfile.phone : profile.phone}
-            editing={editInfo}
-            handleChange={handleChange}
-          />
-
-        </div>
-
-        {/* Bio */}
-
-        <div className="mt-6">
-
-          <label className="text-sm text-gray-500">
-            Bio
-          </label>
-
-          {editInfo ? (
-            <textarea
-              name="bio"
-              value={tempProfile.bio}
-              onChange={handleChange}
-              className="textarea textarea-bordered w-full mt-1"
-            />
-          ) : (
-            <p className="mt-1">
-              {profile.bio}
-            </p>
-          )}
-
-        </div>
-
       </div>
-
-    </div>
-  );
-}
-
-
-function Field({ label, name, value, editing, handleChange }) {
-
-  return (
-    <div>
-
-      <label className="text-sm text-gray-500">
-        {label}
-      </label>
-
-      {editing ? (
-        <input
-          name={name}
-          value={value}
-          onChange={handleChange}
-          className="input input-bordered w-full mt-1"
-        />
-      ) : (
-        <p className="mt-1">
-          {value}
-        </p>
-      )}
-
-    </div>
+    </>
   );
 }

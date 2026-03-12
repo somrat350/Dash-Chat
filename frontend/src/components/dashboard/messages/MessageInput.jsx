@@ -1,5 +1,5 @@
 import EmojiPicker from "emoji-picker-react";
-import { Smile, Plus, Mic, XIcon, Send } from "lucide-react";
+import { Smile, Plus, Mic, XIcon, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useMessageStore } from "../../../store/useMessageStore";
@@ -15,7 +15,8 @@ const MessageInput = () => {
   const emojiRef = useRef(null);
   const [isMultiLine, setIsMultiLine] = useState(false);
 
-  const { sendMessage, isMessageSending } = useMessageStore();
+  const { sendMessage, isMessageSending, replyMessage, clearReplyMessage } =
+    useMessageStore();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -65,6 +66,7 @@ const MessageInput = () => {
     sendMessage(id, {
       text: text.trim(),
       image: imagePreview,
+      replyTo: replyMessage?._id || null,
     });
 
     setText("");
@@ -91,6 +93,24 @@ const MessageInput = () => {
                 <XIcon className="w-4 h-4" />
               </button>
             </div>
+          </div>
+        )}
+        {replyMessage && (
+          <div className="flex items-center justify-between bg-base-300 p-2 rounded-lg mb-2 border-l-4 border-primary animate-in slide-in-from-bottom-2">
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-xs font-bold text-primary">
+                Replying to {replyMessage.senderName}
+              </span>
+              <p className="text-sm truncate opacity-70">
+                {replyMessage.text || "Image"}
+              </p>
+            </div>
+            <button
+              onClick={clearReplyMessage}
+              className="btn btn-xs btn-circle btn-ghost"
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
         <div

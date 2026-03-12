@@ -8,6 +8,7 @@ const BASE_URL = import.meta.env.VITE_SERVER_URL;
 
 export const useAuthStore = create((set, get) => ({
   userLoading: true,
+  profileUpdating: false,
   authUser: null,
   socket: null,
   onlineUsers: [],
@@ -98,6 +99,18 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       toast.error("Logout failed");
       console.error("Logout failed:", error);
+    }
+  },
+  updateProfile: async (data) => {
+    try {
+      set({ profileUpdating: true });
+      const res = await axiosInstance.patch("/api/users/updateProfile", data);
+      set({ authUser: res.data });
+      get().connectSocket();
+    } catch (error) {
+      toast.error(error.message || "Registration failed");
+    } finally {
+      set({ profileUpdating: false });
     }
   },
   //Reset Password
