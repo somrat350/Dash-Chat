@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import { Copy, Check, UserRoundPen, User } from "lucide-react";
-=======
-import { useState, useRef } from "react";
-import { FiEdit2, FiSave, FiX } from "react-icons/fi";
->>>>>>> f8cc41d835216ab413aa6d515d2af9981d7c151b
 import { useAuthStore } from "../../store/useAuthStore";
 import ComponentsLoader from "../../components/ComponentsLoader";
 import toast from "react-hot-toast";
@@ -20,7 +15,6 @@ const pageFlow = [
 ];
 
 export default function ProfilePage() {
-<<<<<<< HEAD
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const { authUser, userLoading, updateProfile } = useAuthStore();
@@ -38,74 +32,6 @@ export default function ProfilePage() {
     setCopied(true);
     toast.success("Email copied success.");
     setTimeout(() => setCopied(false), 1500);
-=======
-  const {authUser } = useAuthStore();
-
-  const fileRef = useRef(null);
-
-  // const [profilePic, setProfilePic] = useState(
-  //   "https://i.pravatar.cc/150"
-  // );
-
-  const [profile, setProfile] = useState({
-    name: "Michael Rodriguez",
-    title: "Product Designer",
-    location: "Los Angeles, California, USA",
-    firstName: "Michael",
-    lastName: "Rodriguez",
-    email: "rodriguez@gmail.com",
-    phone: "(213) 555-1234",
-    bio: "Product Designer"
-  });
-
-  const [tempProfile, setTempProfile] = useState(profile);
-
-  const [editHeader, setEditHeader] = useState(false);
-  const [editInfo, setEditInfo] = useState(false);
-
-  // image click
-  const handleImageClick = () => {
-    fileRef.current.click();
-  };
-
-  // image change
-  const handleImageChange = (e) => {
-
-    const file = e.target.files[0];
-
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      (imageUrl);
-    }
-
-  };
-
-  // input change
-  const handleChange = (e) => {
-    setTempProfile({
-      ...tempProfile,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // save header
-  const saveHeader = () => {
-    setProfile(tempProfile);
-    setEditHeader(false);
-  };
-
-  // save personal info
-  const saveInfo = () => {
-    setProfile(tempProfile);
-    setEditInfo(false);
-  };
-
-  // cancel edit
-  const cancelEdit = () => {
-    setTempProfile(profile);
-    setEditHeader(false);
-    setEditInfo(false);
->>>>>>> f8cc41d835216ab413aa6d515d2af9981d7c151b
   };
 
   return (
@@ -139,14 +65,7 @@ export default function ProfilePage() {
               <p className="text-xs opacity-70">{authUser.bio}</p>
             </div>
 
-            <input
-              type="file"
-              ref={fileRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-
+            <input type="file" className="hidden" accept="image/*" />
           </div>
 
           {/* ---------- Edit Section ---------- */}
@@ -203,7 +122,6 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-          )}
 
             {/* Email -- Never Editable */}
             <div className="flex flex-col gap-2">
