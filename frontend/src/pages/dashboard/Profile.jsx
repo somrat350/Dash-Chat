@@ -1,200 +1,183 @@
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, UserRoundPen, User } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import ComponentsLoader from "../../components/ComponentsLoader";
+import toast from "react-hot-toast";
+import Breadcrumb from "../../components/dashboard/Breadcrumb";
+import { useForm } from "react-hook-form";
+
+const pageFlow = [
+  {
+    label: "Profile",
+    link: "/dashboard/profile",
+    icon: <UserRoundPen size={16} />,
+  },
+];
 
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
-   const { authUser } = useAuthStore();
+  const { authUser, userLoading, updateProfile } = useAuthStore();
+  const { register, handleSubmit } = useForm();
 
-  const [profile, setProfile] = useState({
-    name: "Lili Akter",
-    email: "limaakter@gmail.com",
-    role: "Frontend Developer",
-    photo: "https://i.pravatar.cc/150?img=5",
-    bio: "I love building chat applications.",
-  });
+  if (userLoading) return <ComponentsLoader />;
 
-  const [temp, setTemp] = useState(profile);
-
-  const handleChange = (e) => {
-    setTemp({ ...temp, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = () => {
-    setProfile(temp);
+  const handleUpdate = async (data) => {
+    await updateProfile(data);
     setEditing(false);
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(profile.email);
+    navigator.clipboard.writeText(authUser?.email);
     setCopied(true);
-
+    toast.success("Email copied success.");
     setTimeout(() => setCopied(false), 1500);
   };
 
   return (
-    <div className="p-8 bg-base-200">
+    <>
+      <div>
+        <Breadcrumb items={pageFlow} />
+        <div className=" mx-auto space-y-10 w-full">
+          {/* ---------- Preview Section ---------- */}
 
-      <div className=" mx-auto space-y-10 w-full">
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-base-200 rounded-2xl shadow p-6 ">
+            <div className="avatar rounded-full w-24 h-24 overflow-hidden">
+              <img
+                src={authUser.photoURL || "/default-avatar.jpg"}
+                alt={authUser.name}
+              />
+            </div>
 
-        {/* ---------- Preview Section ---------- */}
+            <div className="flex-1 space-y-1 ">
+              <h2 className="text-lg font-semibold">{authUser.name}</h2>
 
-        <div className=" flex-row gap-6 card bg-base-100  shadow p-6 ">
+              <div className="flex items-center gap-2 text-sm opacity-70">
+                <span className="break-all">{authUser.email}</span>
 
-          <div className="avatar ">
-            <div className=" rounded-full">
-              <img src={authUser.photoURL} />
+                <button onClick={handleCopy}>
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              </div>
+
+              <p className="text-sm text-primary">{authUser.role}</p>
+
+              <p className="text-xs opacity-70">{authUser.bio}</p>
             </div>
           </div>
 
-          <div className="space-y-1 ">
-
-            <h2 className="text-lg font-semibold">
-              {authUser.displayName}
-            </h2>
-
-            <div className="flex items-center gap-2 text-sm opacity-70">
-              {authUser.email}
-
-              <button onClick={handleCopy}>
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-              </button>
-            </div>
-
-            <p className="text-sm">{profile.role}</p>
-
-            <p className="text-xs opacity-70">{profile.bio}</p>
-
-          </div>
-
-        </div>
-
-        {/* ---------- Edit Section ---------- */}
-
-        <div className="card bg-base-100 shadow p-10">
+          {/* ---------- Edit Section ---------- */}
 
           <div className="flex justify-between mb-6">
+            <h2 className="font-semibold text-lg">Profile Information</h2>
 
-            <h2 className="font-semibold text-lg">
-              Profile Information
-            </h2>
-
-            {!editing ? (
-              <button
-                onClick={() => setEditing(true)}
-                className="btn btn-sm btn-primary"
-              >
-                Edit
-              </button>
-            ) : (
-              <button
-                onClick={handleSave}
-                className="btn btn-sm btn-primary "
-              >
-                Save
-              </button>
-            )}
-
+            <div className="flex items-center gap-4">
+              {!editing ? (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="btn btn-sm btn-primary"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="btn btn-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    form="profileForm"
+                    type="submit"
+                    className="btn btn-sm btn-primary"
+                  >
+                    Save Changes
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10">
-
+          <form
+            id="profileForm"
+            onSubmit={handleSubmit(handleUpdate)}
+            className="grid sm:grid-cols-2 gap-5"
+          >
             {/* Name */}
-
-            <div>
-              <label className="text-sm">Name</label>
-
-              {editing ? (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name">Name</label>
+              <div className="relative">
                 <input
-                  name="name"
-                  value={authUser.displayName}
-                  onChange={handleChange}
-                  className="input mt-2 input-bordered p-4 w-full"
+                  type="text"
+                  required
+                  defaultValue={authUser?.name}
+                  disabled={!editing}
+                  {...register("name")}
+                  id="name"
+                  placeholder="Name"
+                  className="input input-primary w-full rounded-2xl"
                 />
-              ) : (
-                <p className="mt-1">{authUser.displayName}</p>
-              )}
+              </div>
             </div>
 
-            {/* Email */}
-
-            <div>
-              <label className="text-sm">Email</label>
-
-              {editing ? (
+            {/* Email -- Never Editable */}
+            <div className="flex flex-col gap-2">
+              <label>Email</label>
+              <div className="relative">
                 <input
-                  name="email"
-                  value={authUser.email}
-                  onChange={handleChange}
-                  className="input mt-2 p-4 input-bordered  w-full"
+                  type="email"
+                  value={authUser?.email}
+                  disabled={true}
+                  className="input input-primary w-full rounded-2xl"
                 />
-              ) : (
-                <p className="mt-1">{authUser.email}</p>
-              )}
+              </div>
             </div>
 
-            {/* Photo URL */}
-
-            <div>
-              <label className="text-sm">Profile Photo</label>
-
-              {editing ? (
+            {/* Profile image */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="photoURL">Image</label>
+              <div className="relative">
                 <input
-                  name="photo"
-                  value={authUser.photoURL}
-                  onChange={handleChange}
-                  className="input mt-2 p-4 input-bordered w-full"
+                  type="file"
+                  disabled={!editing}
+                  // {...register("photoURL")}
+                  id="photoURL"
+                  className="file-input file-input-primary w-full rounded-2xl"
                 />
-              ) : (
-                <p className="mt-1 break-all">
-                  {authUser.photoURL}
-                </p>
-              )}
+              </div>
             </div>
 
             {/* Role */}
-
-            <div>
-              <label className="text-sm">Role</label>
-
-              {editing ? (
+            <div className="flex flex-col gap-2">
+              <label>Role</label>
+              <div className="relative">
                 <input
-                  name="role"
-                  value={temp.role}
-                  onChange={handleChange}
-                  className="input mt-2 p-4 input-bordered w-full"
+                  type="text"
+                  value={authUser?.role}
+                  disabled={true}
+                  className="input input-primary w-full rounded-2xl"
                 />
-              ) : (
-                <p className="mt-1">{profile.role}</p>
-              )}
+              </div>
             </div>
 
-          </div>
-
-          {/* Bio */}
-
-          <div className="mt-8">
-
-            <label className="text-sm">Bio</label>
-
-            {editing ? (
-              <textarea
-                name="bio"
-                value={temp.bio}
-                onChange={handleChange}
-                className="textarea mt-2 p-5 textarea-bordered w-full"
-              />
-            ) : (
-              <p className="mt-1">{profile.bio}</p>
-            )}
-
-          </div>
-
+            {/* Bio */}
+            <div className="flex flex-col gap-2 col-span-full">
+              <label htmlFor="bio">Bio</label>
+              <div className="relative">
+                <textarea
+                  id="bio"
+                  className="textarea textarea-primary w-full rounded-2xl"
+                  defaultValue={authUser?.bio}
+                  placeholder="Write about your self..."
+                  {...register("bio")}
+                  disabled={!editing}
+                ></textarea>
+              </div>
+            </div>
+          </form>
         </div>
-
       </div>
-
-    </div>
+    </>
   );
 }
