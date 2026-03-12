@@ -57,6 +57,7 @@ export const useMessageStore = create((set, get) => ({
     try {
       set({ isMessageSending: true });
       await axiosSecure.post(`/api/messages/send/${receiverId}`, messageData);
+      get().clearReplyMessage();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send message");
     } finally {
@@ -117,8 +118,10 @@ export const useMessageStore = create((set, get) => ({
           msg._id === id ? res.data : msg,
         ),
       }));
+      toast.success("Message edit success.");
     } catch (error) {
-      console.error("Edit failed", error);
+      console.log("Message edit failed:", error);
+      toast.error("Edit failed");
     }
   },
 

@@ -11,6 +11,7 @@ import {
   UsersIcon,
 } from "lucide-react";
 import ThemeSelector from "../components/ThemeSelector";
+import { Toaster } from "react-hot-toast";
 
 const DashboardLayout = () => {
   const sideMenus = [
@@ -53,6 +54,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="drawer lg:drawer-open">
+      <Toaster />
       <input
         id="my-drawer-4"
         defaultChecked

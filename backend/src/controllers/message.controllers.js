@@ -102,7 +102,8 @@ export const sendMessage = async (req, res) => {
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",
     });
-    const savedMessage = await newMessage.save();
+    let savedMessage = await newMessage.save();
+    savedMessage = await savedMessage.populate("replyTo");
 
     //web socket
     const receiverSocketId = getReceiverSocketId(receiverId);

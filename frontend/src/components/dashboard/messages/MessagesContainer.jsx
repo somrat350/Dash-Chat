@@ -19,6 +19,7 @@ const MessagesContainer = () => {
     getMessagesByUserId,
     subscribeToMessage,
     unsubscribeFromMessage,
+    clearReplyMessage,
   } = useMessageStore();
 
   useEffect(() => {
@@ -39,6 +40,12 @@ const MessagesContainer = () => {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  useEffect(() => {
+    clearReplyMessage();
+    return () => {
+      clearReplyMessage();
+    };
+  }, [id, clearReplyMessage]);
   return (
     <div className="overflow-y-auto h-full flex-1 mb-20">
       {messages.length > 0 && !messagesLoading ? (
