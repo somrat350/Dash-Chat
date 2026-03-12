@@ -136,22 +136,8 @@ export const acceptedFriendRequests = async (req, res) => {
         pipeline: [{ $project: { name: 1, email: 1, photoURL: 1 } }],
       },
     },
-
-    // 5. Flatten lookup result from array → single object
-    {
-      $addFields: {
-        "friends.userDetails": { $arrayElemAt: ["$friends.userDetails", 0] },
-      },
-    },
-
-    // 6. Return only the friend subdoc as the root shape
-    { $replaceRoot: { newRoot: "$friends" } },
+    acceptedFriends,
   ]);
-
-  res.status(200).json({
-    message: "Successfully fetched Friends list",
-    friends,
-  });
 };
 
 export const unblockUser = async (req, res) => {

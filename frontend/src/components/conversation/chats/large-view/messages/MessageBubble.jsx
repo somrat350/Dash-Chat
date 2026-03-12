@@ -11,7 +11,6 @@ import DropdownMenu from "./DropdownMenu";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import EditMessageModal from "./EditMessageModal";
 import DeleteModal from "./DeleteModal";
-import ForwardModal from "./ForwardModal";
 
 const MessageBubble = ({ message, authUser }) => {
   const isMe = message.sender === authUser?.email;

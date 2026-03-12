@@ -75,7 +75,7 @@ export const getMessagesByUserId = async (req, res) => {
         { senderId: loggedInUserId, receiverId: userId },
         { senderId: userId, receiverId: loggedInUserId },
       ],
-    }).populate("replyTo");
+    });
     res.status(200).json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);

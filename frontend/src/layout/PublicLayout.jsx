@@ -7,13 +7,12 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
 
 const PublicLayout = () => {
-  const { checkAuth } = useAuthStore();
+  const { checkAuth,  } = useAuthStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
   return (
     <>
-      <PageTitleManager />
       <Toaster />
       <div className="flex flex-col min-h-screen">
         <nav className="sticky top-0 z-50">
