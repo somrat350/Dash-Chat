@@ -8,7 +8,7 @@ export const useMessageStore = create((set, get) => ({
   messagePartners: [],
   messagePartnersLoading: false,
   messages: [],
-  isMessagesLoading: false,
+  isMessagesLoading: true,
   isMessageSending: false,
   isUserLoading: false,
 
