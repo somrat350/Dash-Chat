@@ -175,3 +175,35 @@ export const unblockUser = async (req, res) => {
 
   res.status(200).json({ message: "User unblocked successfully." });
 };
+
+// freind suggetion 
+
+export const getFriendSuggestions = async (req, res) => {
+  try {
+
+    const currentUserId = req.user._id;
+
+    const users = await User.aggregate([
+      {
+        $match: {
+          _id: { $ne: new mongoose.Types.ObjectId(currentUserId) }
+        }
+      },
+      {
+        $sample: { size: 8 }
+      },
+      {
+        $project: {
+          name: 1,
+          photoURL: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(users);
+
+  } catch (error) {
+    console.error("Error fetching suggestions", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
