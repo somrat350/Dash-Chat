@@ -76,7 +76,7 @@ const MessageInput = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 p-4 bg-base-200 w-full">
+      <div className="self-end p-4 bg-base-200 w-full">
         {imagePreview && (
           <div className="w-full mb-3 flex items-center">
             <div className="relative">
@@ -114,7 +114,7 @@ const MessageInput = () => {
           </div>
         )}
         <div
-          className={`flex ${isMultiLine ? "items-end" : "items-center"} gap-2 bg-base-100 rounded-2xl px-3 py-4 shadow-sm relative`}
+          className={`flex ${isMultiLine ? "items-end" : "items-center"} gap-2 bg-base-100 rounded-2xl px-3 py-2 shadow-sm relative`}
         >
           <Smile
             className="cursor-pointer hover:text-primary hover:scale-110 transition"

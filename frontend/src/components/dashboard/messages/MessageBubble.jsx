@@ -116,7 +116,9 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
         </p>
 
         {/* Message Date */}
-        <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
+        <p
+          className={`text-xs mt-1 opacity-75 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}
+        >
           {new Date(msg.createdAt).toLocaleTimeString(undefined, {
             hour: "2-digit",
             minute: "2-digit",

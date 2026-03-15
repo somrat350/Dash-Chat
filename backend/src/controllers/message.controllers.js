@@ -20,46 +20,101 @@ export const recentMessages = async (req, res) => {
 
 export const searchChatNewPartners = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
-    const { query = "" } = req.query;
-    if (!query.trim()) {
+    const loggedInUserId = req.user._id;
+    const { searchText = "" } = req.query;
+    if (!searchText.trim()) {
       return res.status(200).json([]);
     }
-    const partners = await User.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { email: { $regex: query, $options: "i" } },
+    const users = await User.find({
+      _id: { $ne: loggedInUserId },
+      $and: [
+        {
+          $or: [
+            { name: { $regex: searchText, $options: "i" } },
+            { email: { $regex: searchText, $options: "i" } },
+            { bio: { $regex: searchText, $options: "i" } },
+          ],
+        },
       ],
     });
 
-    res.status(200).json(partners);
+    res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+// optimized version
 export const getChatPartners = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const messages = await Message.find({
-      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
-    });
 
-    const chatPartnersId = [
-      ...new Set(
-        messages.map((msg) =>
-          msg.senderId.toString() === loggedInUserId.toString()
-            ? msg.receiverId.toString()
-            : msg.senderId.toString(),
-        ),
-      ),
-    ];
+    const partners = await Message.aggregate([
+      {
+        $match: {
+          $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+        },
+      },
 
-    const chatPartners = await User.find({
-      _id: { $in: chatPartnersId },
-    }).select("-password");
-    res.status(200).json(chatPartners);
+      {
+        $addFields: {
+          partnerId: {
+            $cond: [
+              { $eq: ["$senderId", loggedInUserId] },
+              "$receiverId",
+              "$senderId",
+            ],
+          },
+        },
+      },
+
+      {
+        $sort: { createdAt: -1 },
+      },
+
+      {
+        $group: {
+          _id: "$partnerId",
+          lastMessage: { $first: "$text" },
+          lastImage: { $first: "$image" },
+          time: { $first: "$createdAt" },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      { $unwind: "$user" },
+
+      {
+        $project: {
+          _id: 0,
+          user: {
+            _id: "$user._id",
+            name: "$user.name",
+            email: "$user.email",
+            image: "$user.image",
+          },
+          lastMessage: {
+            $ifNull: ["$lastMessage", "$lastImage"],
+          },
+          time: 1,
+        },
+      },
+
+      {
+        $sort: { time: -1 },
+      },
+    ]);
+
+    res.status(200).json(partners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
     res.status(500).json({ message: "Internal server error" });
