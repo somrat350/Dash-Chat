@@ -62,6 +62,7 @@ const AddPartnerModal = () => {
             <div className="grid overflow-y-auto scroll-thin scroll-smooth mt-3">
               {users.map((user) => (
                 <div
+                  key={user._id}
                   className={`flex items-center justify-between gap-1 p-3 border-b border-base-content/20 transition-colors bg-base-100 hover:bg-primary/20`}
                 >
                   <div className="flex items-center justify-start gap-1">

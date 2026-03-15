@@ -3,10 +3,9 @@ import { Smile, Plus, Mic, XIcon, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useMessageStore } from "../../../store/useMessageStore";
-import { useParams } from "react-router";
+import axios from "axios";
 
 const MessageInput = () => {
-  const { id } = useParams();
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -60,17 +59,32 @@ const MessageInput = () => {
     if (textareaRef.current) textareaRef.current.value = "";
   };
 
-  const handleSend = () => {
+  const uploadImage = async (userImage) => {
+    const formData = new FormData();
+    const base64 = userImage.split(",")[1];
+    formData.append("image", base64);
+    const imgApiUrl = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMG_BB_API}`;
+    const res = await axios.post(imgApiUrl, formData);
+    return res.data.data.url;
+  };
+
+  const handleSend = async () => {
     if (!text.trim() && !imagePreview) return;
 
-    sendMessage(id, {
+    let image = "";
+
+    if (imagePreview) {
+      image = await uploadImage(imagePreview);
+    }
+
+    sendMessage({
       text: text.trim(),
-      image: imagePreview,
+      image,
       replyTo: replyMessage?._id || null,
     });
 
     setText("");
-    setImagePreview("");
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -149,12 +163,12 @@ const MessageInput = () => {
             }}
           />
 
-          {text.trim().length === 0 ? (
+          {text.trim().length === 0 && !imagePreview ? (
             <button className="btn btn-primary btn-circle hover:scale-110 transition">
               <Mic />
             </button>
           ) : isMessageSending ? (
-            <span className="loading loading-spinner loading-xs"></span>
+            <span className="loading loading-spinner loading-xl"></span>
           ) : (
             <button
               onClick={handleSend}
