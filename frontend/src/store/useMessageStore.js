@@ -38,7 +38,6 @@ export const useMessageStore = create((set, get) => ({
     try {
       set({ messagePartnersLoading: true });
       const res = await axiosSecure.get("/api/messages/messagePartners");
-      console.log(res.data);
       set({ messagePartners: res.data });
     } catch (error) {
       toast.error(error.response.data.message);
@@ -71,10 +70,14 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  sendMessage: async (receiverId, messageData) => {
+  sendMessage: async (messageData) => {
     try {
+      const { selectedPartner } = get();
       set({ isMessageSending: true });
-      await axiosSecure.post(`/api/messages/send/${receiverId}`, messageData);
+      await axiosSecure.post(
+        `/api/messages/send/${selectedPartner._id}`,
+        messageData,
+      );
       get().clearReplyMessage();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send message");

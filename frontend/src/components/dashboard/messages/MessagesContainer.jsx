@@ -3,6 +3,7 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import { useMessageStore } from "../../../store/useMessageStore";
 import MessageBubble from "./MessageBubble";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
+import NoMessagesFound from "./NoMessagesFound";
 
 const MessagesContainer = () => {
   const messageEndRef = useRef(null);
@@ -13,7 +14,6 @@ const MessagesContainer = () => {
     messages,
     selectedPartner,
     isMessagesLoading,
-    isMessageSending,
     getMessagesByUserId,
     subscribeToMessage,
     unsubscribeFromMessage,
@@ -28,7 +28,6 @@ const MessagesContainer = () => {
   }, [
     socket,
     selectedPartner,
-    isMessageSending,
     getMessagesByUserId,
     subscribeToMessage,
     unsubscribeFromMessage,
@@ -50,7 +49,7 @@ const MessagesContainer = () => {
         {isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : messages.length === 0 ? (
-          "not found"
+          <NoMessagesFound />
         ) : (
           <>
             {messages.map((msg) => (
