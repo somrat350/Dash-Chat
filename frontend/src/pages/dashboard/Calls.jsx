@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LucidePhone,
   Phone,
@@ -14,6 +14,18 @@ import { useQuery } from "@tanstack/react-query";
 import { axiosSecure } from "../../lib/axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import ComponentsLoader from "../../components/ComponentsLoader";
+import toast from "react-hot-toast";
+import {
+  CallingState,
+  CallControls,
+  SpeakerLayout,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  StreamVideoClient,
+  useCallStateHooks,
+} from "@stream-io/video-react-sdk";
+import { useCallStore } from "../../store/useCallStore";
 
 const tabs = [
   { key: "all", label: "All Calls" },
@@ -23,10 +35,95 @@ const tabs = [
   { key: "scheduled", label: "Scheduled" },
 ];
 
+const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
+  const { useCallCallingState, useParticipants } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const participants = useParticipants();
+
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) {
+      onLeave();
+    }
+  }, [callingState, onLeave]);
+
+  const isAudio = callType === "audio";
+
+  return (
+    <div className="fixed inset-0 z-9999 flex flex-col bg-base-100">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 bg-base-200 border-b border-base-300">
+        <div className="flex items-center gap-2">
+          {isAudio ? (
+            <Phone size={16} className="text-primary" />
+          ) : (
+            <Video size={16} className="text-primary" />
+          )}
+          <span className="text-base-content font-semibold text-sm">
+            {isAudio ? "Audio Call" : "Video Call"}
+          </span>
+          {targetUser?.name && (
+            <span className="text-base-content/60 text-sm">
+              with {targetUser.name}
+            </span>
+          )}
+        </div>
+        <span className="text-base-content/50 text-xs">
+          {participants.length} participant
+          {participants.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Call content */}
+      <div className="flex-1 overflow-hidden">
+        {isAudio ? (
+          <div className="h-full flex flex-col items-center justify-center gap-8 bg-base-200">
+            <div className="flex flex-wrap justify-center gap-10">
+              <div className="flex flex-col items-center gap-3">
+                <div className="avatar">
+                  <div className="w-28 h-28 rounded-full ring-4 ring-primary ring-offset-base-100 ring-offset-4 shadow-xl">
+                    <img
+                      src={targetUser?.image || "/default-avatar.jpg"}
+                      alt={targetUser?.name || "Participant"}
+                    />
+                  </div>
+                </div>
+                <span className="text-base-content text-lg font-semibold">
+                  {targetUser?.name || "Connecting..."}
+                </span>
+              </div>
+            </div>
+            <p className="text-base-content/60 text-sm animate-pulse">
+              {participants.length > 1
+                ? "Audio call in progress..."
+                : "Ringing..."}
+            </p>
+          </div>
+        ) : (
+          <div className="h-full">
+            <SpeakerLayout participantsBarPosition="bottom" />
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="flex justify-center py-5 bg-base-200 border-t border-base-300">
+        <CallControls onLeave={onLeave} />
+      </div>
+    </div>
+  );
+};
+
 const Calls = () => {
   const { authUser } = useAuthStore();
+  const { initiateCall, setCurrentCall, clearCurrentCall, isCallLoading } =
+    useCallStore();
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [streamClient, setStreamClient] = useState(null);
+  const [activeCall, setActiveCall] = useState(null);
+  const [activeCallType, setActiveCallType] = useState("audio");
+  const [activeTargetUser, setActiveTargetUser] = useState(null);
+  const [isClientLoading, setIsClientLoading] = useState(true);
 
   const { data: rawCalls = [], isLoading } = useQuery({
     queryKey: ["calls"],
@@ -36,41 +133,178 @@ const Calls = () => {
     },
   });
 
-  // Transform API data to determine incoming/outgoing relative to logged-in user
-  const callsData = rawCalls.map((call) => {
-    const isIncoming = call.receiver._id === authUser?._id;
-    const otherUser = isIncoming ? call.caller : call.receiver;
-    const callType =
-      call.status === "scheduled"
-        ? "scheduled"
-        : isIncoming
-          ? "incoming"
-          : "outgoing";
+  useEffect(() => {
+    let mounted = true;
 
-    return {
-      id: call._id,
-      name: otherUser.name,
-      avatar: otherUser.photoURL || "/default-avatar.jpg",
-      type: callType,
-      medium: call.type, // "audio" or "video"
-      time: new Date(call.scheduledAt || call.createdAt).toLocaleString(
-        "en-US",
-        {
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        },
-      ),
-      duration: call.duration
-        ? `${Math.floor(call.duration / 60)}:${String(call.duration % 60).padStart(2, "0")}`
-        : null,
-      status: call.status,
+    const initClient = async () => {
+      if (!authUser?._id) {
+        setIsClientLoading(false);
+        return;
+      }
+
+      try {
+        setIsClientLoading(true);
+        const res = await axiosSecure.get("/api/calls/token");
+        const { apiKey, token, user } = res.data;
+
+        if (!apiKey || !token || !user?.id) {
+          throw new Error("Invalid Stream token payload");
+        }
+
+        const client = new StreamVideoClient({
+          apiKey,
+          user,
+          token,
+        });
+
+        if (mounted) {
+          setStreamClient(client);
+        } else {
+          await client.disconnectUser();
+        }
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.message || "Call service unavailable",
+        );
+      } finally {
+        if (mounted) {
+          setIsClientLoading(false);
+        }
+      }
     };
-  });
 
-  if (isLoading) return <ComponentsLoader />;
+    initClient();
+
+    return () => {
+      mounted = false;
+    };
+  }, [authUser?._id]);
+
+  useEffect(() => {
+    return () => {
+      if (streamClient) {
+        streamClient.disconnectUser();
+      }
+    };
+  }, [streamClient]);
+
+  // Transform API data to determine incoming/outgoing relative to logged-in user
+  const callsData = useMemo(
+    () =>
+      rawCalls
+        .map((call) => {
+          const caller = call?.caller;
+          const receiver = call?.receiver;
+
+          if (!caller && !receiver) return null;
+
+          const isIncoming = receiver?._id === authUser?._id;
+          const otherUser =
+            (isIncoming ? caller : receiver) || caller || receiver;
+
+          if (!otherUser) return null;
+
+          const callType =
+            call.status === "scheduled"
+              ? "scheduled"
+              : isIncoming
+                ? "incoming"
+                : "outgoing";
+
+          return {
+            id: call._id,
+            name: otherUser.name || "Unknown user",
+            avatar: otherUser.photoURL || "/default-avatar.jpg",
+            type: callType,
+            medium: call.type, // "audio" or "video"
+            time: new Date(call.scheduledAt || call.createdAt).toLocaleString(
+              "en-US",
+              {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              },
+            ),
+            duration: call.duration
+              ? `${Math.floor(call.duration / 60)}:${String(call.duration % 60).padStart(2, "0")}`
+              : null,
+            status: call.status,
+            otherUserId: otherUser._id || null,
+          };
+        })
+        .filter(Boolean),
+    [rawCalls, authUser?._id],
+  );
+
+  const handleLeave = useCallback(async () => {
+    try {
+      if (activeCall) {
+        await activeCall.leave();
+      }
+    } catch (error) {
+      console.error("Failed to leave call:", error);
+    } finally {
+      setActiveCall(null);
+      setActiveTargetUser(null);
+      clearCurrentCall();
+    }
+  }, [activeCall, clearCurrentCall]);
+
+  const startCall = useCallback(
+    async (targetUser, type) => {
+      const receiverId = targetUser?.id;
+      if (!streamClient || !authUser?._id || !receiverId) {
+        toast.error("Call service is not ready yet");
+        return;
+      }
+
+      // Max 64 chars: 24 + 1 + 24 + 1 + 13 = 63
+      const callId = `${[String(authUser._id), String(receiverId)].sort().join("-")}-${Date.now()}`;
+
+      try {
+        // Register both users in Stream before creating the call
+        await axiosSecure.post("/api/calls/ensure-members", { receiverId });
+
+        const call = streamClient.call("default", callId);
+
+        await call.getOrCreate({
+          data: {
+            members: [
+              { user_id: String(authUser._id) },
+              { user_id: String(receiverId) },
+            ],
+            custom: { medium: type },
+          },
+        });
+
+        await call.join({ create: true });
+
+        // Configure media based on call type
+        if (type === "audio") {
+          await call.camera.disable();
+          await call.microphone.enable();
+        } else {
+          await call.camera.enable();
+          await call.microphone.enable();
+        }
+
+        setActiveCallType(type);
+        setActiveTargetUser(targetUser);
+        setActiveCall(call);
+        setCurrentCall(call.id);
+
+        await initiateCall(receiverId, type);
+      } catch (error) {
+        console.error("Failed to start call:", error);
+        toast.error(error?.message || "Unable to start call");
+      }
+    },
+    [authUser?._id, initiateCall, setCurrentCall, streamClient],
+  );
+
+  if (isLoading || isClientLoading) return <ComponentsLoader />;
 
   const filtered = callsData.filter((call) => {
     const matchesTab =
@@ -108,6 +342,21 @@ const Calls = () => {
 
   return (
     <div>
+      {/* Full-screen call overlay */}
+      {streamClient && activeCall && (
+        <StreamVideo client={streamClient}>
+          <StreamCall call={activeCall}>
+            <StreamTheme>
+              <ActiveCallPanel
+                onLeave={handleLeave}
+                callType={activeCallType}
+                targetUser={activeTargetUser}
+              />
+            </StreamTheme>
+          </StreamCall>
+        </StreamVideo>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="stat bg-base-200 rounded-xl p-4">
@@ -115,14 +364,16 @@ const Calls = () => {
             <Phone size={24} />
           </div>
           <div className="stat-title text-xs">Total Calls</div>
-          <div className="stat-value text-2xl">{callsData.length}</div>
+          <div className="stat-value text-2xl text-base-content">
+            {callsData.length}
+          </div>
         </div>
         <div className="stat bg-base-200 rounded-xl p-4">
           <div className="stat-figure text-success">
             <PhoneIncoming size={24} />
           </div>
           <div className="stat-title text-xs">Incoming</div>
-          <div className="stat-value text-2xl">
+          <div className="stat-value text-2xl text-base-content">
             {callsData.filter((c) => c.type === "incoming").length}
           </div>
         </div>
@@ -131,7 +382,7 @@ const Calls = () => {
             <PhoneMissed size={24} />
           </div>
           <div className="stat-title text-xs">Missed</div>
-          <div className="stat-value text-2xl">
+          <div className="stat-value text-2xl text-base-content">
             {callsData.filter((c) => c.status === "missed").length}
           </div>
         </div>
@@ -140,7 +391,7 @@ const Calls = () => {
             <CalendarClock size={24} />
           </div>
           <div className="stat-title text-xs">Scheduled</div>
-          <div className="stat-value text-2xl">
+          <div className="stat-value text-2xl text-base-content">
             {callsData.filter((c) => c.type === "scheduled").length}
           </div>
         </div>
@@ -177,8 +428,10 @@ const Calls = () => {
       {filtered.length === 0 ? (
         <div className="text-center py-12 bg-base-200 rounded-xl">
           <PhoneMissed size={48} className="mx-auto opacity-30 mb-3" />
-          <p className="text-lg font-medium opacity-60">No calls found</p>
-          <p className="text-sm opacity-40">
+          <p className="text-lg font-medium text-base-content/70">
+            No calls found
+          </p>
+          <p className="text-sm text-base-content/50">
             {callsData.length === 0
               ? "You haven't made any calls yet. Use the call buttons in chat to make your first call!"
               : "Try adjusting your filter or search"}
@@ -200,8 +453,10 @@ const Calls = () => {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">{call.name}</h3>
-                    <div className="flex items-center gap-1.5 text-sm opacity-60">
+                    <h3 className="font-semibold truncate text-base-content">
+                      {call.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-sm text-base-content/60">
                       {getCallIcon(call)}
                       <span className="capitalize">{call.type}</span>
                       {call.medium === "video" && (
@@ -213,7 +468,7 @@ const Calls = () => {
                 </div>
 
                 {/* Time & Duration */}
-                <div className="flex items-center justify-between text-sm opacity-60">
+                <div className="flex items-center justify-between text-sm text-base-content/60">
                   <span className="flex items-center gap-1">
                     <Clock size={14} />
                     {call.time}
@@ -225,11 +480,37 @@ const Calls = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-1">
-                  <button className="btn btn-primary btn-sm flex-1 gap-1">
+                  <button
+                    onClick={() =>
+                      startCall(
+                        {
+                          id: call.otherUserId,
+                          name: call.name,
+                          image: call.avatar,
+                        },
+                        "audio",
+                      )
+                    }
+                    className="btn btn-primary btn-sm flex-1 gap-1"
+                    disabled={isCallLoading || !call.otherUserId}
+                  >
                     <Phone size={15} />
                     Call
                   </button>
-                  <button className="btn btn-secondary btn-sm flex-1 gap-1">
+                  <button
+                    onClick={() =>
+                      startCall(
+                        {
+                          id: call.otherUserId,
+                          name: call.name,
+                          image: call.avatar,
+                        },
+                        "video",
+                      )
+                    }
+                    className="btn btn-secondary btn-sm flex-1 gap-1"
+                    disabled={isCallLoading || !call.otherUserId}
+                  >
                     <Video size={15} />
                     Video
                   </button>
