@@ -1,4 +1,8 @@
 import Call from "../models/call.js";
+import User from "../models/User.js";
+import { streamClient } from "../lib/stream.js";
+import { ENV } from "../lib/env.js";
+import mongoose from "mongoose";
 
 // Get all calls for the logged-in user
 export const getCalls = async (req, res) => {
@@ -29,6 +33,19 @@ export const createCall = async (req, res) => {
       return res
         .status(400)
         .json({ message: "receiverId and type are required." });
+    }
+
+    if (!mongoose.isValidObjectId(receiverId)) {
+      return res.status(400).json({ message: "Invalid receiverId" });
+    }
+
+    if (callerId.toString() === receiverId.toString()) {
+      return res.status(400).json({ message: "Cannot call yourself" });
+    }
+
+    const receiver = await User.findById(receiverId).select("_id");
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver user not found" });
     }
 
     const newCall = new Call({
@@ -79,6 +96,81 @@ export const deleteCall = async (req, res) => {
     res.status(200).json({ message: "Call deleted successfully" });
   } catch (error) {
     console.error("Error deleting call:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Generate Stream token for the logged-in user and register them in Stream
+export const getStreamToken = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = user._id.toString();
+
+    if (!ENV.STREAM_API_KEY || !ENV.STREAM_API_SECRET) {
+      return res
+        .status(500)
+        .json({ message: "Stream credentials are missing" });
+    }
+
+    // Register/update the user in Stream so they can participate in calls
+    await streamClient.upsertUser({
+      id: userId,
+      name: user.name,
+      image: user.photoURL || "",
+    });
+
+    const token =
+      typeof streamClient.createToken === "function"
+        ? streamClient.createToken(userId)
+        : streamClient.createUserToken(userId);
+
+    res.status(200).json({
+      token,
+      apiKey: ENV.STREAM_API_KEY,
+      user: {
+        id: userId,
+        name: user.name,
+        image: user.photoURL || "",
+      },
+    });
+  } catch (error) {
+    console.error("Error generating stream token:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Ensure both caller and receiver exist in Stream before creating a call
+export const ensureStreamMembers = async (req, res) => {
+  try {
+    const callerId = req.user._id.toString();
+    const { receiverId } = req.body;
+
+    if (!receiverId || !mongoose.isValidObjectId(receiverId)) {
+      return res.status(400).json({ message: "Invalid receiverId" });
+    }
+
+    const receiver = await User.findById(receiverId).select("name photoURL");
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver not found" });
+    }
+
+    // Upsert both users into Stream so they can join a call
+    await streamClient.upsertUsers([
+      {
+        id: callerId,
+        name: req.user.name,
+        image: req.user.photoURL || "",
+      },
+      {
+        id: receiver._id.toString(),
+        name: receiver.name,
+        image: receiver.photoURL || "",
+      },
+    ]);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error ensuring stream members:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

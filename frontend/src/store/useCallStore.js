@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 
 export const useCallStore = create((set) => ({
   isCallLoading: false,
+  currentCallId: null,
+
+  setCurrentCall: (callId) => set({ currentCallId: callId }),
+  clearCurrentCall: () => set({ currentCallId: null }),
 
   initiateCall: async (receiverId, type = "audio") => {
     try {
@@ -12,7 +16,7 @@ export const useCallStore = create((set) => ({
         receiverId,
         type,
         status: "received",
-        duration: Math.floor(Math.random() * 600) + 10, // simulated duration
+        duration: 0,
       });
       toast.success(
         `${type === "video" ? "Video" : "Audio"} call placed to ${res.data.receiver?.name || "user"}`,

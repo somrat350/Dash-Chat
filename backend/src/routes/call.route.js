@@ -4,6 +4,8 @@ import {
   getCalls,
   createCall,
   deleteCall,
+  getStreamToken,
+  ensureStreamMembers,
 } from "../controllers/call.controller.js";
 
 const callRouter = express.Router();
@@ -11,6 +13,8 @@ const callRouter = express.Router();
 callRouter.use(isAuthenticated);
 
 callRouter.get("/", getCalls);
+callRouter.get("/token", getStreamToken);
+callRouter.post("/ensure-members", ensureStreamMembers);
 callRouter.post("/", createCall);
 callRouter.delete("/:id", deleteCall);
 
