@@ -4,7 +4,7 @@ import logoImg from "../../assets/DashChat-logo.png";
 const Logo = () => {
   return (
     <div>
-      <Link to="/" className="text-xl font-bold text-primary flex items-center">
+      <Link to="/" className="text-xl font-bold  text-primary  flex items-center">
         <img
           src={logoImg}
           alt="DashChat Logo"
