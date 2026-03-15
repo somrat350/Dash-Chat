@@ -38,11 +38,11 @@ const DashboardLayout = () => {
       link: "/dashboard/notifications",
       icon: <BellIcon className="size-5" />,
     },
-    {
-      title: "Profile",
-      link: "/dashboard/profile",
-      icon: <UserRoundPen className="size-5" />,
-    },
+    // {
+    //   title: "Profile",
+    //   link: "/dashboard/profile",
+    //   icon: <UserRoundPen className="size-5" />,
+    // },
     {
       title: "Settings",
       link: "/dashboard/settings",

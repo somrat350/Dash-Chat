@@ -19,6 +19,15 @@ import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
 import Messages from "../pages/dashboard/Messages";
 import Calls from "../pages/dashboard/Calls";
+// import HelpandFeadback from "../pages/dashboard/HelpandFeadback";
+import SettingsLayout from "../layout/SettingsLayout";
+import ProfileSettings from "../pages/dashboard/ProfileSettings";
+import AppearanceSettings from "../pages/dashboard/AppearanceSettings";
+
+import PrivacySettings from "../pages/dashboard/PrivacySettings";
+import DangerZone from "../pages/dashboard/DangerZone";
+import NotificationSettings from "../pages/dashboard/NotificationsSettings";
+import SettingsDefault from "../pages/dashboard/SettingsDefault";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +56,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+
   {
     path: "/auth",
     Component: AuthLayout,
@@ -101,7 +111,40 @@ const router = createBrowserRouter([
         path: "settings",
         Component: Settings,
       },
-    ],
+      {
+        path:"settings",
+        element:<SettingsLayout />,
+        children:[
+          {
+            index:true,
+            element:<SettingsDefault />
+          },
+          {
+            path:"profile",
+            element:<ProfileSettings />
+          },
+          {
+            path:"appearance",
+            element:<AppearanceSettings />
+          },
+          {
+            path:"notifications",
+            element:<NotificationSettings />
+          },
+          {
+            path:"privacy",
+            element:<PrivacySettings />
+          },
+          {
+            path:"danger",
+            element:<DangerZone />
+          }
+
+      
+        ]
+
+      }
+    ]
   },
 ]);
 export default router;
