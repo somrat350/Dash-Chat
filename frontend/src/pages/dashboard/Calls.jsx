@@ -13,16 +13,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { axiosSecure } from "../../lib/axios";
 import { useAuthStore } from "../../store/useAuthStore";
-import Breadcrumb from "../../components/dashboard/Breadcrumb";
 import ComponentsLoader from "../../components/ComponentsLoader";
-
-const pageFlow = [
-  {
-    label: "Calls",
-    link: "/dashboard/calls",
-    icon: <LucidePhone size={16} />,
-  },
-];
 
 const tabs = [
   { key: "all", label: "All Calls" },
@@ -117,8 +108,6 @@ const Calls = () => {
 
   return (
     <div>
-      <Breadcrumb items={pageFlow} />
-
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="stat bg-base-200 rounded-xl p-4">

@@ -75,15 +75,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: DashHome,
+        Component: Chats,
       },
       {
         path: "friends",
         Component: Friends,
-      },
-      {
-        path: "chats",
-        Component: Chats,
       },
       {
         path: "chats/:id",

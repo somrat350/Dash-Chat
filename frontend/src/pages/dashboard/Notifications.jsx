@@ -5,15 +5,6 @@ import {
   MessageCircle,
   CheckCircle,
 } from "lucide-react";
-import Breadcrumb from "../../components/dashboard/Breadcrumb";
-
-const pageFlow = [
-  {
-    label: "Notifications",
-    link: "/dashboard/notifications",
-    icon: <BellIcon size={16} />,
-  },
-];
 
 const initialNotifications = [
   {
@@ -138,8 +129,6 @@ const Notifications = () => {
 
   return (
     <div className="space-y-6">
-
-      <Breadcrumb items={pageFlow} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BellIcon className="text-primary" />
