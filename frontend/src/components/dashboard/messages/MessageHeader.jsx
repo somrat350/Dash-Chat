@@ -29,7 +29,7 @@ const MessageHeader = () => {
 
         <div>
           <h3 className="font-medium">{selectedPartner?.name}</h3>
-          <p className="text-sm">typing...</p>
+          <p className="text-sm">{isOnline ? "Online" : "Offline"}</p>
         </div>
       </div>
 
