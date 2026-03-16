@@ -6,7 +6,9 @@ import {
   sendRequest,
   unblockUser,
   updateRequest,
-  getFriendSuggestions
+  getFriendSuggestions,
+  getFriendRequests,
+  respondFriendRequest
 } from "../controllers/friends.controllers.js";
 
 const friendsRouter = express.Router();
@@ -19,5 +21,7 @@ friendsRouter.patch("/update", updateRequest);
 friendsRouter.get("/accepted-friends/:id", acceptedFriendRequests);
 friendsRouter.patch("/unblock", unblockUser);
 friendsRouter.get("/suggestions", getFriendSuggestions);
+friendsRouter.get("/requests", getFriendRequests);
+friendsRouter.post("/respond", respondFriendRequest);
 
 export default friendsRouter;
