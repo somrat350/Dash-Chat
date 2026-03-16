@@ -207,3 +207,62 @@ export const getFriendSuggestions = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+  // friend request 
+export const getFriendRequests = async (req, res) => {
+  try {
+
+    const userId = req.user._id;
+
+    const requests = await FriendRequest.find({
+      receiver: userId,
+      status: "pending"
+    }).populate("sender", "name photoURL");
+
+    res.status(200).json(requests);
+
+  } catch (error) {
+    console.error("Error fetching friend requests", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//  friendrequest response 
+ export const respondFriendRequest = async (req, res) => {
+
+  const { requestId, action } = req.body;
+
+  const request = await FriendRequest.findById(requestId);
+
+  if (!request) {
+    return res.status(404).json({ message: "Request not found" });
+  }
+
+  if (action === "accept") {
+
+    request.status = "accepted";
+    await request.save();
+
+    await Promise.all([
+      User.findByIdAndUpdate(request.sender, {
+        $addToSet: { friends: request.receiver }
+      }),
+
+      User.findByIdAndUpdate(request.receiver, {
+        $addToSet: { friends: request.sender }
+      })
+    ]);
+
+    return res.json({ message: "Friend request accepted" });
+
+  }
+
+  if (action === "reject") {
+
+    request.status = "rejected";
+    await request.save();
+
+    return res.json({ message: "Friend request rejected" });
+
+  }
+
+};

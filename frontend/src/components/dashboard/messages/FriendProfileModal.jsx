@@ -1,9 +1,15 @@
 import { UserPlus, CheckCircle, X, Mail, User, Circle } from "lucide-react";
+import { useFriendStore } from "../../../store/useFriendsStore"; 
 
 const FriendProfileModal = ({ friend, onClose }) => {
   if (!friend) return null;
 
   const isFriend = friend.isFriend;
+  const { sendFriendRequest } = useFriendStore();
+
+  const handleAddFriend = async () => {
+    await sendFriendRequest(friend._id);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
@@ -25,19 +31,14 @@ const FriendProfileModal = ({ friend, onClose }) => {
           />
 
           <div className="space-y-2">
-
-            {/* user info*/}
+            {/* user info */}
             <div className="flex items-center gap-2 text-base-content">
               <User size={18} className="text-primary" />
-              <span className="font-semibold text-lg">
-                {friend.name}
-              </span>
+              <span className="font-semibold text-lg">{friend.name}</span>
             </div>
             <div className="flex items-center gap-2 text-base-content/70 text-sm">
               <Mail size={16} />
-              <span>
-                {friend.name.toLowerCase().replace(" ", "")}@gmail.com
-              </span>
+              <span>{friend.name.toLowerCase().replace(" ", "")}@gmail.com</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Circle
@@ -45,35 +46,29 @@ const FriendProfileModal = ({ friend, onClose }) => {
                 className={friend.isOnline ? "text-green-500" : "text-gray-400"}
                 fill="currentColor"
               />
-              <span
-                className={
-                  friend.isOnline
-                    ? "text-green-500 font-medium"
-                    : "text-base-content/50"
-                }
-              >
+              <span className={friend.isOnline ? "text-green-500 font-medium" : "text-base-content/50"}>
                 {friend.isOnline ? "Online" : "Offline"}
               </span>
             </div>
-
           </div>
         </div>
 
         {/* button */}
         <div className="mt-8">
-
           {isFriend ? (
             <button className="flex items-center justify-center gap-2 bg-success text-white px-4 py-3 rounded-xl w-full cursor-default">
               <CheckCircle size={18} />
               Friends
             </button>
           ) : (
-            <button className="flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl w-full transition">
+            <button
+              onClick={handleAddFriend}
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl w-full transition"
+            >
               <UserPlus size={18} />
               Add Friend
             </button>
           )}
-
         </div>
 
       </div>
