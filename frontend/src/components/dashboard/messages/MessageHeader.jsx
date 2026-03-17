@@ -1,11 +1,38 @@
-import { User, X } from "lucide-react";
+import { MoreVertical, Phone, User, Video, X } from "lucide-react";
 import { useMessageStore } from "../../../store/useMessageStore";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { useCallStore } from "../../../store/useCallStore";
+import toast from "react-hot-toast";
 
 const MessageHeader = () => {
-  const { onlineUsers } = useAuthStore();
+  const { onlineUsers, authUser } = useAuthStore();
   const { selectedPartner, setSelectedPartner } = useMessageStore();
-  const isOnline = onlineUsers?.includes(selectedPartner?._id);
+  const { setCallIntent } = useCallStore();
+  const receiverId =
+    selectedPartner?._id ||
+    selectedPartner?.id ||
+    selectedPartner?.userId ||
+    selectedPartner?.user?._id;
+  const isOnline = onlineUsers?.includes(receiverId);
+
+  const handleCall = async (type) => {
+    if (!receiverId) {
+      toast.error("No valid user selected for call");
+      return;
+    }
+
+    setCallIntent({
+      mode: "start",
+      type,
+      targetUser: {
+        id: receiverId,
+        name: selectedPartner?.name || "Unknown user",
+        image: selectedPartner?.photoURL || "/default-avatar.jpg",
+      },
+      callId: `${[String(authUser?._id), String(receiverId)].sort().join("-")}-${Date.now()}`,
+    });
+  };
+
   return (
     <div
       className="flex justify-between items-center border-b
@@ -33,12 +60,37 @@ const MessageHeader = () => {
         </div>
       </div>
 
-      <button onClick={() => setSelectedPartner(null)}>
-        <X
-          size={28}
-          className="text-primary transition-colors cursor-pointer"
-        />
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => handleCall("video")}
+          className="text-primary transition-colors cursor-pointer hover:opacity-80"
+          aria-label="Start video call"
+          disabled={!receiverId}
+        >
+          <Video size={20} />
+        </button>
+        <button
+          onClick={() => handleCall("audio")}
+          className="text-primary transition-colors cursor-pointer hover:opacity-80"
+          aria-label="Start audio call"
+          disabled={!receiverId}
+        >
+          <Phone size={17} />
+        </button>
+        <button
+          type="button"
+          className="text-primary transition-colors cursor-pointer hover:opacity-80"
+          aria-label="More options"
+        >
+          <MoreVertical size={20} />
+        </button>
+        <button onClick={() => setSelectedPartner(null)}>
+          <X
+            size={28}
+            className="text-primary transition-colors cursor-pointer"
+          />
+        </button>
+      </div>
     </div>
   );
 };
