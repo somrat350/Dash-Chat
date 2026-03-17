@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LucidePhone,
   Phone,
@@ -26,6 +26,7 @@ import {
   useCallStateHooks,
 } from "@stream-io/video-react-sdk";
 import { useCallStore } from "../../store/useCallStore";
+import { useLocation, useNavigate } from "react-router";
 
 const tabs = [
   { key: "all", label: "All Calls" },
@@ -35,10 +36,69 @@ const tabs = [
   { key: "scheduled", label: "Scheduled" },
 ];
 
-const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
+const CALL_TIMEOUT_MS = 30_000;
+
+const END_REASON_TO_STATUS = {
+  missed: "missed",
+  rejected: "rejected",
+  completed: "completed",
+  cancelled: "cancelled",
+  "connection-lost": "failed",
+};
+
+const getStartedAtIso = (timestamp) =>
+  timestamp ? new Date(timestamp).toISOString() : null;
+
+const getElapsedDurationSeconds = (startedAtTimestamp) => {
+  if (!startedAtTimestamp) return 0;
+
+  return Math.max(0, Math.floor((Date.now() - startedAtTimestamp) / 1000));
+};
+
+const getCallEndToast = (reason) => {
+  switch (reason) {
+    case "missed":
+      return "Call timed out";
+    case "rejected":
+      return "Call was declined by receiver";
+    case "cancelled":
+      return "Call was cancelled";
+    case "connection-lost":
+      return "Call ended due to connection loss";
+    default:
+      return null;
+  }
+};
+
+const formatLiveDuration = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return [hours, minutes, seconds]
+      .map((value) => String(value).padStart(2, "0"))
+      .join(":");
+  }
+
+  return [minutes, seconds]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+};
+
+const ActiveCallPanel = ({
+  onLeave,
+  callType,
+  targetUser,
+  callDirection,
+  isCallAccepted,
+}) => {
   const { useCallCallingState, useParticipants } = useCallStateHooks();
   const callingState = useCallCallingState();
   const participants = useParticipants();
+  const callingAudioRef = useRef(null);
+  const connectedAtRef = useRef(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
     if (callingState === CallingState.LEFT) {
@@ -46,7 +106,68 @@ const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
     }
   }, [callingState, onLeave]);
 
+  useEffect(() => {
+    const shouldRingback =
+      callDirection === "outgoing" &&
+      participants.length <= 1 &&
+      callingState !== CallingState.LEFT;
+
+    if (!shouldRingback) {
+      if (callingAudioRef.current) {
+        callingAudioRef.current.pause();
+        callingAudioRef.current.currentTime = 0;
+      }
+      return;
+    }
+
+    if (!callingAudioRef.current) {
+      const audio = new Audio("/sounds/calling.mp3");
+      audio.loop = true;
+      audio.volume = 0.7;
+      callingAudioRef.current = audio;
+    }
+
+    callingAudioRef.current.play().catch(() => {
+      // Browser autoplay policy can block playback before user interaction.
+    });
+
+    return () => {
+      if (callingAudioRef.current) {
+        callingAudioRef.current.pause();
+        callingAudioRef.current.currentTime = 0;
+      }
+    };
+  }, [callDirection, callingState, participants.length]);
+
+  useEffect(() => {
+    const shouldRunTimer = isCallAccepted && callingState !== CallingState.LEFT;
+
+    if (!shouldRunTimer) {
+      connectedAtRef.current = null;
+      setElapsedSeconds(0);
+      return;
+    }
+
+    if (!connectedAtRef.current) {
+      connectedAtRef.current = Date.now();
+      setElapsedSeconds(0);
+    }
+
+    const intervalId = window.setInterval(() => {
+      const nextElapsedSeconds = Math.floor(
+        (Date.now() - connectedAtRef.current) / 1000,
+      );
+      setElapsedSeconds(nextElapsedSeconds);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [callingState, isCallAccepted]);
+
   const isAudio = callType === "audio";
+  const callDurationLabel = formatLiveDuration(elapsedSeconds);
+  const hasStarted = isCallAccepted;
 
   return (
     <div className="fixed inset-0 z-9999 flex flex-col bg-base-100">
@@ -67,10 +188,17 @@ const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
             </span>
           )}
         </div>
-        <span className="text-base-content/50 text-xs">
-          {participants.length} participant
-          {participants.length !== 1 ? "s" : ""}
-        </span>
+        <div className="flex items-center gap-4 text-xs text-base-content/50">
+          {hasStarted && (
+            <span className="font-mono text-sm text-base-content/70">
+              {callDurationLabel}
+            </span>
+          )}
+          <span>
+            {participants.length} participant
+            {participants.length !== 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
 
       {/* Call content */}
@@ -93,9 +221,7 @@ const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
               </div>
             </div>
             <p className="text-base-content/60 text-sm animate-pulse">
-              {participants.length > 1
-                ? "Audio call in progress..."
-                : "Ringing..."}
+              {hasStarted ? `Call duration ${callDurationLabel}` : "Ringing..."}
             </p>
           </div>
         ) : (
@@ -114,16 +240,29 @@ const ActiveCallPanel = ({ onLeave, callType, targetUser }) => {
 };
 
 const Calls = () => {
-  const { authUser } = useAuthStore();
-  const { initiateCall, setCurrentCall, clearCurrentCall, isCallLoading } =
-    useCallStore();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { authUser, socket, callSignal, clearCallSignal } = useAuthStore();
+  const {
+    initiateCall,
+    setCurrentCall,
+    clearCurrentCall,
+    updateCallStatus,
+    isCallLoading,
+  } = useCallStore();
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [streamClient, setStreamClient] = useState(null);
   const [activeCall, setActiveCall] = useState(null);
   const [activeCallType, setActiveCallType] = useState("audio");
+  const [activeCallDirection, setActiveCallDirection] = useState("outgoing");
   const [activeTargetUser, setActiveTargetUser] = useState(null);
+  const [isOutgoingAccepted, setIsOutgoingAccepted] = useState(false);
   const [isClientLoading, setIsClientLoading] = useState(true);
+  const [pendingOutgoingCallId, setPendingOutgoingCallId] = useState(null);
+  const [activeCallRecordId, setActiveCallRecordId] = useState(null);
+  const acceptedAtRef = useRef(null);
 
   const { data: rawCalls = [], isLoading } = useQuery({
     queryKey: ["calls"],
@@ -204,12 +343,17 @@ const Calls = () => {
 
           if (!otherUser) return null;
 
+          const isMissedForViewer =
+            call.status === "missed" && receiver?._id === authUser?._id;
+
           const callType =
             call.status === "scheduled"
               ? "scheduled"
-              : isIncoming
-                ? "incoming"
-                : "outgoing";
+              : isMissedForViewer
+                ? "missed"
+                : isIncoming
+                  ? "incoming"
+                  : "outgoing";
 
           return {
             id: call._id,
@@ -217,6 +361,7 @@ const Calls = () => {
             avatar: otherUser.photoURL || "/default-avatar.jpg",
             type: callType,
             medium: call.type, // "audio" or "video"
+            createdAtMs: new Date(call.scheduledAt || call.createdAt).getTime(),
             time: new Date(call.scheduledAt || call.createdAt).toLocaleString(
               "en-US",
               {
@@ -230,7 +375,10 @@ const Calls = () => {
             duration: call.duration
               ? `${Math.floor(call.duration / 60)}:${String(call.duration % 60).padStart(2, "0")}`
               : null,
+            durationSeconds: Number(call.duration) || 0,
             status: call.status,
+            endReason: call.endReason || null,
+            isMissedForViewer,
             otherUserId: otherUser._id || null,
           };
         })
@@ -238,32 +386,100 @@ const Calls = () => {
     [rawCalls, authUser?._id],
   );
 
-  const handleLeave = useCallback(async () => {
-    try {
-      if (activeCall) {
-        await activeCall.leave();
-      }
-    } catch (error) {
-      console.error("Failed to leave call:", error);
-    } finally {
+  const handleLeave = useCallback(
+    async (options = {}) => {
+      const shouldEmitEndSignal = options.shouldEmitEndSignal !== false;
+      const shouldPersistStatus = options.shouldPersistStatus !== false;
+      const callToLeave = activeCall;
+      const targetUserId = activeTargetUser?.id || null;
+      const callDirection = activeCallDirection;
+      const callId = activeCall?.id || pendingOutgoingCallId || null;
+      const callRecordId = activeCallRecordId;
+      const wasAccepted =
+        callDirection === "incoming" ||
+        isOutgoingAccepted ||
+        Boolean(acceptedAtRef.current);
+      const endReason =
+        options.endReason || (wasAccepted ? "completed" : "cancelled");
+      const status = END_REASON_TO_STATUS[endReason] || "completed";
+      const endedAt = new Date().toISOString();
+      const durationSeconds = getElapsedDurationSeconds(acceptedAtRef.current);
+      const startedAt = getStartedAtIso(acceptedAtRef.current);
+
       setActiveCall(null);
       setActiveTargetUser(null);
+      setActiveCallDirection("outgoing");
+      setIsOutgoingAccepted(false);
+      setPendingOutgoingCallId(null);
+      setActiveCallRecordId(null);
       clearCurrentCall();
-    }
-  }, [activeCall, clearCurrentCall]);
+
+      try {
+        if (shouldEmitEndSignal && socket?.connected && targetUserId) {
+          socket.emit("endCallSession", {
+            toUserId: String(targetUserId),
+            callId,
+            reason: endReason,
+            duration: durationSeconds,
+          });
+        }
+
+        if (callToLeave) {
+          await Promise.allSettled([
+            callToLeave.microphone?.disable?.(),
+            callToLeave.camera?.disable?.(),
+          ]);
+          await callToLeave.leave();
+        }
+
+        if (shouldPersistStatus && callRecordId) {
+          await updateCallStatus(callRecordId, {
+            status,
+            duration: durationSeconds,
+            startedAt,
+            endedAt,
+            endReason,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to leave call:", error);
+      } finally {
+        acceptedAtRef.current = null;
+      }
+    },
+    [
+      activeCall,
+      activeCallDirection,
+      activeCallRecordId,
+      activeTargetUser,
+      clearCurrentCall,
+      isOutgoingAccepted,
+      pendingOutgoingCallId,
+      socket,
+      updateCallStatus,
+    ],
+  );
 
   const startCall = useCallback(
-    async (targetUser, type) => {
+    async (targetUser, type, options = {}) => {
       const receiverId = targetUser?.id;
       if (!streamClient || !authUser?._id || !receiverId) {
         toast.error("Call service is not ready yet");
         return;
       }
 
+      const shouldCreateRecord = options.shouldCreateRecord !== false;
+
       // Max 64 chars: 24 + 1 + 24 + 1 + 13 = 63
-      const callId = `${[String(authUser._id), String(receiverId)].sort().join("-")}-${Date.now()}`;
+      const callId =
+        options.callId ||
+        `${[String(authUser._id), String(receiverId)].sort().join("-")}-${Date.now()}`;
 
       try {
+        if ((options.direction || "outgoing") === "outgoing") {
+          setPendingOutgoingCallId(callId);
+        }
+
         // Register both users in Stream before creating the call
         await axiosSecure.post("/api/calls/ensure-members", { receiverId });
 
@@ -291,11 +507,23 @@ const Calls = () => {
         }
 
         setActiveCallType(type);
+        setActiveCallDirection(options.direction || "outgoing");
         setActiveTargetUser(targetUser);
+        setIsOutgoingAccepted((options.direction || "outgoing") === "incoming");
+        acceptedAtRef.current =
+          (options.direction || "outgoing") === "incoming" ? Date.now() : null;
         setActiveCall(call);
         setCurrentCall(call.id);
+        setPendingOutgoingCallId(null);
 
-        await initiateCall(receiverId, type);
+        if (shouldCreateRecord) {
+          const createdCall = await initiateCall(receiverId, type, {
+            streamCallId: callId,
+          });
+          setActiveCallRecordId(createdCall?._id || null);
+        } else {
+          setActiveCallRecordId(options.recordId || null);
+        }
       } catch (error) {
         console.error("Failed to start call:", error);
         toast.error(error?.message || "Unable to start call");
@@ -304,24 +532,173 @@ const Calls = () => {
     [authUser?._id, initiateCall, setCurrentCall, streamClient],
   );
 
+  useEffect(() => {
+    const request = location.state?.startCall || location.state?.joinCall;
+    if (!request || !streamClient || isClientLoading || activeCall) return;
+
+    const receiverId = request.receiverId || request.callerId;
+    const type = request.type === "video" ? "video" : "audio";
+    const isJoinRequest = Boolean(location.state?.joinCall);
+
+    if (!receiverId) {
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+
+    startCall(
+      {
+        id: receiverId,
+        name: request.name || request.callerName || "Unknown user",
+        image: request.image || request.callerImage || "/default-avatar.jpg",
+      },
+      type,
+      {
+        callId: request.callId,
+        recordId: request.recordId,
+        shouldCreateRecord: !isJoinRequest,
+        direction: isJoinRequest ? "incoming" : "outgoing",
+      },
+    );
+
+    // Clear one-time navigation state to prevent repeated auto-calls on refresh.
+    navigate(location.pathname, { replace: true, state: null });
+  }, [
+    activeCall,
+    isClientLoading,
+    location.pathname,
+    location.state,
+    navigate,
+    startCall,
+    streamClient,
+  ]);
+
+  useEffect(() => {
+    if (!callSignal) return;
+
+    const currentCallId = activeCall?.id || pendingOutgoingCallId;
+    if (
+      callSignal.callId &&
+      currentCallId &&
+      callSignal.callId !== currentCallId
+    ) {
+      clearCallSignal();
+      return;
+    }
+
+    if (callSignal.type === "callAccepted") {
+      acceptedAtRef.current = callSignal.acceptedAt || Date.now();
+      setIsOutgoingAccepted(true);
+      if (activeCallRecordId) {
+        updateCallStatus(activeCallRecordId, {
+          status: "received",
+          startedAt: getStartedAtIso(acceptedAtRef.current),
+        });
+      }
+      clearCallSignal();
+      return;
+    }
+
+    if (callSignal.type !== "callEnded") return;
+
+    const endToast = getCallEndToast(callSignal.reason);
+    if (endToast) {
+      toast.error(endToast);
+    }
+
+    handleLeave({
+      endReason: callSignal.reason,
+      shouldEmitEndSignal: false,
+      shouldPersistStatus: false,
+    });
+    clearCallSignal();
+  }, [
+    activeCall?.id,
+    activeCallRecordId,
+    callSignal,
+    clearCallSignal,
+    handleLeave,
+    pendingOutgoingCallId,
+    updateCallStatus,
+  ]);
+
+  useEffect(() => {
+    if (
+      !activeCall ||
+      activeCallDirection !== "outgoing" ||
+      isOutgoingAccepted
+    ) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      const callRecordId = activeCallRecordId;
+      const endedAt = new Date().toISOString();
+
+      toast.error("Call timed out");
+
+      if (callRecordId) {
+        await updateCallStatus(callRecordId, {
+          status: "missed",
+          endedAt,
+          endReason: "missed",
+        });
+      }
+
+      await handleLeave({
+        endReason: "missed",
+        shouldEmitEndSignal: true,
+        shouldPersistStatus: false,
+      });
+    }, CALL_TIMEOUT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    activeCall,
+    activeCallDirection,
+    activeCallRecordId,
+    handleLeave,
+    isOutgoingAccepted,
+    updateCallStatus,
+  ]);
+
   if (isLoading || isClientLoading) return <ComponentsLoader />;
 
-  const filtered = callsData.filter((call) => {
-    const matchesTab =
-      activeTab === "all" ||
-      (activeTab === "missed" && call.status === "missed") ||
-      (activeTab === "scheduled" && call.type === "scheduled") ||
-      (activeTab !== "missed" &&
-        activeTab !== "scheduled" &&
-        call.type === activeTab);
-    const matchesSearch = call.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
+  const filtered = (() => {
+    const base = callsData.filter((call) => {
+      const matchesTab =
+        activeTab === "all" ||
+        (activeTab === "missed" && call.isMissedForViewer) ||
+        (activeTab === "scheduled" && call.type === "scheduled") ||
+        (activeTab !== "missed" &&
+          activeTab !== "scheduled" &&
+          call.type === activeTab);
+      const matchesSearch = call.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      return matchesTab && matchesSearch;
+    });
+
+    const sorted = [...base];
+    if (sortBy === "oldest") {
+      sorted.sort((a, b) => a.createdAtMs - b.createdAtMs);
+    } else if (sortBy === "longest") {
+      sorted.sort((a, b) => {
+        if (b.durationSeconds !== a.durationSeconds) {
+          return b.durationSeconds - a.durationSeconds;
+        }
+        return b.createdAtMs - a.createdAtMs;
+      });
+    } else {
+      sorted.sort((a, b) => b.createdAtMs - a.createdAtMs);
+    }
+
+    return sorted;
+  })();
 
   const getCallIcon = (call) => {
-    if (call.status === "missed")
+    if (call.isMissedForViewer)
       return <PhoneMissed size={18} className="text-error" />;
     if (call.type === "incoming")
       return <PhoneIncoming size={18} className="text-success" />;
@@ -333,10 +710,34 @@ const Calls = () => {
   };
 
   const getStatusBadge = (call) => {
-    if (call.status === "missed")
+    if (call.isMissedForViewer)
       return <span className="badge badge-error badge-sm">Missed</span>;
     if (call.type === "scheduled")
       return <span className="badge badge-warning badge-sm">Scheduled</span>;
+    if (call.status === "rejected")
+      return <span className="badge badge-secondary badge-sm">Declined</span>;
+    if (call.status === "cancelled")
+      return <span className="badge badge-neutral badge-sm">Cancelled</span>;
+    if (call.status === "failed")
+      return <span className="badge badge-error badge-sm">Disconnected</span>;
+    if (call.status === "completed")
+      return <span className="badge badge-success badge-sm">Completed</span>;
+    return null;
+  };
+
+  const getReasonLine = (call) => {
+    if (call.isMissedForViewer || call.status === "missed") {
+      return "No answer";
+    }
+    if (call.status === "rejected") {
+      return "Declined by receiver";
+    }
+    if (call.status === "cancelled") {
+      return "Cancelled before pickup";
+    }
+    if (call.status === "failed") {
+      return "Connection lost";
+    }
     return null;
   };
 
@@ -350,7 +751,11 @@ const Calls = () => {
               <ActiveCallPanel
                 onLeave={handleLeave}
                 callType={activeCallType}
+                callDirection={activeCallDirection}
                 targetUser={activeTargetUser}
+                isCallAccepted={
+                  activeCallDirection === "incoming" || isOutgoingAccepted
+                }
               />
             </StreamTheme>
           </StreamCall>
@@ -383,7 +788,7 @@ const Calls = () => {
           </div>
           <div className="stat-title text-xs">Missed</div>
           <div className="stat-value text-2xl text-base-content">
-            {callsData.filter((c) => c.status === "missed").length}
+            {callsData.filter((c) => c.isMissedForViewer).length}
           </div>
         </div>
         <div className="stat bg-base-200 rounded-xl p-4">
@@ -412,16 +817,28 @@ const Calls = () => {
             </button>
           ))}
         </div>
-        <label className="input input-bordered input-sm flex items-center gap-2 w-full sm:w-64">
-          <Search size={16} className="opacity-50" />
-          <input
-            type="text"
-            placeholder="Search calls..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="grow"
-          />
-        </label>
+        <div className="flex w-full sm:w-auto gap-2">
+          <label className="input input-bordered input-sm flex items-center gap-2 flex-1 sm:w-64">
+            <Search size={16} className="opacity-50" />
+            <input
+              type="text"
+              placeholder="Search calls..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="grow"
+            />
+          </label>
+          <select
+            className="select select-bordered select-sm w-36"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            aria-label="Sort calls"
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="longest">Longest</option>
+          </select>
+        </div>
       </div>
 
       {/* Call List */}
@@ -468,15 +885,36 @@ const Calls = () => {
                 </div>
 
                 {/* Time & Duration */}
-                <div className="flex items-center justify-between text-sm text-base-content/60">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/60">
                   <span className="flex items-center gap-1">
                     <Clock size={14} />
                     {call.time}
                   </span>
                   {call.duration && (
-                    <span className="font-mono">{call.duration}</span>
+                    <span
+                      className={`badge badge-sm gap-1 px-2 py-2 font-mono ${
+                        call.status === "completed"
+                          ? "badge-success text-success-content"
+                          : "badge-outline text-base-content/70"
+                      }`}
+                    >
+                      <LucidePhone size={12} />
+                      {call.duration}
+                    </span>
                   )}
                 </div>
+
+                {call.duration && (
+                  <p className="text-xs text-base-content/50 -mt-1">
+                    Talked for {call.duration}
+                  </p>
+                )}
+
+                {getReasonLine(call) && (
+                  <p className="text-xs text-base-content/50 -mt-1">
+                    {getReasonLine(call)}
+                  </p>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-1">

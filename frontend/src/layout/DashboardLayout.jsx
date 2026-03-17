@@ -13,6 +13,7 @@ import {
 import ThemeSelector from "../components/ThemeSelector";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
+import IncomingCallModal from "../components/dashboard/messages/IncomingCallModal";
 
 const DashboardLayout = () => {
   const { authUser } = useAuthStore();
@@ -53,6 +54,7 @@ const DashboardLayout = () => {
   return (
     <div className="drawer lg:drawer-open">
       <Toaster />
+      <IncomingCallModal />
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content h-screen flex flex-col relative overflow-y-auto">
         {/* Navbar */}

@@ -18,6 +18,11 @@ const messageSchema = new Schema(
     image: {
       type: String,
     },
+    messageType: {
+      type: String,
+      enum: ["text", "call"],
+      default: "text",
+    },
     status: {
       type: String,
       default: "active",
@@ -40,6 +45,30 @@ const messageSchema = new Schema(
     },
     reaction: {
       type: String,
+    },
+    callData: {
+      callType: {
+        type: String,
+        enum: ["audio", "video"],
+        default: null,
+      },
+      status: {
+        type: String,
+        enum: ["completed", "missed", "rejected"],
+        default: null,
+      },
+      duration: {
+        type: Number,
+        default: 0,
+      },
+      startedAt: {
+        type: Date,
+        default: null,
+      },
+      endedAt: {
+        type: Date,
+        default: null,
+      },
     },
   },
   { timestamps: true },

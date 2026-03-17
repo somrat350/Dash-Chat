@@ -1,6 +1,7 @@
 import MessageHeader from "../../components/dashboard/messages/MessageHeader";
 import MessagesContainer from "../../components/dashboard/messages/MessagesContainer";
 import MessageInput from "../../components/dashboard/messages/MessageInput";
+import InChatCallOverlay from "../../components/dashboard/messages/InChatCallOverlay";
 
 const Messages = () => {
   return (
@@ -8,6 +9,7 @@ const Messages = () => {
       <MessageHeader />
       <MessagesContainer />
       <MessageInput />
+      <InChatCallOverlay />
     </div>
   );
 };

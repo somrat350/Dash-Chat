@@ -12,6 +12,10 @@ export const useAuthStore = create((set, get) => ({
   authUser: null,
   socket: null,
   onlineUsers: [],
+  incomingCall: null,
+  callSignal: null,
+  clearIncomingCall: () => set({ incomingCall: null }),
+  clearCallSignal: () => set({ callSignal: null }),
 
   checkAuth: async () => {
     set({ userLoading: true });
@@ -129,9 +133,54 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+
+    socket.on("incomingCall", (callPayload) => {
+      set({ incomingCall: callPayload });
+      const callerName = callPayload?.caller?.name || "Someone";
+      const medium = callPayload?.type === "video" ? "Video" : "Audio";
+      toast(`${medium} call from ${callerName}`);
+    });
+
+    socket.on("callAccepted", (payload) => {
+      set({
+        callSignal: {
+          type: "callAccepted",
+          callId: payload?.callId || null,
+          fromUserId: payload?.fromUserId || null,
+          acceptedAt: payload?.acceptedAt || Date.now(),
+          at: Date.now(),
+        },
+      });
+    });
+
+    socket.on("callEnded", (payload) => {
+      set((state) => {
+        const activeIncomingCallId = state.incomingCall?.callId;
+        const endedCallId = payload?.callId || null;
+        const shouldClearIncomingCall =
+          !state.incomingCall ||
+          !activeIncomingCallId ||
+          !endedCallId ||
+          activeIncomingCallId === endedCallId;
+
+        return {
+          ...state,
+          incomingCall: shouldClearIncomingCall ? null : state.incomingCall,
+          callSignal: {
+            type: "callEnded",
+            callId: endedCallId,
+            fromUserId: payload?.fromUserId || null,
+            reason: payload?.reason || "completed",
+            duration: payload?.duration ?? null,
+            at: payload?.at || Date.now(),
+          },
+        };
+      });
+    });
   },
   disconnectSocket: () => {
     if (!get().socket) return;
     if (get().socket?.connected) get().socket.disconnect();
+    set({ incomingCall: null, callSignal: null, socket: null });
   },
 }));

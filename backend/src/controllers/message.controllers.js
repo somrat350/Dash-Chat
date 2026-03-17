@@ -140,11 +140,21 @@ export const getMessagesByUserId = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo, forwarded, originalSender } = req.body;
+    const {
+      text,
+      image,
+      replyTo,
+      forwarded,
+      originalSender,
+      messageType,
+      callData,
+    } = req.body;
     const loggedInUserId = req.user._id;
     const { userId: receiverId } = req.params;
 
-    if (!text && !image) {
+    const isCallMessage = messageType === "call";
+
+    if (!text && !image && !isCallMessage) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
@@ -153,6 +163,8 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: text || null,
       image: image || null,
+      messageType: isCallMessage ? "call" : "text",
+      callData: isCallMessage ? callData || {} : undefined,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",
