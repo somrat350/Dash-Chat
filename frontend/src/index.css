@@ -3,6 +3,14 @@
   themes: all;
 }
 
+.scroll-thin::-webkit-scrollbar {
+  width: 2px;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+}
+
 /* @theme {
   --color-primary: #25D366;
   --color-secondary: #1C1E21;

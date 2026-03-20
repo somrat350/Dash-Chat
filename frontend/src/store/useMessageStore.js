@@ -12,22 +12,37 @@ export const useMessageStore = create((set, get) => ({
   isMessageSending: false,
   isUserLoading: false,
 
-  newChatSearchLoading: false,
-  newChatSearchResults: [],
+  newChatPartnerSearchLoading: false,
+  newChatPartnerSearchResults: [],
+  setEmptyNewChatPartner: () => set({ newChatPartnerSearchResults: [] }),
 
-  searchNewChat: async (srcQuery) => {
+  selectedPartner: null,
+  setSelectedPartner: (partner) => set({ selectedPartner: partner }),
+
+  searchNewChatPartner: async (searchText) => {
     try {
-      set({ newChatSearchLoading: true });
+      set({ newChatPartnerSearchLoading: true });
       const res = await axiosSecure.get(
-        `/api/messages/searchNewPartner?query=${srcQuery}`,
+        `/api/messages/searchNewPartner?searchText=${searchText}`,
       );
-      set({
-        newChatSearchResults: Array.isArray(res.data) ? res.data : [],
-        newChatSearchLoading: false,
-      });
+      set({ newChatPartnerSearchResults: res.data });
     } catch (error) {
       console.error("Failed to fetch chat partners:", error);
-      set({ newChatSearchResults: [], newChatSearchLoading: false });
+      set({ newChatSearchResults: [] });
+    } finally {
+      set({ newChatPartnerSearchLoading: false });
+    }
+  },
+
+  getMessagePartners: async () => {
+    try {
+      set({ messagePartnersLoading: true });
+      const res = await axiosSecure.get("/api/messages/messagePartners");
+      set({ messagePartners: res.data });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    } finally {
+      set({ messagePartnersLoading: false });
     }
   },
 
@@ -55,10 +70,14 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  sendMessage: async (receiverId, messageData) => {
+  sendMessage: async (messageData) => {
     try {
+      const { selectedPartner } = get();
       set({ isMessageSending: true });
-      await axiosSecure.post(`/api/messages/send/${receiverId}`, messageData);
+      await axiosSecure.post(
+        `/api/messages/send/${selectedPartner._id}`,
+        messageData,
+      );
       get().clearReplyMessage();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send message");
@@ -170,29 +189,27 @@ export const useMessageStore = create((set, get) => ({
     set({ messages });
   },
 
-  // reply 
-   setReplyMessage: (msg) => set({ replyMessage: msg }),
-   clearReplyMessage: () => set({ replyMessage: null }),
+  // reply
+  setReplyMessage: (msg) => set({ replyMessage: msg }),
+  clearReplyMessage: () => set({ replyMessage: null }),
 
-  //  forward 
-    forwardMessage: async (message, receiverEmail) => {
-  try {
-    const messageData = {
-      text: message.text,
-      forwarded: true,
-      originalSender: message.sender,
-    };
-    const res = await axiosSecure.post(
-      `/api/messages/send/${receiverEmail}`,
-      messageData
-    );
-    set((state) => ({
-      messages: [...state.messages, res.data],
-    }));
-  } catch (error) {
-    console.error("Forward failed", error);
-  }
-}
-
+  //  forward
+  forwardMessage: async (message, receiverEmail) => {
+    try {
+      const messageData = {
+        text: message.text,
+        forwarded: true,
+        originalSender: message.sender,
+      };
+      const res = await axiosSecure.post(
+        `/api/messages/send/${receiverEmail}`,
+        messageData,
+      );
+      set((state) => ({
+        messages: [...state.messages, res.data],
+      }));
+    } catch (error) {
+      console.error("Forward failed", error);
+    }
+  },
 }));
-

@@ -1,9 +1,16 @@
-import { EllipsisVertical, Smile } from "lucide-react";
+import {
+  EllipsisVertical,
+  Phone,
+  PhoneMissed,
+  Smile,
+  Video,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useMessageBubbleStore } from "../../../store/useMessageBubbleStore";
 import DropdownMenu from "./DropdownMenu";
 
 const quickEmojis = ["👍", "❤️", "😀", "😭", "🙏", "👎", "😡"];
+
 const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
   const { addReaction } = useMessageBubbleStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,6 +18,9 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
 
   const isDeleted =
     msg.status === "hide" || msg.text === "This message was deleted";
+  const isCallMessage = msg.messageType === "call";
+  const callType = msg.callData?.callType || "audio";
+  const callStatus = msg.callData?.status || "completed";
 
   useEffect(() => {
     const closeAll = () => {
@@ -111,12 +121,41 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
         )}
 
         {/* Message Text */}
-        <p className="mt-2">
-          {msg.status === "hide" ? "This message was deleted" : msg?.text}
-        </p>
+        {isCallMessage ? (
+          <div className="mt-2 min-w-52">
+            <div className="flex items-center gap-2 font-semibold">
+              {callStatus === "missed" ? (
+                <PhoneMissed size={16} className="text-red-300" />
+              ) : callType === "video" ? (
+                <Video size={16} />
+              ) : (
+                <Phone size={16} />
+              )}
+              <span>{callType === "video" ? "Video" : "Audio"} call</span>
+            </div>
+            <p className="mt-2 text-sm opacity-90">
+              {callStatus === "missed"
+                ? "Missed call"
+                : callStatus === "rejected"
+                  ? "Call declined"
+                  : callStatus === "cancelled"
+                    ? "Call cancelled"
+                    : callStatus === "failed"
+                      ? "Call disconnected"
+                      : "Call ended"}
+            </p>
+            {msg.text && <p className="mt-1 text-xs opacity-70">{msg.text}</p>}
+          </div>
+        ) : (
+          <p className="mt-2">
+            {msg.status === "hide" ? "This message was deleted" : msg?.text}
+          </p>
+        )}
 
         {/* Message Date */}
-        <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
+        <p
+          className={`text-xs mt-1 opacity-75 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}
+        >
           {new Date(msg.createdAt).toLocaleTimeString(undefined, {
             hour: "2-digit",
             minute: "2-digit",

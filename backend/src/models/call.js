@@ -1,5 +1,24 @@
 import mongoose, { Schema } from "mongoose";
 
+const CALL_STATUSES = [
+  "ringing",
+  "missed",
+  "received",
+  "scheduled",
+  "rejected",
+  "completed",
+  "cancelled",
+  "failed",
+];
+
+const CALL_END_REASONS = [
+  "missed",
+  "rejected",
+  "completed",
+  "cancelled",
+  "connection-lost",
+];
+
 const callSchema = new Schema(
   {
     caller: {
@@ -19,12 +38,25 @@ const callSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["missed", "received", "scheduled", "rejected"],
-      default: "missed",
+      enum: CALL_STATUSES,
+      default: "ringing",
     },
     duration: {
-      type: Number, // seconds 
+      type: Number,
       default: 0,
+    },
+    startedAt: {
+      type: Date,
+      default: null,
+    },
+    endedAt: {
+      type: Date,
+      default: null,
+    },
+    endReason: {
+      type: String,
+      enum: CALL_END_REASONS,
+      default: null,
     },
     scheduledAt: {
       type: Date,

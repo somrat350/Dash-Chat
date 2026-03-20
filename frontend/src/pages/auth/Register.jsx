@@ -7,6 +7,8 @@ import { Link } from "react-router";
 import { useAuthStore } from "../../store/useAuthStore";
 import SocialLogin from "../../components/auth/SocialLogin";
 
+
+
 const Register = () => {
   const {
     register,
@@ -26,15 +28,16 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
-        {/* ===== Left Side (Form) ===== */}
+    <div className="bg-base-100 min-h-screen flex items-center justify-center p-4">
+      <div className="bg-base-200 rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
+        {/*Left Side*/}
         <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center  mb-2">
             <Logo />
+            
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-base-content mb-2 text-center">
             Create Your Account
           </h2>
 
@@ -50,7 +53,7 @@ const Register = () => {
                 placeholder="Name"
                 {...register("name")}
                 required
-                className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary`}
+                className={`w-full px-4 py-3 rounded-lg bg-base-100 border border-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary`}
               />
             </div>
 
@@ -61,7 +64,9 @@ const Register = () => {
                 placeholder="Email"
                 {...register("email")}
                 required
-                className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary`}
+                className="w-full px-4 py-3 rounded-lg bg-base-100 border border-gray-700 
+             hover:border-primary 
+               focus:outline-none focus:ring-2 focus:ring-primary  "
               />
             </div>
 
@@ -83,15 +88,14 @@ const Register = () => {
                         "Password must contain at least 1 uppercase and 1 lowercase letter",
                     },
                   })}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                    errors.password ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary`}
+                  className={`w-full px-4 py-3 pr-12 bg-base-100 rounded-lg border ${errors.password ? "border-red-500" : "border-gray-700"
+                    } focus:outline-none hover:border-primary focus:ring-2 focus:ring-primary`}
                 />
 
                 {/* Eye Button */}
                 <span
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-primary transition"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-base-content hover:text-primary transition"
                 >
                   {showPassword ? (
                     <FaEye size={20} />
@@ -119,24 +123,21 @@ const Register = () => {
                     validate: (value) =>
                       value === password || "Passwords do not match",
                   })}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                    errors.confirmPassword
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary`}
+                  className={`w-full px-4 py-3 pr-12 bg-base-100 rounded-lg border ${errors.confirmPassword ? "border-red-500" : "border-gray-700"
+                    } hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary transition`}
                 />
+
                 {/* Eye Button */}
                 <span
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                   className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-primary transition"
                 >
-                  {showConfirmPassword ? (
-                    <FaEye size={20} />
-                  ) : (
-                    <FaEyeSlash size={20} />
-                  )}
+                  {showConfirmPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
+
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm mt-1 ml-1.5">
                   {errors.confirmPassword.message}
@@ -145,25 +146,28 @@ const Register = () => {
             </div>
             <button
               type="submit"
-              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}
               disabled={userLoading}
+              className={`relative overflow-hidden w-full bg-primary/90 hover:bg-primary cursor-pointer text-base-content 
+         py-3 rounded-lg font-semibold transition-colors duration-300 
+            flex justify-center items-center gap-2 group ${userLoading ? "btn btn-disabled py-3 bg-primary opacity-70 cursor-not-allowed" : ""
+                }`}
             >
-              {userLoading && (
-                <span className="loading loading-spinner loading-sm"></span>
-              )}
-              {userLoading ? "Creating Account..." : "Create Account"}
+              {/* Text + Loading */}
+              <span className="relative z-10 flex items-center gap-2">
+                {userLoading && <span className="loading loading-spinner loading-sm"></span>}
+                {userLoading ? "Logging In..." : "Login"}
+              </span>
+
+              {/* Hover Background Slide */}
+              <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></span>
             </button>
           </form>
           {/* Social Login  */}
           {/* or  */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-gray-500 text-sm font-medium">Or</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
+          <div className="divider">OR</div>
           {/* sign up with social  */}
           <SocialLogin />
-          <p className="text-gray-500 text-sm sm:text-base mt-4 text-center">
+          <p className="text-base-content text-sm sm:text-base mt-4 text-center">
             Already have an account?{" "}
             <Link
               to="/auth/login"
@@ -174,8 +178,8 @@ const Register = () => {
           </p>
         </div>
 
-        {/* ===== Right Side (Image) ===== */}
-        <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-6">
+        {/* Right Side image  */}
+        <div className="w-full md:w-1/2 bg-base-200 flex items-center justify-center p-6">
           <img
             src={imageIllus}
             alt="Chat Illustration"

@@ -1,11 +1,25 @@
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, UserRoundPen,  Settings } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import ComponentsLoader from "../../components/ComponentsLoader";
 import toast from "react-hot-toast";
+import Breadcrumb from "../../components/dashboard/Breadcrumb";
 import { useForm } from "react-hook-form";
 
-export default function ProfilePage() {
+const pageFlow = [
+  {
+    label: "Settings",
+    link: "/dashboard/settings",
+    icon: <Settings size={16}></Settings>,
+  },
+  {
+    label: "Profile",
+    link: "/dashboard/profile",
+    icon: <UserRoundPen size={16} />,
+  },
+];
+
+export default function ProfileSettings() {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const { authUser, userLoading, updateProfile } = useAuthStore();
@@ -28,7 +42,8 @@ export default function ProfilePage() {
   return (
     <>
       <div>
-        <div className=" mx-auto space-y-10 w-full">
+        <Breadcrumb items={pageFlow} />
+        <div className=" mt-10 mx-auto space-y-10 w-full">
           {/* ---------- Preview Section ---------- */}
 
           <div className="flex flex-col sm:flex-row items-center gap-6 bg-base-200 rounded-2xl shadow p-6 ">

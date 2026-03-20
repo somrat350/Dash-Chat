@@ -3,20 +3,25 @@ import mongoose, { Schema } from "mongoose";
 const messageSchema = new Schema(
   {
     senderId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
     },
     receiverId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
     },
     text: {
       type: String,
     },
     image: {
       type: String,
+    },
+    messageType: {
+      type: String,
+      enum: ["text", "call"],
+      default: "text",
     },
     status: {
       type: String,
@@ -40,6 +45,30 @@ const messageSchema = new Schema(
     },
     reaction: {
       type: String,
+    },
+    callData: {
+      callType: {
+        type: String,
+        enum: ["audio", "video"],
+        default: null,
+      },
+      status: {
+        type: String,
+        enum: ["completed", "missed", "rejected"],
+        default: null,
+      },
+      duration: {
+        type: Number,
+        default: 0,
+      },
+      startedAt: {
+        type: Date,
+        default: null,
+      },
+      endedAt: {
+        type: Date,
+        default: null,
+      },
     },
   },
   { timestamps: true },
