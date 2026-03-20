@@ -8,7 +8,8 @@ import {
   updateRequest,
   getFriendSuggestions,
   getFriendRequests,
-  respondFriendRequest
+  respondFriendRequest,
+  getNotifications,
 } from "../controllers/friends.controllers.js";
 
 const friendsRouter = express.Router();
@@ -23,5 +24,6 @@ friendsRouter.patch("/unblock", unblockUser);
 friendsRouter.get("/suggestions", getFriendSuggestions);
 friendsRouter.get("/requests", getFriendRequests);
 friendsRouter.post("/respond", respondFriendRequest);
+friendsRouter.get("/notifications", getNotifications);
 
 export default friendsRouter;

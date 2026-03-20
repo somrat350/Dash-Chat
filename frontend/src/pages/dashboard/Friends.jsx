@@ -3,10 +3,11 @@ import FriendProfileModal from "../../components/dashboard/messages/FriendProfil
 import { useFriendStore } from "../../store/useFriendsStore";
 import Pagination from "../../components/Pagination";
 import UserCard from "../../components/dashboard/messages/userCard";
+import FriendListCard from "../../components/dashboard/messages/FriendListCard";
 
 
 const Friends = () => {
-  const { friends, getFriendSuggestions } = useFriendStore();
+  const { friends,suggestions, getFriendSuggestions,getMyFriends } = useFriendStore();
   const [activeMenu, setActiveMenu] = useState(null);
   const [selectedFriend, setSelectedFriend] = useState(null);
 
@@ -14,17 +15,23 @@ const Friends = () => {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    getFriendSuggestions();
+  const loadData = async () => {
+    await getMyFriends();          
+    await getFriendSuggestions();  
+  };
 
-    const handleClickOutside = (e) => {
-      if (!e.target.closest(".dropdown")) setActiveMenu(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+  loadData();
 
-  const yourFriends = friends.filter((f) => f.isFriend);
-  const suggestions = friends.filter((f) => !f.isFriend);
+  const handleClickOutside = (e) => {
+    if (!e.target.closest(".dropdown")) setActiveMenu(null);
+  };
+
+  document.addEventListener("click", handleClickOutside);
+
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
+  const yourFriends = friends;
 
   const totalPages = Math.ceil(suggestions.length / itemsPerPage);
   const currentSuggestions = suggestions.slice(
@@ -35,10 +42,10 @@ const Friends = () => {
   return (
     <div className="flex-1 p-6">
       <h2 className="text-lg font-semibold mb-4">Your Friends</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        {yourFriends.length > 0
+      <div className="grid grid-cols-1 sm:grid-cols-4  gap-6">
+         {yourFriends.length > 0
           ? yourFriends.map((f) => (
-              <UserCard
+              <FriendListCard
                 key={f._id}
                 friend={f}
                 activeMenu={activeMenu}
@@ -46,7 +53,8 @@ const Friends = () => {
                 onSelect={setSelectedFriend}
               />
             ))
-          : <p className="text-sm text-gray-500">No friends yet</p>}
+          : <p className="text-sm text-gray-500">No friends yet</p>} 
+          
       </div>
 
       <h2 className="text-lg font-semibold mt-10 mb-4">Suggested Friends</h2>

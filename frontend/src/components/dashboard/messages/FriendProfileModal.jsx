@@ -1,24 +1,66 @@
-import { UserPlus, CheckCircle, X, Mail, User, Circle } from "lucide-react";
+import { UserPlus, CheckCircle, X, Mail, User, Circle, UserMinus } from "lucide-react";
 import { useFriendStore } from "../../../store/useFriendsStore"; 
+import toast from "react-hot-toast";
 
 const FriendProfileModal = ({ friend, onClose }) => {
   if (!friend) return null;
 
   const isFriend = friend.isFriend;
-  const { sendFriendRequest } = useFriendStore();
+  const { sendFriendRequest,unfriendUser } = useFriendStore();
 
   const handleAddFriend = async () => {
     await sendFriendRequest(friend._id);
+    onClose();
   };
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+  const handleUnfriend = () => {
+  const id = toast.custom(
+    (t) => (
+      <div
+        className={`bg-white border border-gray-200 shadow-lg rounded-xl p-5 w-[300px] flex flex-col gap-4 transition-all ${
+          t.visible ? "animate-enter" : "animate-leave"
+        }`}
+      >
+        
+        <span className="text-gray-800 font-medium text-sm">
+          Are you sure you want to unfriend <span className="font-semibold">{friend.name}</span>?
+        </span>
+        <div className="flex justify-end gap-3">
+          <button
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg transition cursor-pointer "
+            onClick={async () => {
+              await unfriendUser(friend._id);
+              toast.success("Removed from friends");
+              toast.dismiss(id);
+              onClose();
+            }}
+          >
+            Yes
+          </button>
+           <button
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1 rounded-lg transition cursor-pointer"
+            onClick={() => {
+              toast.dismiss(id); 
+              onClose();         
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ),
+    { position: "top-center" } 
+  );
+};
 
-      <div className="bg-base-100 w-[380px] rounded-3xl p-8 relative shadow-2xl border border-base-300">
+  return (
+    <div className="fixed inset-0 flex items-center justify-center px-4 overflow-y-auto bg-black/50 backdrop-blur-sm z-50">
+
+      <div className="bg-base-100 w-[380px] max-w-full rounded-3xl p-4 sm:p-6 md:p-8 relative shadow-2xl border border-base-300">
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-base-content/60 hover:text-base-content transition"
+          className="absolute top-4 right-4 text-base-content/60 hover:text-base-content transition cursor-pointer"
         >
           <X size={22} />
         </button>
@@ -56,14 +98,17 @@ const FriendProfileModal = ({ friend, onClose }) => {
         {/* button */}
         <div className="mt-8">
           {isFriend ? (
-            <button className="flex items-center justify-center gap-2 bg-success text-white px-4 py-3 rounded-xl w-full cursor-default">
-              <CheckCircle size={18} />
-              Friends
-            </button>
+                 <button
+             onClick={handleUnfriend}
+             className="flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl w-full transition cursor-pointer"
+           >
+             <UserMinus size={16} />
+             Unfriend
+           </button>
           ) : (
             <button
               onClick={handleAddFriend}
-              className="flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl w-full transition"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-3 rounded-xl w-full transition cursor-pointer"
             >
               <UserPlus size={18} />
               Add Friend

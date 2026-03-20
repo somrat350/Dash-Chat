@@ -11,14 +11,14 @@ const iconMap = {
 const Notifications = () => {
   const {
     notifications = [],
-    getFriendRequests,
+    getNotifications,
     acceptFriendRequest,
     rejectFriendRequest,
   } = useFriendStore();
 
   useEffect(() => {
-    getFriendRequests();
-  }, [getFriendRequests]);
+    getNotifications();
+  }, [ getNotifications]);
 
   // Unread count
   const unreadCount = notifications.filter((n) => n.unread).length;
