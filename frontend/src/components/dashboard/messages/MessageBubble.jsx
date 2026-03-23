@@ -144,7 +144,9 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
                       ? "Call disconnected"
                       : "Call ended"}
             </p>
-            {msg.text && <p className="mt-1 text-xs opacity-70">{msg.text}</p>}
+            {!msg.callData && msg.text && (
+              <p className="mt-1 text-xs opacity-70">{msg.text}</p>
+            )}
           </div>
         ) : (
           <p className="mt-2">
