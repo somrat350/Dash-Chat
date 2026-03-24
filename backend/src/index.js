@@ -31,14 +31,14 @@ app.use("/api/calls", callRouter);
 app.use("/api/users", isAuthenticated, userRouter);
 
 // Ready for deploy into single domain
-const singleDomainDeploy = () => {
-  if (ENV.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../frontend/dist")));
-    app.use((_, res) => {
-      res.sendFile(path.resolve(__dirname, "../frontend/dist/index.html"));
-    });
-  }
-};
+// const singleDomainDeploy = () => {
+//   if (ENV.NODE_ENV === "production") {
+//     app.use(express.static(path.join(__dirname, "../frontend/dist")));
+//     app.use((_, res) => {
+//       res.sendFile(path.resolve(__dirname, "../frontend/dist/index.html"));
+//     });
+//   }
+// };
 
 //server connecting function
 const startServer = async () => {
@@ -52,7 +52,7 @@ const startServer = async () => {
   }
 };
 
-singleDomainDeploy();
+// singleDomainDeploy();
 startServer();
 
 // error handler middleware
