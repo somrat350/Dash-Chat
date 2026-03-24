@@ -3,8 +3,9 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { io } from "socket.io-client";
+import { SOCKET_BASE_URL } from "../lib/axios";
 
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+const BASE_URL = SOCKET_BASE_URL;
 
 export const useAuthStore = create((set, get) => ({
   userLoading: true,
@@ -125,6 +126,10 @@ export const useAuthStore = create((set, get) => ({
     if (!authUser || userLoading || get().socket?.connected) return;
     const socket = io(BASE_URL, {
       withCredentials: true,
+      auth: {
+        token: authUser?.accessToken || "",
+      },
+      transports: ["websocket", "polling"],
     });
     socket.connect();
     socket.on("connect", () => {
