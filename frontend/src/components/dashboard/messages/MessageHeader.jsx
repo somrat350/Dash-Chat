@@ -1,4 +1,13 @@
-import { MoreVertical, Phone, User, Video, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Info,
+  MoreVertical,
+  Phone,
+  ThumbsDown,
+  User,
+  Video,
+  XCircle,
+} from "lucide-react";
 import { useMessageStore } from "../../../store/useMessageStore";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useCallStore } from "../../../store/useCallStore";
@@ -75,10 +84,17 @@ const MessageHeader = () => {
       className="flex justify-between items-center border-b
    border-base-content/20 pb-3 px-4 pt-4 sticky top-0 z-30 bg-base-100 h-20"
     >
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3">
+        <button
+          onClick={() => setSelectedPartner(null)}
+          className="text-primary btn btn-sm btn-circle md:hidden tooltip tooltip-bottom"
+          data-tip="Back"
+        >
+          <ArrowLeft size={16} />
+        </button>
         <div className={`avatar relative`}>
           <div
-            className={`text-base-content rounded-full w-12 h-12 flex items-center justify-center ${selectedPartner.photoURL || "border border-base-content"}`}
+            className={`text-base-content rounded-full w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center ${selectedPartner.photoURL || "border border-base-content"}`}
           >
             {selectedPartner.photoURL ? (
               <img src={selectedPartner.photoURL} alt={selectedPartner.name} />
@@ -92,43 +108,68 @@ const MessageHeader = () => {
         </div>
 
         <div>
-          <h3 className="font-medium">{selectedPartner?.name}</h3>
+          <h3 className="font-medium line-clamp-1 break-all">
+            {selectedPartner?.name}
+          </h3>
           <p className="text-sm">
             {formatChatTime(selectedPartner.lastOnline)}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={() => handleCall("video")}
-          className="text-primary transition-colors cursor-pointer hover:opacity-80"
+          className="text-primary btn btn-sm btn-circle tooltip tooltip-bottom"
+          data-tip="Video Call"
           aria-label="Start video call"
           disabled={!receiverId}
         >
-          <Video size={20} />
+          <Video size={16} />
         </button>
         <button
           onClick={() => handleCall("audio")}
-          className="text-primary transition-colors cursor-pointer hover:opacity-80"
+          className="text-primary btn btn-sm btn-circle tooltip tooltip-bottom"
+          data-tip="Audio Call"
           aria-label="Start audio call"
           disabled={!receiverId}
         >
-          <Phone size={17} />
+          <Phone size={16} />
         </button>
-        <button
-          type="button"
-          className="text-primary transition-colors cursor-pointer hover:opacity-80"
-          aria-label="More options"
-        >
-          <MoreVertical size={20} />
-        </button>
-        <button onClick={() => setSelectedPartner(null)}>
-          <X
-            size={28}
-            className="text-primary transition-colors cursor-pointer"
-          />
-        </button>
+        <div className="dropdown dropdown-end">
+          <div
+            tabIndex={0}
+            role="button"
+            className="text-primary btn btn-sm btn-circle tooltip tooltip-bottom m-1"
+            data-tip="More Options"
+          >
+            <MoreVertical size={16} />
+          </div>
+          <ul
+            tabIndex="-1"
+            className="dropdown-content menu bg-base-200 rounded-box z-1 w-52 p-2 shadow-sm"
+          >
+            <li>
+              <button className="btn btn-sm">
+                <Info size={16} /> Profile Info
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setSelectedPartner(null)}
+                className="btn btn-sm"
+              >
+                <XCircle size={16} /> Close Chat
+              </button>
+            </li>
+            <div className="h-px bg-base-100 my-1"></div>
+            <li>
+              <button className="btn btn-sm hover:bg-red-500/30 hover:text-red-500">
+                <ThumbsDown size={16} /> Report
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );
