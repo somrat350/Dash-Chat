@@ -12,6 +12,7 @@ export const useAuthStore = create((set, get) => ({
   authUser: null,
   socket: null,
   onlineUsers: [],
+  typingUsers: {},
   incomingCall: null,
   callSignal: null,
   clearIncomingCall: () => set({ incomingCall: null }),
@@ -177,10 +178,27 @@ export const useAuthStore = create((set, get) => ({
         };
       });
     });
+
+    socket.on("typingStatus", (payload) => {
+      const fromUserId = payload?.fromUserId;
+      if (!fromUserId) return;
+
+      set((state) => ({
+        typingUsers: {
+          ...state.typingUsers,
+          [String(fromUserId)]: Boolean(payload?.isTyping),
+        },
+      }));
+    });
   },
   disconnectSocket: () => {
     if (!get().socket) return;
     if (get().socket?.connected) get().socket.disconnect();
-    set({ incomingCall: null, callSignal: null, socket: null });
+    set({
+      incomingCall: null,
+      callSignal: null,
+      typingUsers: {},
+      socket: null,
+    });
   },
 }));

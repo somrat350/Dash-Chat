@@ -37,6 +37,14 @@ const removeUserSocket = (userId, socketId) => {
 
 const getOnlineUserIds = () => Array.from(userSocketMap.keys());
 
+const updateLastSeen = async (userId) => {
+  try {
+    await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+  } catch (error) {
+    console.error("Failed to update lastSeen:", error);
+  }
+};
+
 export function getReceiverSocketId(userId) {
   const socketSet = userSocketMap.get(String(userId));
   if (!socketSet || socketSet.size === 0) return null;
@@ -99,10 +107,18 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", async () => {
-    await User.findByIdAndUpdate(userId, {
-      lastOnline: new Date(),
+  socket.on("typingStatus", ({ toUserId, isTyping }) => {
+    if (!toUserId) return;
+
+    io.to(getUserRoom(toUserId)).emit("typingStatus", {
+      fromUserId: userId,
+      isTyping: Boolean(isTyping),
+      at: Date.now(),
     });
+  });
+
+  socket.on("disconnect", () => {
+    updateLastSeen(userId);
     removeUserSocket(userId, socket.id);
     io.emit("getOnlineUsers", getOnlineUserIds());
   });
