@@ -78,6 +78,7 @@ export const getChatPartners = async (req, res) => {
           _id: "$partnerId",
           lastMessage: { $first: "$text" },
           lastImage: { $first: "$image" },
+          lastMessageSenderId: { $first: "$senderId" },
           time: { $first: "$createdAt" },
         },
       },
@@ -102,6 +103,7 @@ export const getChatPartners = async (req, res) => {
             email: "$user.email",
             photoURL: "$user.photoURL",
           },
+          lastMessageSenderId: 1,
           lastMessage: {
             $cond: [{ $ne: ["$lastImage", null] }, "📷 Image", "$lastMessage"],
           },
