@@ -1,17 +1,27 @@
 import { Link } from "react-router";
 import { LucidePhone, MessagesSquare } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useCallStore } from "../../store/useCallStore";
+import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
 const ChatCard = ({ partner }) => {
   const { authUser, onlineUsers } = useAuthStore();
-  const { initiateCall } = useCallStore();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const handleCall = async (e) => {
     e.preventDefault();
-    await initiateCall(partner._id, "audio");
+    navigate("/dashboard/calls", {
+      state: {
+        startCall: {
+          receiverId: partner._id,
+          name: partner?.name || "Unknown user",
+          image: partner?.photoURL || "/default-avatar.jpg",
+          type: "audio",
+          callId: `${[String(authUser?._id), String(partner?._id)].sort().join("-")}-${Date.now()}`,
+        },
+      },
+    });
     queryClient.invalidateQueries({ queryKey: ["calls"] });
   };
   const isFriend = () => {

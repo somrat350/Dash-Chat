@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import { socketAuthMiddleware } from "../middleware/socketAuthMiddleware.js";
 import { ENV } from "./env.js";
+import User from "../models/User.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,14 @@ const removeUserSocket = (userId, socketId) => {
 };
 
 const getOnlineUserIds = () => Array.from(userSocketMap.keys());
+
+const updateLastSeen = async (userId) => {
+  try {
+    await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+  } catch (error) {
+    console.error("Failed to update lastSeen:", error);
+  }
+};
 
 export function getReceiverSocketId(userId) {
   const socketSet = userSocketMap.get(String(userId));
@@ -98,7 +107,18 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("typingStatus", ({ toUserId, isTyping }) => {
+    if (!toUserId) return;
+
+    io.to(getUserRoom(toUserId)).emit("typingStatus", {
+      fromUserId: userId,
+      isTyping: Boolean(isTyping),
+      at: Date.now(),
+    });
+  });
+
   socket.on("disconnect", () => {
+    updateLastSeen(userId);
     removeUserSocket(userId, socket.id);
     io.emit("getOnlineUsers", getOnlineUserIds());
   });

@@ -475,6 +475,8 @@ const Calls = () => {
         options.callId ||
         `${[String(authUser._id), String(receiverId)].sort().join("-")}-${Date.now()}`;
 
+      let createdCallRecordId = options.recordId || null;
+
       try {
         if ((options.direction || "outgoing") === "outgoing") {
           setPendingOutgoingCallId(callId);
@@ -482,6 +484,17 @@ const Calls = () => {
 
         // Register both users in Stream before creating the call
         await axiosSecure.post("/api/calls/ensure-members", { receiverId });
+
+        if (shouldCreateRecord) {
+          const createdCall = await initiateCall(receiverId, type, {
+            streamCallId: callId,
+          });
+
+          createdCallRecordId = createdCall?._id || null;
+          if (!createdCallRecordId) {
+            throw new Error("Unable to create call record");
+          }
+        }
 
         const call = streamClient.call("default", callId);
 
@@ -515,21 +528,29 @@ const Calls = () => {
         setActiveCall(call);
         setCurrentCall(call.id);
         setPendingOutgoingCallId(null);
-
-        if (shouldCreateRecord) {
-          const createdCall = await initiateCall(receiverId, type, {
-            streamCallId: callId,
-          });
-          setActiveCallRecordId(createdCall?._id || null);
-        } else {
-          setActiveCallRecordId(options.recordId || null);
-        }
+        setActiveCallRecordId(createdCallRecordId);
       } catch (error) {
+        setPendingOutgoingCallId(null);
+
+        if (createdCallRecordId) {
+          await updateCallStatus(createdCallRecordId, {
+            status: "failed",
+            endedAt: new Date().toISOString(),
+            endReason: "connection-lost",
+          });
+        }
+
         console.error("Failed to start call:", error);
         toast.error(error?.message || "Unable to start call");
       }
     },
-    [authUser?._id, initiateCall, setCurrentCall, streamClient],
+    [
+      authUser?._id,
+      initiateCall,
+      setCurrentCall,
+      streamClient,
+      updateCallStatus,
+    ],
   );
 
   useEffect(() => {
