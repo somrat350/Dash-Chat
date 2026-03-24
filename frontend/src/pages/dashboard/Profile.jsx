@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div>
+      <div className="p-4 md:p-6">
         <div className=" mx-auto space-y-10 w-full">
           {/* ---------- Preview Section ---------- */}
 

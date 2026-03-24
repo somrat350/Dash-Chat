@@ -21,14 +21,38 @@ const MessagesSidebar = () => {
 
   const formatChatTime = (dateString) => {
     const date = new Date(dateString);
-    return date
-      .toLocaleTimeString("en-US", {
-        hour: "numeric",
-        hour12: true,
-      })
-      .toLowerCase()
-      .split(" ")
-      .join("");
+    const now = new Date();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (date.toDateString() === now.toDateString()) {
+      return date
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toLowerCase()
+        .replace(/\s+/g, "");
+    }
+
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    const secondsAgo = (now - date) / 1000;
+    const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+
+    if (secondsAgo < sevenDaysInSeconds) {
+      return date.toLocaleDateString("en-US", { weekday: "long" });
+    }
+
+    return date.toLocaleDateString("en-US", {
+      month: "numeric",
+      day: "numeric",
+      year: "2-digit",
+    });
   };
 
   const openAddPartnerModal = () => {
@@ -92,10 +116,10 @@ const MessagesSidebar = () => {
 
               {/* User Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm truncate">
+                <h3 className="font-semibold text-sm break-all line-clamp-1">
                   {partner.user.name}
                 </h3>
-                <p className="text-xs text-base-content/70 truncate">
+                <p className="text-xs text-base-content/70 break-all line-clamp-1">
                   {partner.lastMessage}
                 </p>
               </div>

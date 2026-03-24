@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import Notification from "../models/Notification.js"
 
 export async function getMyFriends(req, res) {
   try {
@@ -48,6 +49,7 @@ export const sendRequest = async (req, res) => {
         { sender: senderId, receiver: receiverId },
         { sender: receiverId, receiver: senderId },
       ],
+       status: "pending",
     });
 
     if (existingRequest) {
@@ -61,6 +63,13 @@ export const sendRequest = async (req, res) => {
       receiver: receiverId,
     });
 
+     await Notification.create({
+      sender: senderId,
+      receiver: receiverId,
+      type: "friend_request",
+      message: "sent you a friend request",
+    });
+
     res.status(200).json(friendRequest);
   } catch (error) {
     console.error("Error in send friend request controller", error);
@@ -69,44 +78,62 @@ export const sendRequest = async (req, res) => {
 };
 
 export const updateRequest = async (req, res) => {
-  const { userId, friendId, action } = req.body;
+  try {
+    const { userId, friendId, action } = req.body;
+    if (action === "delete") {
+      await Promise.all([
+        User.findByIdAndUpdate(userId, {
+          $pull: { friends: friendId },
+        }),
+        User.findByIdAndUpdate(friendId, {
+          $pull: { friends: userId },
+        }),
+      ]);
+      await Notification.create({
+      sender: userId,      
+      receiver: friendId,  
+      type: "unfriend",    
+      message: "unfriended you",
+    });
 
-  if (action === "rejected" || action === "delete") {
-    await Promise.all([
-      User.updateOne(
-        { _id: userId },
-        { $pull: { friends: { user: friendId } } },
-      ),
-      User.updateOne(
-        { _id: friendId },
-        { $pull: { friends: { user: userId } } },
-      ),
-    ]);
+      return res
+        .status(200)
+        .json({ message: "Unfriended successfully" });
+    }
+    if (action === "rejected") {
+      return res
+        .status(200)
+        .json({ message: "Request rejected successfully" });
+    }
+    if (action === "blocked") {
+      await User.updateOne(
+        { _id: userId, friends: friendId },
+        { $pull: { friends: friendId } }
+      );
+
+      return res.status(200).json({ message: "User has been blocked" });
+    }
+    if (action === "accepted") {
+      await Promise.all([
+        User.findByIdAndUpdate(userId, {
+          $addToSet: { friends: friendId },
+        }),
+        User.findByIdAndUpdate(friendId, {
+          $addToSet: { friends: userId },
+        }),
+      ]);
+
+      return res
+        .status(200)
+        .json({ message: "Friend request has been accepted" });
+    }
     return res
-      .status(200)
-      .json({ message: `Request has been ${action} successfully` });
-  } else if (action === "blocked") {
-    await User.updateOne(
-      { _id: userId, friends: { $elemMatch: { user: friendId } } },
-      { $set: { "friends.$.status": "blocked" } },
-    );
-    return res.status(200).json({ message: "User has been blocked" });
-  } else if (action === "accepted") {
-    await Promise.all([
-      User.updateOne(
-        { _id: userId, friends: { $elemMatch: { user: friendId } } },
-        { $set: { "friends.$.status": "accepted" } },
-      ),
-      User.updateOne(
-        { _id: friendId, friends: { $elemMatch: { user: userId } } },
-        { $set: { "friends.$.status": "accepted" } },
-      ),
-    ]);
-    return res
-      .status(200)
-      .json({ message: "Friend request has been accepted" });
-  } else {
-    return res.status(400).json({ message: `Invalid action: "${action}".` });
+      .status(400)
+      .json({ message: `Invalid action: "${action}".` });
+
+  } catch (error) {
+    console.error("Error in updateRequest:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -186,7 +213,8 @@ export const getFriendSuggestions = async (req, res) => {
     const users = await User.aggregate([
       {
         $match: {
-          _id: { $ne: new mongoose.Types.ObjectId(currentUserId) }
+          _id: { $ne: new mongoose.Types.ObjectId(currentUserId) },
+          friends: { $ne: currentUserId },
         }
       },
       {
@@ -251,7 +279,13 @@ export const getFriendRequests = async (req, res) => {
         $addToSet: { friends: request.sender }
       })
     ]);
-
+    
+     await Notification.create({
+    sender: request.receiver,
+    receiver: request.sender,
+    type: "accepted",
+    message: "accepted your friend request",
+   });
     return res.json({ message: "Friend request accepted" });
 
   }
@@ -260,9 +294,29 @@ export const getFriendRequests = async (req, res) => {
 
     request.status = "rejected";
     await request.save();
-
+      await Notification.create({
+    sender: request.receiver,
+    receiver: request.sender,
+    type: "rejected",
+    message: "rejected your friend request",
+  });
     return res.json({ message: "Friend request rejected" });
 
   }
 
+};
+
+// notification 
+export const getNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({
+      receiver: req.user._id,
+    })
+      .populate("sender", "name photoURL")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load notifications" });
+  }
 };
