@@ -33,6 +33,7 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
+    lastOnline: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );
