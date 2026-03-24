@@ -27,6 +27,19 @@ const messageSchema = new Schema(
       type: String,
       default: "active",
     },
+    deliveryStatus: {
+      type: String,
+      enum: ["sent", "delivered", "seen"],
+      default: "sent",
+    },
+    deliveredAt: {
+      type: Date,
+      default: null,
+    },
+    seenAt: {
+      type: Date,
+      default: null,
+    },
     hiddenFor: { type: [String], default: [] },
     // riplay
     replyTo: {
