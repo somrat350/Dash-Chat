@@ -33,6 +33,43 @@ const MessageHeader = () => {
     });
   };
 
+  const formatChatTime = (dateString) => {
+    if (isOnline) return "Online";
+    const date = new Date(dateString);
+    const now = new Date();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (date.toDateString() === now.toDateString()) {
+      return date
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toLowerCase()
+        .replace(/\s+/g, "");
+    }
+
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    const secondsAgo = (now - date) / 1000;
+    const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+
+    if (secondsAgo < sevenDaysInSeconds) {
+      return date.toLocaleDateString("en-US", { weekday: "long" });
+    }
+
+    return date.toLocaleDateString("en-US", {
+      month: "numeric",
+      day: "numeric",
+      year: "2-digit",
+    });
+  };
+
   return (
     <div
       className="flex justify-between items-center border-b
@@ -56,7 +93,9 @@ const MessageHeader = () => {
 
         <div>
           <h3 className="font-medium">{selectedPartner?.name}</h3>
-          <p className="text-sm">typing...</p>
+          <p className="text-sm">
+            {formatChatTime(selectedPartner.lastOnline)}
+          </p>
         </div>
       </div>
 

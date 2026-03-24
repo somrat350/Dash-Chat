@@ -102,6 +102,7 @@ export const getChatPartners = async (req, res) => {
             name: "$user.name",
             email: "$user.email",
             photoURL: "$user.photoURL",
+            lastOnline: "$user.lastOnline",
           },
           lastMessageSenderId: 1,
           lastMessage: {

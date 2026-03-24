@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import { socketAuthMiddleware } from "../middleware/socketAuthMiddleware.js";
 import { ENV } from "./env.js";
+import User from "../models/User.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -98,7 +99,10 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
+    await User.findByIdAndUpdate(userId, {
+      lastOnline: new Date(),
+    });
     removeUserSocket(userId, socket.id);
     io.emit("getOnlineUsers", getOnlineUserIds());
   });
