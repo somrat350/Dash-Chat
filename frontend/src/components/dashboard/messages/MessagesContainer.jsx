@@ -61,6 +61,7 @@ const MessagesContainer = () => {
   });
 
   useEffect(() => {
+    console.log(socket);
     if (!selectedPartner || !socket) return;
     getMessagesByUserId(selectedPartner._id);
     subscribeToMessage(selectedPartner._id);
