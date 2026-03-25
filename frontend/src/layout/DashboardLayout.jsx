@@ -14,9 +14,15 @@ import ThemeSelector from "../components/ThemeSelector";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
 import IncomingCallModal from "../components/dashboard/messages/IncomingCallModal";
+import { useEffect } from "react";
 
 const DashboardLayout = () => {
-  const { authUser } = useAuthStore();
+  const { authUser, connectSocket } = useAuthStore();
+
+  useEffect(() => {
+    if (!authUser) return;
+    connectSocket();
+  }, [authUser, connectSocket]);
 
   const sideMenus = [
     {

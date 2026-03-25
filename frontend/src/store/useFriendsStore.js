@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { axiosSecure } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
-export const useFriendStore = create((set) => ({
+export const useFriendStore = create((set,get) => ({
 
   friends: [],
   suggestions: [],
@@ -99,7 +99,8 @@ export const useFriendStore = create((set) => ({
     toast.success("Friend request accepted");
 
   } catch (error) {
-    toast.error("Failed to accept request");
+    console.log(error);
+    toast.error("Request action failed!");
   }
 },
   // reject request
