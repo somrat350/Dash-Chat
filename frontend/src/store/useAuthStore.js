@@ -135,7 +135,9 @@ export const useAuthStore = create((set, get) => ({
     socket.on("connect", () => {
       set({ socket });
     });
-
+    
+    console.log({BASE_URL, socket});
+    
     if (socket.connected) {
       toast.success("Socket connected.");
     } else {
