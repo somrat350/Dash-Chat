@@ -2,15 +2,27 @@ import { PaletteIcon } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
 import { THEMES } from "../constants/constants";
 
-const ThemeSelector = () => {
+const ThemeSelector = ({ place = "navbar" }) => {
   const { theme, setTheme } = useThemeStore();
 
   return (
-    <div className="dropdown dropdown-end ">
+    <div
+      className={`dropdown ${place === "navbar" ? "dropdown-end" : "dropdown-start"} `}
+    >
       {/* DROPDOWN TRIGGER */}
-      <button tabIndex={0} className="btn btn-ghost btn-circle">
-        <PaletteIcon className="size-5" />
-      </button>
+      {place === "navbar" ? (
+        <button tabIndex={0} className="btn btn-ghost btn-circle">
+          <PaletteIcon className="size-5" />
+        </button>
+      ) : (
+        <button
+          tabIndex={0}
+          className="btn btn-ghost bg-base-100 border border-slate-500"
+        >
+          Theme Switcher
+          <PaletteIcon className="size-5" />
+        </button>
+      )}
 
       <div
         tabIndex={0}

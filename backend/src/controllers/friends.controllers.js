@@ -259,11 +259,20 @@ export const getFriendRequests = async (req, res) => {
 
   const { requestId, action } = req.body;
 
-  const request = await FriendRequest.findById(requestId);
+  const notification = await Notification.findById(requestId);
+
+  if (!notification) {
+    return res.status(404).json({ message: "Notification not found" });
+  }
+
+  const request = await FriendRequest.findOne({$or: [
+        { sender: notification.sender, receiver: notification.receiver },
+        { sender: notification.receiver, receiver: notification.sender },
+      ],});
 
   if (!request) {
     return res.status(404).json({ message: "Request not found" });
-  }
+  }    
 
   if (action === "accept") {
 
@@ -279,6 +288,9 @@ export const getFriendRequests = async (req, res) => {
         $addToSet: { friends: request.sender }
       })
     ]);
+
+    notification.isRead = true
+    await notification.save()
     
      await Notification.create({
     sender: request.receiver,
