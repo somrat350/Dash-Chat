@@ -1,5 +1,4 @@
-
-import { FileInput, Settings, SunMoon} from "lucide-react";
+import { FileInput, Settings, SunMoon } from "lucide-react";
 import { useState } from "react";
 import { FaMobileButton } from "react-icons/fa6";
 import ThemeSelector from "../../components/ThemeSelector";
@@ -19,7 +18,6 @@ const pageFlow = [
 ];
 
 const AppearanceSettings = () => {
- 
   const [chatBg, setChatBg] = useState("#f0f0f0");
   const [fontSize, setFontSize] = useState("medium");
   const [fontFamily, setFontFamily] = useState("Inter");
@@ -27,27 +25,23 @@ const AppearanceSettings = () => {
   const [autoDownload, setAutoDownload] = useState(false);
   const [language, setLanguage] = useState("English");
 
- 
   const handleBgChange = (e) => setChatBg(e.target.value);
   const handleFontSizeChange = (e) => setFontSize(e.target.value);
 
-  const saveSettings = () => {
-   
-  };
+  const saveSettings = () => {};
 
   return (
     <div className="w-full">
       <Breadcrumb items={pageFlow} />
-      <div className="max-w-2xl mx-auto bg-base-100 p-8 rounded-xl shadow-lg">
-
-         {/* Theme Switcher */}
+      <div className="bg-base-200 p-8 rounded-xl shadow-lg">
+        {/* Theme Switcher */}
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-2">Theme Switcher</h2>
           <p className="text-gray-500 mb-4">
             Choose between Light / Dark or any DaisyUI theme.
           </p>
-      
-          <ThemeSelector></ThemeSelector>
+
+          <ThemeSelector place="settings"></ThemeSelector>
         </section>
 
         {/* Chat Background */}
@@ -154,7 +148,9 @@ const AppearanceSettings = () => {
         <section className="space-y-3">
           <div className="flex  justify-between items-center">
             <div>
-              <h2 className="text-xl mt-3 font-semibold">Media Auto Download</h2>
+              <h2 className="text-xl mt-3 font-semibold">
+                Media Auto Download
+              </h2>
               <p className="text-sm mb-6 text-gray-500">
                 Automatically download incoming photos and videos.
               </p>
