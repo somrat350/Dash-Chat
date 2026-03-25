@@ -1,7 +1,10 @@
 import React from "react";
 import { Phone, MessageSquare, MoreVertical } from "lucide-react";
+import { useAuthStore } from "../../../store/useAuthStore";
 
 const UserCard = ({ friend, activeMenu, setActiveMenu, onSelect }) => {
+  const { onlineUsers } = useAuthStore();
+  const isOnline = onlineUsers.find((user) => user === friend._id);
   return (
     <div
       onClick={() => onSelect(friend)}
@@ -9,10 +12,10 @@ const UserCard = ({ friend, activeMenu, setActiveMenu, onSelect }) => {
     >
       <span
         className={`absolute top-3 left-3 text-xs font-semibold ${
-          friend.isOnline ? "text-green-500" : "text-gray-400"
+          isOnline ? "text-green-500" : "text-gray-400"
         }`}
       >
-        {friend.isOnline ? "Online" : "Offline"}
+        {isOnline ? "Online" : "Offline"}
       </span>
 
       <div className="absolute top-3 right-3 dropdown">
@@ -29,7 +32,7 @@ const UserCard = ({ friend, activeMenu, setActiveMenu, onSelect }) => {
 
       <div className="flex flex-col items-center mt-6">
         <img
-          src={friend.photoURL }
+          src={friend.photoURL}
           alt={friend.name}
           className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
         />

@@ -21,12 +21,11 @@ const DashboardLayout = () => {
   const { authUser, socket, connectSocket } = useAuthStore();
 
   useEffect(() => {
+    if (!authUser) return;
     connectSocket();
   }, [connectSocket]);
 
   if (!socket) return <PageLoader />;
-  
-  console.log({ authUser, socket });
 
   const sideMenus = [
     {

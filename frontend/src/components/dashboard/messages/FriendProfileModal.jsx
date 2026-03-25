@@ -3,10 +3,11 @@ import { useFriendStore } from "../../../store/useFriendsStore";
 import toast from "react-hot-toast";
 
 const FriendProfileModal = ({ friend, onClose }) => {
+  const { sendFriendRequest,unfriendUser } = useFriendStore();
+  
   if (!friend) return null;
 
   const isFriend = friend.isFriend;
-  const { sendFriendRequest,unfriendUser } = useFriendStore();
 
   const handleAddFriend = async () => {
     await sendFriendRequest(friend._id);
