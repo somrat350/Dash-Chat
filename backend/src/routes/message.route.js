@@ -6,6 +6,7 @@ import {
   editMessage,
   getChatPartners,
   getMessagesByUserId,
+  markMessagesAsSeen,
   recentMessages,
   searchChatNewPartners,
   sendMessage,
@@ -19,6 +20,7 @@ messageRouter.get("/recentMessages", recentMessages);
 messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
 messageRouter.get("/chats/:userId", getMessagesByUserId);
+messageRouter.patch("/chats/:userId/seen", markMessagesAsSeen);
 messageRouter.post("/send/:userId", sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);

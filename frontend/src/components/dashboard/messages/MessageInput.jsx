@@ -3,7 +3,10 @@ import { Smile, Plus, Mic, XIcon, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useMessageStore } from "../../../store/useMessageStore";
+import { useAuthStore } from "../../../store/useAuthStore";
 import axios from "axios";
+
+const TYPING_IDLE_MS = 1200;
 
 const MessageInput = () => {
   const [text, setText] = useState("");
@@ -13,9 +16,54 @@ const MessageInput = () => {
   const fileInputRef = useRef(null);
   const emojiRef = useRef(null);
   const [isMultiLine, setIsMultiLine] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const isTypingRef = useRef(false);
 
-  const { sendMessage, isMessageSending, replyMessage, clearReplyMessage } =
-    useMessageStore();
+  const {
+    sendMessage,
+    isMessageSending,
+    replyMessage,
+    clearReplyMessage,
+    selectedPartner,
+  } = useMessageStore();
+  const { socket } = useAuthStore();
+
+  const receiverId =
+    selectedPartner?._id ||
+    selectedPartner?.id ||
+    selectedPartner?.userId ||
+    selectedPartner?.user?._id;
+
+  const emitTypingStatus = (isTyping) => {
+    if (!socket?.connected || !receiverId) return;
+
+    socket.emit("typingStatus", {
+      toUserId: String(receiverId),
+      isTyping,
+    });
+  };
+
+  const stopTyping = () => {
+    if (!isTypingRef.current) return;
+
+    isTypingRef.current = false;
+    emitTypingStatus(false);
+
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+  };
+
+  const scheduleTypingStop = () => {
+    if (typingTimeoutRef.current) {
+      window.clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = window.setTimeout(() => {
+      stopTyping();
+    }, TYPING_IDLE_MS);
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -32,7 +80,8 @@ const MessageInput = () => {
   };
 
   const handleInput = (e) => {
-    setText(e.target.value);
+    const nextText = e.target.value;
+    setText(nextText);
     e.target.style.height = "auto";
     e.target.style.height = e.target.scrollHeight + "px";
 
@@ -40,6 +89,18 @@ const MessageInput = () => {
     const lines = Math.round(e.target.scrollHeight / lineHeight);
 
     setIsMultiLine(lines > 1);
+
+    if (!nextText.trim()) {
+      stopTyping();
+      return;
+    }
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      emitTypingStatus(true);
+    }
+
+    scheduleTypingStop();
   };
 
   const handleImageChange = (e) => {
@@ -71,6 +132,8 @@ const MessageInput = () => {
   const handleSend = async () => {
     if (!text.trim() && !imagePreview) return;
 
+    stopTyping();
+
     let image = "";
 
     if (imagePreview) {
@@ -87,6 +150,21 @@ const MessageInput = () => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  useEffect(() => {
+    return () => {
+      stopTyping();
+    };
+  }, []);
+
+  useEffect(() => {
+    stopTyping();
+    setText("");
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    setIsMultiLine(false);
+  }, [receiverId]);
 
   return (
     <>

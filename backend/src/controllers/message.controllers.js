@@ -78,6 +78,7 @@ export const getChatPartners = async (req, res) => {
           _id: "$partnerId",
           lastMessage: { $first: "$text" },
           lastImage: { $first: "$image" },
+          lastMessageSenderId: { $first: "$senderId" },
           time: { $first: "$createdAt" },
         },
       },
@@ -101,7 +102,9 @@ export const getChatPartners = async (req, res) => {
             name: "$user.name",
             email: "$user.email",
             photoURL: "$user.photoURL",
+            lastSeen: "$user.lastSeen",
           },
+          lastMessageSenderId: 1,
           lastMessage: {
             $cond: [{ $ne: ["$lastImage", null] }, "📷 Image", "$lastMessage"],
           },
@@ -125,6 +128,34 @@ export const getMessagesByUserId = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
     const { userId } = req.params;
+
+    // Mark partner -> logged-in-user messages as seen when chat is opened.
+    const seenAt = new Date();
+    const seenMessages = await Message.find({
+      senderId: userId,
+      receiverId: loggedInUserId,
+      deliveryStatus: { $ne: "seen" },
+    }).select("_id senderId receiverId");
+
+    if (seenMessages.length > 0) {
+      await Message.updateMany(
+        { _id: { $in: seenMessages.map((message) => message._id) } },
+        { $set: { deliveryStatus: "seen", deliveredAt: seenAt, seenAt } },
+      );
+
+      seenMessages.forEach((message) => {
+        const senderSocketId = getReceiverSocketId(message.senderId);
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("messageStatusUpdated", {
+            messageId: String(message._id),
+            deliveryStatus: "seen",
+            deliveredAt: seenAt,
+            seenAt,
+          });
+        }
+      });
+    }
+
     const messages = await Message.find({
       $or: [
         { senderId: loggedInUserId, receiverId: userId },
@@ -175,6 +206,17 @@ export const sendMessage = async (req, res) => {
     //web socket
     const receiverSocketId = getReceiverSocketId(receiverId);
     const senderSocketId = getReceiverSocketId(loggedInUserId);
+
+    const deliveryStatus = receiverSocketId ? "delivered" : "sent";
+    const deliveredAt = receiverSocketId ? new Date() : null;
+
+    if (savedMessage.deliveryStatus !== deliveryStatus) {
+      savedMessage = await Message.findByIdAndUpdate(
+        savedMessage._id,
+        { $set: { deliveryStatus, deliveredAt } },
+        { new: true },
+      ).populate("replyTo");
+    }
 
     // send to receiver
     if (receiverSocketId) {
@@ -265,5 +307,45 @@ export const addReaction = async (req, res) => {
   } catch (error) {
     console.error("Reaction add error:", error);
     res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const markMessagesAsSeen = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const { userId } = req.params;
+    const seenAt = new Date();
+
+    const messages = await Message.find({
+      senderId: userId,
+      receiverId: loggedInUserId,
+      deliveryStatus: { $ne: "seen" },
+    }).select("_id senderId");
+
+    if (messages.length === 0) {
+      return res.status(200).json({ updated: 0 });
+    }
+
+    await Message.updateMany(
+      { _id: { $in: messages.map((message) => message._id) } },
+      { $set: { deliveryStatus: "seen", deliveredAt: seenAt, seenAt } },
+    );
+
+    messages.forEach((message) => {
+      const senderSocketId = getReceiverSocketId(message.senderId);
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageStatusUpdated", {
+          messageId: String(message._id),
+          deliveryStatus: "seen",
+          deliveredAt: seenAt,
+          seenAt,
+        });
+      }
+    });
+
+    return res.status(200).json({ updated: messages.length });
+  } catch (error) {
+    console.error("Error marking seen messages:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

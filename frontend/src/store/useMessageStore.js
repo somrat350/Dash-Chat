@@ -104,11 +104,36 @@ export const useMessageStore = create((set, get) => ({
       const currentMessages = get().messages;
       set({ messages: [...currentMessages, newMessage] });
 
+      if (newMessage.senderId === selectedPartner) {
+        axiosSecure
+          .patch(`/api/messages/chats/${selectedPartner}/seen`)
+          .catch((error) => {
+            console.error("Failed to mark message as seen:", error);
+          });
+      }
+
       const notificationSound = new Audio("/sounds/notification.mp3");
       notificationSound.currentTime = 0;
       notificationSound
         .play()
         .catch((e) => console.log("Audio play failed:", e));
+    });
+
+    socket.on("messageStatusUpdated", (payload) => {
+      if (!payload?.messageId) return;
+
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg._id === payload.messageId
+            ? {
+                ...msg,
+                deliveryStatus: payload.deliveryStatus || msg.deliveryStatus,
+                deliveredAt: payload.deliveredAt || msg.deliveredAt,
+                seenAt: payload.seenAt || msg.seenAt,
+              }
+            : msg,
+        ),
+      }));
     });
 
     socket.on("reactionUpdated", (updatedMsg) => {
@@ -124,6 +149,7 @@ export const useMessageStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
     socket.off("newMessage");
+    socket.off("messageStatusUpdated");
   },
 
   // edit

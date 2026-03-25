@@ -3,8 +3,9 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { io } from "socket.io-client";
+import { SOCKET_BASE_URL } from "../lib/axios";
 
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+const BASE_URL = SOCKET_BASE_URL;
 
 export const useAuthStore = create((set, get) => ({
   userLoading: true,
@@ -12,6 +13,7 @@ export const useAuthStore = create((set, get) => ({
   authUser: null,
   socket: null,
   onlineUsers: [],
+  typingUsers: {},
   incomingCall: null,
   callSignal: null,
   clearIncomingCall: () => set({ incomingCall: null }),
@@ -124,6 +126,10 @@ export const useAuthStore = create((set, get) => ({
     if (!authUser || userLoading || get().socket?.connected) return;
     const socket = io(BASE_URL, {
       withCredentials: true,
+      auth: {
+        token: authUser?.accessToken || "",
+      },
+      transports: ["websocket", "polling"],
     });
     socket.connect();
     socket.on("connect", () => {
@@ -177,10 +183,27 @@ export const useAuthStore = create((set, get) => ({
         };
       });
     });
+
+    socket.on("typingStatus", (payload) => {
+      const fromUserId = payload?.fromUserId;
+      if (!fromUserId) return;
+
+      set((state) => ({
+        typingUsers: {
+          ...state.typingUsers,
+          [String(fromUserId)]: Boolean(payload?.isTyping),
+        },
+      }));
+    });
   },
   disconnectSocket: () => {
     if (!get().socket) return;
     if (get().socket?.connected) get().socket.disconnect();
-    set({ incomingCall: null, callSignal: null, socket: null });
+    set({
+      incomingCall: null,
+      callSignal: null,
+      typingUsers: {},
+      socket: null,
+    });
   },
 }));

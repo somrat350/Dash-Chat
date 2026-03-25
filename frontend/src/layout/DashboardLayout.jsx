@@ -113,27 +113,31 @@ const DashboardLayout = () => {
               </li>
             ))}
 
-            <div
-              className="mt-auto tooltip tooltip-right"
-              data-tip={authUser.name}
-            >
-              <div className="flex items-center gap-1">
+            <li className="mt-auto">
+              <Link
+                to="/dashboard/profile"
+                className="tooltip tooltip-right flex items-center gap-1 rounded-lg px-2 py-2 hover:bg-primary/20"
+                data-tip={authUser?.name || "Profile"}
+              >
                 <div className="avatar">
                   <div className="w-8 rounded-full">
-                    <img src={"/default-avatar.jpg"} alt="User Avatar" />
+                    <img
+                      src={authUser?.photoURL || "/default-avatar.jpg"}
+                      alt="User Avatar"
+                    />
                   </div>
                 </div>
-                <div className="flex-1 is-drawer-close:hidden tooltip">
+                <div className="flex-1 is-drawer-close:hidden">
                   <p className="font-semibold text-xs line-clamp-1">
-                    {authUser.name}
+                    {authUser?.name || "User"}
                   </p>
                   <p className="text-xs text-success flex items-center gap-1">
                     <span className="size-2 text-xs rounded-full bg-success inline-block" />
                     Online
                   </p>
                 </div>
-              </div>
-            </div>
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

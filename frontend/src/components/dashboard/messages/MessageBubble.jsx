@@ -1,4 +1,6 @@
 import {
+  Check,
+  CheckCheck,
   EllipsisVertical,
   Phone,
   PhoneMissed,
@@ -11,9 +13,17 @@ import DropdownMenu from "./DropdownMenu";
 
 const quickEmojis = ["👍", "❤️", "😀", "😭", "🙏", "👎", "😡"];
 
-const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
+const MessageBubble = ({
+  msg,
+  authUser,
+  isOpen,
+  setIsOpen,
+  isFirstInGroup = true,
+  isGroupedWithNext = false,
+}) => {
   const { addReaction } = useMessageBubbleStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [tickAnimating, setTickAnimating] = useState(false);
   const isMe = msg.senderId === authUser?._id;
 
   const isDeleted =
@@ -21,6 +31,43 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
   const isCallMessage = msg.messageType === "call";
   const callType = msg.callData?.callType || "audio";
   const callStatus = msg.callData?.status || "completed";
+  const deliveryStatus = msg.deliveryStatus || "sent";
+
+  const messageShapeClass = isMe
+    ? `${isFirstInGroup ? "rounded-tr-md" : "rounded-tr-2xl"} ${isGroupedWithNext ? "rounded-br-md" : "rounded-br-2xl"}`
+    : `${isFirstInGroup ? "rounded-tl-md" : "rounded-tl-2xl"} ${isGroupedWithNext ? "rounded-bl-md" : "rounded-bl-2xl"}`;
+
+  useEffect(() => {
+    if (!isMe) return;
+    const timeoutId1 = setTimeout(() => {
+      setTickAnimating(true);
+      const timeoutId2 = setTimeout(() => setTickAnimating(false), 240);
+      return () => clearTimeout(timeoutId2);
+    }, 0);
+    return () => clearTimeout(timeoutId1);
+  }, [deliveryStatus, isMe]);
+
+  const renderMessageStatusTick = () => {
+    if (!isMe) return null;
+
+    const baseTickClass = `transition-all duration-300 ${
+      tickAnimating ? "scale-110 opacity-100" : "scale-100 opacity-90"
+    }`;
+
+    if (deliveryStatus === "seen") {
+      return (
+        <CheckCheck size={14} className={`${baseTickClass} text-sky-300`} />
+      );
+    }
+
+    if (deliveryStatus === "delivered") {
+      return (
+        <CheckCheck size={14} className={`${baseTickClass} text-white/80`} />
+      );
+    }
+
+    return <Check size={14} className={`${baseTickClass} text-white/80`} />;
+  };
 
   useEffect(() => {
     const closeAll = () => {
@@ -36,7 +83,7 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
       className={`chat relative group ${isMe ? "chat-end" : "chat-start"}`}
     >
       <div
-        className={`chat-bubble relative ${
+        className={`chat-bubble relative px-3 py-1.5 transition-colors duration-300 ${messageShapeClass} ${
           isMe ? "bg-slate-800 text-white" : "bg-slate-500 text-white"
         }`}
       >
@@ -144,24 +191,31 @@ const MessageBubble = ({ msg, authUser, isOpen, setIsOpen }) => {
                       ? "Call disconnected"
                       : "Call ended"}
             </p>
-            {msg.text && <p className="mt-1 text-xs opacity-70">{msg.text}</p>}
+            {!msg.callData && msg.text && (
+              <p className="mt-1 text-xs opacity-70">{msg.text}</p>
+            )}
           </div>
         ) : (
-          <p className="mt-2">
-            {msg.status === "hide" ? "This message was deleted" : msg?.text}
-          </p>
+          <div className="mt-1 flex items-end gap-1">
+            <p className="leading-relaxed">
+              {msg.status === "hide" ? "This message was deleted" : msg?.text}
+            </p>
+
+            {/* Message Date */}
+            <p
+              className={`text-[10px] opacity-60 flex items-center gap-0.5 whitespace-nowrap shrink-0`}
+            >
+              {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
+              {renderMessageStatusTick()}
+            </p>
+          </div>
         )}
 
-        {/* Message Date */}
-        <p
-          className={`text-xs mt-1 opacity-75 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}
-        >
-          {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })}
-        </p>
+        {/* Message Date Placeholder for spacing */}
       </div>
     </div>
   );

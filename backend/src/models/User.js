@@ -23,12 +23,17 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+    lastOnline: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );

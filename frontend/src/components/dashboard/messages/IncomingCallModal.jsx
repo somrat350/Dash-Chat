@@ -61,13 +61,6 @@ const IncomingCallModal = () => {
       ringtoneRef.current.currentTime = 0;
     }
 
-    if (incomingCall?.recordId) {
-      await updateCallStatus(incomingCall.recordId, {
-        status: "received",
-        startedAt: new Date().toISOString(),
-      });
-    }
-
     if (socket?.connected && incomingCall?.caller?._id) {
       socket.emit("acceptIncomingCall", {
         toUserId: String(incomingCall.caller._id),

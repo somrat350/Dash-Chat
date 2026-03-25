@@ -174,7 +174,7 @@ const ActiveChatCallPanel = ({
   const hasStarted = callDirection === "incoming" || isOutgoingAccepted;
 
   return (
-    <div className="absolute inset-0 z-[80] flex flex-col bg-base-100">
+    <div className="absolute inset-0 z-80 flex flex-col bg-base-100">
       <ParticipantsAudio participants={remoteParticipants} />
       <div className="flex items-center justify-between px-6 py-4 bg-base-200 border-b border-base-300">
         <div className="flex items-center gap-2">
@@ -261,6 +261,7 @@ const InChatCallOverlay = () => {
   const [pendingOutgoingCallId, setPendingOutgoingCallId] = useState(null);
   const connectedAtRef = useRef(null);
   const hasLoggedCallRef = useRef(false);
+  const leaveInProgressRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -340,6 +341,9 @@ const InChatCallOverlay = () => {
 
   const handleLeave = useCallback(
     async (options = {}) => {
+      if (leaveInProgressRef.current) return;
+      leaveInProgressRef.current = true;
+
       const shouldEmitEndSignal = options.shouldEmitEndSignal !== false;
       const shouldPersistStatus = options.shouldPersistStatus !== false;
       const callToLeave = activeCall;
@@ -407,9 +411,9 @@ const InChatCallOverlay = () => {
       } catch (error) {
         console.error("Failed to leave chat call:", error);
       } finally {
+        leaveInProgressRef.current = false;
         setIsEndingCall(false);
         connectedAtRef.current = null;
-        hasLoggedCallRef.current = false;
       }
     },
     [
@@ -456,14 +460,6 @@ const InChatCallOverlay = () => {
           setActiveCallRecordId(createdCall?._id || null);
         } else {
           setActiveCallRecordId(recordId || null);
-          if (recordId) {
-            const startedAt = new Date().toISOString();
-            await updateCallStatus(recordId, {
-              status: "received",
-              startedAt,
-            });
-            connectedAtRef.current = new Date(startedAt).getTime();
-          }
         }
 
         const call = streamClient.call("default", streamCallId);
@@ -495,7 +491,16 @@ const InChatCallOverlay = () => {
         setCurrentCall(call.id);
         setPendingOutgoingCallId(null);
         hasLoggedCallRef.current = false;
-        connectedAtRef.current = mode === "join" ? Date.now() : null;
+
+        const joinedAt = mode === "join" ? Date.now() : null;
+        connectedAtRef.current = joinedAt;
+
+        if (mode === "join" && recordId && joinedAt) {
+          await updateCallStatus(recordId, {
+            status: "received",
+            startedAt: new Date(joinedAt).toISOString(),
+          });
+        }
       } catch (error) {
         toast.error(error?.message || "Unable to start call");
       } finally {

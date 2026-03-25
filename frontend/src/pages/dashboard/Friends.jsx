@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import FriendProfileModal from "../../components/dashboard/messages/FriendProfileModal";
 import { useFriendStore } from "../../store/useFriendsStore";
 import Pagination from "../../components/Pagination";
-import UserCard from "../../components/dashboard/messages/userCard";
+import UserCard from "../../components/dashboard/messages/UserCard";
 import FriendListCard from "../../components/dashboard/messages/FriendListCard";
 
 

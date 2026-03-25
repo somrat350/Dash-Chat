@@ -2,13 +2,34 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { ENV } from "../lib/env.js";
 
+const getTokenFromCookieHeader = (cookieHeader = "") => {
+  if (!cookieHeader) return "";
+
+  const tokenCookie = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((row) => row.startsWith("token="));
+
+  if (!tokenCookie) return "";
+  return decodeURIComponent(tokenCookie.split("=").slice(1).join("="));
+};
+
+const getTokenFromAuthorizationHeader = (authorizationHeader = "") => {
+  if (!authorizationHeader?.startsWith("Bearer ")) return "";
+  return authorizationHeader.slice(7).trim();
+};
+
 export const socketAuthMiddleware = async (socket, next) => {
   try {
-    // extract token from http-only cookies
-    const token = socket.handshake.headers.cookie
-      ?.split("; ")
-      .find((row) => row.startsWith("token="))
-      ?.split("=")[1];
+    // Support both cookie-based auth and explicit auth token payload.
+    const cookieToken = getTokenFromCookieHeader(
+      socket.handshake.headers.cookie,
+    );
+    const authPayloadToken = socket.handshake.auth?.token || "";
+    const authHeaderToken = getTokenFromAuthorizationHeader(
+      socket.handshake.headers.authorization,
+    );
+    const token = cookieToken || authPayloadToken || authHeaderToken;
 
     if (!token) {
       console.log("Socket connection rejected: No token provided");
