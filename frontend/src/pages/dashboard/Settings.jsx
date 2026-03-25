@@ -11,26 +11,10 @@ import { NavLink, Outlet } from "react-router";
 
 const Settings = () => {
   const menu = [
-    {
-      name: "Profile Settings",
-      path: "profile",
-      icon: User,
-    },
-    {
-      name: "Appearance / Theme",
-      path: "appearance",
-      icon: Palette,
-    },
-    {
-      name: "Notifications",
-      path: "notifications",
-      icon: Bell,
-    },
-    {
-      name: "Privacy & Security",
-      path: "privacy",
-      icon: Shield,
-    },
+    { name: "Profile Settings", path: "profile", icon: User },
+    { name: "Appearance / Theme", path: "appearance", icon: Palette },
+    { name: "Notifications", path: "notifications", icon: Bell },
+    { name: "Privacy & Security", path: "privacy", icon: Shield },
     {
       name: "Danger Zone",
       path: "danger",
@@ -40,17 +24,17 @@ const Settings = () => {
   ];
 
   return (
-    <div className="h-full flex bg-base-100">
+    <div className="min-h-screen flex flex-col md:flex-row bg-base-100">
 
       {/* Sidebar */}
-      <div className="w-64 border-r p-4">
+      <div className="w-full md:w-64 border-b md:border-r p-4">
 
-        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Settings2 size={18} />
           Settings
         </h2>
 
-        <div className="space-y-1">
+        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
 
           {menu.map((item) => {
             const Icon = item.icon;
@@ -60,7 +44,7 @@ const Settings = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 p-2 rounded-lg transition-all
+                  `flex items-center gap-2 md:gap-3 p-2 rounded-lg whitespace-nowrap transition-all
                   
                   ${
                     item.danger
@@ -68,12 +52,16 @@ const Settings = () => {
                       : "hover:bg-base-200"
                   }
 
-                  ${isActive ? "bg-base-200 font-medium border-l-4 border-primary" : ""}
+                  ${
+                    isActive
+                      ? "bg-base-200 font-medium border-b-2 md:border-b-0 md:border-l-4 border-primary"
+                      : ""
+                  }
                   `
                 }
               >
                 <Icon size={18} />
-                {item.name}
+                <span className="text-sm md:text-base">{item.name}</span>
               </NavLink>
             );
           })}
@@ -82,8 +70,8 @@ const Settings = () => {
 
       </div>
 
-      {/* Right Content */}
-      <div className="flex-1 p-6">
+      {/* Content */}
+      <div className="flex-1 p-4 md:p-6">
         <Outlet />
       </div>
 
@@ -92,4 +80,3 @@ const Settings = () => {
 };
 
 export default Settings;
-

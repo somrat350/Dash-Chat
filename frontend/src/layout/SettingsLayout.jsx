@@ -18,7 +18,7 @@ const SettingsLayout = () => {
   ];
 
   return (
-    <div className="flex h-full gap-6">
+    <div className="flex h-full  gap-6">
 
       {/* Sidebar */}
       <div className="w-64 border-r bg-base-100 p-4 flex flex-col">
