@@ -16,7 +16,8 @@ import { useAuthStore } from "../store/useAuthStore";
 import IncomingCallModal from "../components/dashboard/messages/IncomingCallModal";
 
 const DashboardLayout = () => {
-  const { authUser } = useAuthStore();
+  const { authUser, socket } = useAuthStore();
+  console.log({ authUser, socket });
 
   const sideMenus = [
     {
