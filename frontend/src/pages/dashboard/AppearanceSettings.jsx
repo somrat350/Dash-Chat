@@ -1,206 +1,267 @@
-import { FileInput, Settings, SunMoon } from "lucide-react";
-import { useState } from "react";
+import { Settings, SunMoon } from "lucide-react";
+import { useState, useEffect } from "react";
 import { FaMobileButton } from "react-icons/fa6";
 import ThemeSelector from "../../components/ThemeSelector";
 import Breadcrumb from "../../components/dashboard/Breadcrumb";
 
+// Load Google Fonts
+const loadGoogleFonts = () => {
+  const link = document.createElement("link");
+  link.href =
+    "https://fonts.googleapis.com/css2?family=Inter&family=Poppins&family=Roboto&family=Open+Sans&display=swap";
+  link.rel = "stylesheet";
+  document.head.appendChild(link);
+};
+
 const pageFlow = [
-  {
-    label: "Settings",
-    link: "/dashboard/settings",
-    icon: <Settings size={16}></Settings>,
-  },
-  {
-    label: "Appearance/Theme",
-    link: "/dashboard/settings/appearance",
-    icon: <SunMoon size={16} />,
-  },
+  { label: "Settings", link: "/dashboard/settings", icon: <Settings size={16} /> },
+  { label: "Appearance/Theme", link: "/dashboard/settings/appearance", icon: <SunMoon size={16} /> },
 ];
 
+// Default settings with empty color/image (normal background)
+const defaultSettings = {
+  chatBgColor: "",
+  chatBgImage: "",
+  overlayOpacity: 0.3,
+  fontSize: "medium",
+  fontFamily: "Inter",
+  enterToSend: true,
+  autoDownload: false,
+  language: "English",
+};
+
 const AppearanceSettings = () => {
-  const [chatBg, setChatBg] = useState("#f0f0f0");
-  const [fontSize, setFontSize] = useState("medium");
-  const [fontFamily, setFontFamily] = useState("Inter");
-  const [enterToSend, setEnterToSend] = useState(true);
-  const [autoDownload, setAutoDownload] = useState(false);
-  const [language, setLanguage] = useState("English");
+  useEffect(() => loadGoogleFonts(), []);
 
-  const handleBgChange = (e) => setChatBg(e.target.value);
-  const handleFontSizeChange = (e) => setFontSize(e.target.value);
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem("chatSettings");
+    return saved ? JSON.parse(saved) : defaultSettings;
+  });
 
-  const saveSettings = () => {};
+  const handleChange = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
+
+  const handleBgImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => handleChange("chatBgImage", reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem("chatSettings", JSON.stringify(settings));
+    alert("Settings saved!");
+  };
+
+  // Apply body & preview background
+  useEffect(() => {
+    const body = document.body;
+
+    // Apply color only if user selected
+    if (settings.chatBgColor) body.style.backgroundColor = settings.chatBgColor;
+    else body.style.backgroundColor = ""; // normal default
+
+    // Apply image only if user selected
+    if (settings.chatBgImage) {
+      body.style.backgroundImage = `linear-gradient(rgba(0,0,0,${settings.overlayOpacity}), rgba(0,0,0,${settings.overlayOpacity})), url(${settings.chatBgImage})`;
+      body.style.backgroundSize = "cover";
+      body.style.backgroundPosition = "center";
+    } else body.style.backgroundImage = "none";
+
+    document.documentElement.style.fontSize =
+      settings.fontSize === "small" ? "14px" :
+      settings.fontSize === "medium" ? "16px" : "18px";
+    body.style.fontFamily = `${settings.fontFamily}, sans-serif`;
+
+    // Preview box
+    const preview = document.getElementById("chatPreview");
+    if (preview) {
+      preview.style.backgroundColor = settings.chatBgColor || ""; // default if empty
+      if (settings.chatBgImage) {
+        preview.style.backgroundImage = `linear-gradient(rgba(0,0,0,${settings.overlayOpacity}), rgba(0,0,0,${settings.overlayOpacity})), url(${settings.chatBgImage})`;
+        preview.style.backgroundSize = "cover";
+        preview.style.backgroundPosition = "center";
+      } else preview.style.backgroundImage = "none";
+    }
+  }, [settings]);
+
+  // Language demo
+  useEffect(() => {
+    const langElement = document.getElementById("example-language-text");
+    if (!langElement) return;
+    if (settings.language === "Bangla") langElement.textContent = "হ্যালো, আপনি বাংলা ভাষা নির্বাচন করেছেন!";
+    else if (settings.language === "Hindi") langElement.textContent = "नमस्ते, आपने हिंदी भाषा चुनी है!";
+    else langElement.textContent = "Hello, you selected English!";
+  }, [settings.language]);
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && settings.enterToSend) {
+      e.preventDefault();
+      console.log("Message Sent:", e.target.value);
+      e.target.value = "";
+    }
+  };
 
   return (
-    <div className="w-full">
-      <Breadcrumb items={pageFlow} />
-      <div className="bg-base-200 p-8 rounded-xl shadow-lg">
-        {/* Theme Switcher */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Theme Switcher</h2>
-          <p className="text-gray-500 mb-4">
-            Choose between Light / Dark or any DaisyUI theme.
-          </p>
+   <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
+  <Breadcrumb items={pageFlow} />
 
-          <ThemeSelector place="settings"></ThemeSelector>
-        </section>
+  <div className="w-full mx-auto bg-base-200 p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg space-y-8">
 
-        {/* Chat Background */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Chat Background</h2>
-          <p className="text-gray-500 mb-4">
-            Set a custom wallpaper or solid color for chat windows.
-          </p>
-          <div className="flex gap-4 items-center">
-            <input
-              type="color"
-              value={chatBg}
-              onChange={handleBgChange}
-              className="w-16 h-10 border rounded-lg cursor-pointer"
-            />
-            <FileInput
-              type="text"
-              placeholder="Enter background hex code"
-              value={chatBg}
-              onChange={handleBgChange}
-              className="w-full max-w-xs"
-            />
-          </div>
-        </section>
+    {/* ---------- Theme Selector ---------- */}
+    <section>
+      <h2 className="text-lg sm:text-xl font-semibold mb-2">Theme Selector</h2>
+      <ThemeSelector />
+    </section>
 
-        {/* Font Size */}
-        <section className="mt-15">
-          <h2 className="text-xl font-semibold mb-2">Font Size</h2>
-          <p className="text-gray-500 mb-4">
-            Adjust chat text size for better readability.
-          </p>
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="fontSize"
-                value="small"
-                checked={fontSize === "small"}
-                onChange={handleFontSizeChange}
-                className="radio"
-              />
-              Small
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="fontSize"
-                value="medium"
-                checked={fontSize === "medium"}
-                onChange={handleFontSizeChange}
-                className="radio"
-              />
-              Medium
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="fontSize"
-                value="large"
-                checked={fontSize === "large"}
-                onChange={handleFontSizeChange}
-                className="radio"
-              />
-              Large
-            </label>
-          </div>
-        </section>
-        {/* Font Family */}
-        <section className="space-y-3">
-          <h2 className="text-xl font-semibold mt-10">Font Family</h2>
-
-          <select
-            className="select select-bordered w-full mb-10 max-w-xs"
-            value={fontFamily}
-            onChange={(e) => setFontFamily(e.target.value)}
-          >
-            <option>Inter</option>
-            <option>Poppins</option>
-            <option>Roboto</option>
-            <option>Open Sans</option>
-          </select>
-        </section>
-
-        {/* Enter to Send */}
-        <section className="space-y-3">
-          <div className="flex justify-between items-center">
-            <div className="mt-3">
-              <h2 className="text-xl mt-3 font-semibold">Enter to Send</h2>
-              <p className="text-sm mb-8 text-gray-500">
-                Press Enter to send message instead of creating a new line.
-              </p>
-            </div>
-
-            <input
-              type="checkbox"
-              className="toggle toggle-primary"
-              checked={enterToSend}
-              onChange={() => setEnterToSend(!enterToSend)}
-            />
-          </div>
-        </section>
-
-        {/* Media Auto Download */}
-        <section className="space-y-3">
-          <div className="flex  justify-between items-center">
-            <div>
-              <h2 className="text-xl mt-3 font-semibold">
-                Media Auto Download
-              </h2>
-              <p className="text-sm mb-6 text-gray-500">
-                Automatically download incoming photos and videos.
-              </p>
-            </div>
-
-            <input
-              type="checkbox"
-              className="toggle toggle-primary"
-              checked={autoDownload}
-              onChange={() => setAutoDownload(!autoDownload)}
-            />
-          </div>
-        </section>
-
-        {/* Message Font Style */}
-        <section className="space-y-3">
-          <h2 className="text-xl mt-4 font-semibold">Message Font Style</h2>
-
-          <select className="select select-bordered mb-4 w-full max-w-xs">
-            <option>Normal</option>
-            <option>Serif</option>
-            <option>Monospace</option>
-          </select>
-        </section>
-
-        {/* Language */}
-        <section className="space-y-3">
-          <h2 className="text-xl f mt-2 font-semibold">Language</h2>
-
-          <select
-            className="select select-bordered mb-2 w-full max-w-xs"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-          >
-            <option>English</option>
-            <option>Bangla</option>
-            <option>Hindi</option>
-          </select>
-        </section>
-
-        <div className="text-center">
-          <FaMobileButton
-            onClick={saveSettings}
-            className="btn btn-primary mt-4"
-          >
-            Save Settings
-          </FaMobileButton>
-        </div>
+    {/* ---------- Chat Background ---------- */}
+    <section className="space-y-4">
+      <h2 className="text-lg sm:text-xl font-semibold">Chat Background</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <input
+          type="color"
+          value={settings.chatBgColor}
+          onChange={e => handleChange("chatBgColor", e.target.value)}
+          className="w-16 h-10 border rounded cursor-pointer shrink-0"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleBgImage}
+          className="border p-2 rounded cursor-pointer w-full sm:w-auto"
+        />
       </div>
+
+      {/* Remove Image */}
+      {settings.chatBgImage && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+          <span className="text-sm text-gray-500">Selected Image:</span>
+          <button
+            onClick={() => handleChange("chatBgImage", "")}
+            className="btn btn-sm btn-warning w-full sm:w-auto"
+          >
+            Remove Image
+          </button>
+        </div>
+      )}
+
+      {/* Overlay Opacity */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+        <label className="shrink-0">Overlay Opacity:</label>
+        <input
+          type="range"
+          min="0"
+          max="0.7"
+          step="0.05"
+          value={settings.overlayOpacity}
+          onChange={e => handleChange("overlayOpacity", parseFloat(e.target.value))}
+          className="flex-1"
+        />
+        <span className="shrink-0">{settings.overlayOpacity}</span>
+      </div>
+
+      {/* Preview Box */}
+      <div
+        id="chatPreview"
+        className="relative w-full h-48 sm:h-56 rounded border overflow-hidden flex items-end p-4 text-white"
+      >
+        <p>Chat preview text...</p>
+      </div>
+    </section>
+
+    {/* Font Size */}
+    <section>
+      <h2 className="text-lg sm:text-xl font-semibold mb-2">Font Size</h2>
+      <div className="flex flex-wrap gap-4">
+        {["small","medium","large"].map(size => (
+          <label key={size} className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="fontSize"
+              value={size}
+              checked={settings.fontSize===size}
+              onChange={e => handleChange("fontSize", e.target.value)}
+              className="radio"
+            />
+            {size.charAt(0).toUpperCase() + size.slice(1)}
+          </label>
+        ))}
+      </div>
+    </section>
+
+    {/* Font Family */}
+    <section>
+      <h2 className="text-lg sm:text-xl font-semibold mb-2">Font Family</h2>
+      <select
+        value={settings.fontFamily}
+        onChange={e => handleChange("fontFamily", e.target.value)}
+        className="select select-bordered w-full sm:max-w-xs"
+      >
+        {["Inter","Poppins","Roboto","Open Sans"].map(f => <option key={f}>{f}</option>)}
+      </select>
+    </section>
+
+    {/* Enter to Send */}
+    <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+      <div>
+        <h2 className="text-lg sm:text-xl font-semibold">Enter to Send</h2>
+        <p className="text-gray-400 text-sm">
+          Press Enter to send message instead of new line.
+        </p>
+      </div>
+      <input
+        type="checkbox"
+        className="toggle toggle-primary"
+        checked={settings.enterToSend}
+        onChange={() => handleChange("enterToSend", !settings.enterToSend)}
+      />
+    </section>
+
+    {/* Media Auto Download */}
+    <section className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+      <div>
+        <h2 className="text-lg sm:text-xl font-semibold">Media Auto Download</h2>
+        <p className="text-gray-400 text-sm">Automatically download incoming media.</p>
+      </div>
+      <input
+        type="checkbox"
+        className="toggle toggle-primary"
+        checked={settings.autoDownload}
+        onChange={() => handleChange("autoDownload", !settings.autoDownload)}
+      />
+    </section>
+
+    {/* Language */}
+    {/* <section>
+      <h2 className="text-lg sm:text-xl font-semibold mb-2">Language</h2>
+      <select
+        value={settings.language}
+        onChange={e => handleChange("language", e.target.value)}
+        className="select select-bordered w-full sm:max-w-xs mb-2"
+      >
+        {["English","Bangla","Hindi"].map(lang => <option key={lang}>{lang}</option>)}
+      </select>
+      <p id="example-language-text" className="text-gray-400"></p>
+    </section> */}
+
+    {/* Save Button */}
+    <div className="text-center">
+      <FaMobileButton onClick={saveSettings} className="btn btn-primary mt-4 text-xl sm:text-base">
+        Save Settings
+      </FaMobileButton>
     </div>
+
+    {/* Example Chat Input */}
+    <div>
+      <textarea
+        placeholder="Type message here..."
+        className="textarea textarea-bordered w-full"
+        onKeyUp={handleKeyPress}
+      />
+    </div>
+
+  </div>
+</div>
   );
 };
 

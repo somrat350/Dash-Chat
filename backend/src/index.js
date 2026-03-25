@@ -16,9 +16,19 @@ import { isAuthenticated } from "./middleware/auth.middleware.js";
 
 const port = ENV.PORT || 3000;
 const __dirname = path.resolve();
+const allowedOrigins = ENV.CLIENT_URLS.length
+  ? ENV.CLIENT_URLS
+  : [ENV.CLIENT_URL].filter(Boolean);
+
+const corsOriginValidator = (origin, callback) => {
+  // Allow requests with no origin (server-to-server, curl, health checks).
+  if (!origin) return callback(null, true);
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error("CORS origin not allowed"));
+};
 
 app.use(express.json());
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: corsOriginValidator, credentials: true }));
 app.use(cookieParser());
 
 //auth routes

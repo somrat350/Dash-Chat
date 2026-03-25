@@ -8,8 +8,18 @@ import Message from "../models/message.js";
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = ENV.CLIENT_URLS.length
+  ? ENV.CLIENT_URLS
+  : [ENV.CLIENT_URL].filter(Boolean);
+
+const socketCorsOriginValidator = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error("Socket CORS origin not allowed"));
+};
+
 const io = new Server(server, {
-  cors: { origin: [ENV.CLIENT_URL], credentials: true },
+  cors: { origin: socketCorsOriginValidator, credentials: true },
 });
 
 io.use(socketAuthMiddleware);
