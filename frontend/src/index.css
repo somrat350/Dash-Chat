@@ -3,6 +3,11 @@
   themes: all;
 }
 
+html,
+body {
+  scroll-behavior: smooth;
+}
+
 .scroll-thin::-webkit-scrollbar {
   width: 2px;
 }
