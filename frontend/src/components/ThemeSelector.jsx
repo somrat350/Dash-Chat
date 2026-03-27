@@ -8,8 +8,8 @@ const ThemeSelector = ({ place = "navbar" }) => {
   const activePreview = activeTheme?.colors?.slice(0, 3) || [];
 
   return (
-    <div
-      className={`dropdown ${place === "navbar" ? "dropdown-end" : "dropdown-start"} `}
+    <div 
+      className= {`dropdown ${place === "navbar" ? "dropdown-end" : "dropdown-start"}  `}
     >
       {/* DROPDOWN TRIGGER */}
       {place === "navbar" ? (
@@ -18,7 +18,7 @@ const ThemeSelector = ({ place = "navbar" }) => {
           className="btn btn-ghost btn-circle border border-base-300/70 bg-base-100/70 backdrop-blur-sm hover:border-primary/50"
           aria-label="Open theme selector"
         >
-          <div className="relative">
+          <div className="dropdown relative">
             <Sparkles className="size-4 text-primary" />
             <span className="absolute -right-3 -bottom-2 flex gap-0.5">
               {activePreview.map((color) => (
@@ -43,8 +43,11 @@ const ThemeSelector = ({ place = "navbar" }) => {
 
       <div
         tabIndex={0}
-        className="dropdown-content mt-2 p-1 shadow-2xl bg-base-200 backdrop-blur-lg rounded-2xl
-        w-56 border border-base-content/10 max-h-80 overflow-y-auto"
+        className="dropdown-content 
+        absolute left-1/2 -translate-x-1/2
+
+         mt-2 p-1 shadow-2xl bg-base-200 backdrop-blur-lg rounded-2xl
+        w-60  border border-base-content/10 max-h-80 overflow-y-auto"
       >
         <div className="space-y-1">
           {THEMES.map((themeOption) => (
