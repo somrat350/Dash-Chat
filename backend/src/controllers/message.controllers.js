@@ -1,4 +1,4 @@
-import { getReceiverSocketId, io } from "../lib/socket.js";
+import { getReceiverSocketIds, getUserRoomName, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
@@ -49,11 +49,25 @@ export const searchChatNewPartners = async (req, res) => {
 export const getChatPartners = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
+    const loggedInUserEmail = req.user.email;
 
     const partners = await Message.aggregate([
       {
         $match: {
-          $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
+          $and: [
+            {
+              $or: [
+                { senderId: loggedInUserId },
+                { receiverId: loggedInUserId },
+              ],
+            },
+            {
+              status: { $ne: "hide" },
+            },
+            {
+              hiddenFor: { $nin: [loggedInUserEmail] },
+            },
+          ],
         },
       },
 
@@ -127,6 +141,7 @@ export const getChatPartners = async (req, res) => {
 export const getMessagesByUserId = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
+    const loggedInUserEmail = req.user.email;
     const { userId } = req.params;
 
     // Mark partner -> logged-in-user messages as seen when chat is opened.
@@ -144,22 +159,29 @@ export const getMessagesByUserId = async (req, res) => {
       );
 
       seenMessages.forEach((message) => {
-        const senderSocketId = getReceiverSocketId(message.senderId);
-        if (senderSocketId) {
-          io.to(senderSocketId).emit("messageStatusUpdated", {
-            messageId: String(message._id),
-            deliveryStatus: "seen",
-            deliveredAt: seenAt,
-            seenAt,
-          });
-        }
+        io.to(getUserRoomName(message.senderId)).emit("messageStatusUpdated", {
+          messageId: String(message._id),
+          deliveryStatus: "seen",
+          deliveredAt: seenAt,
+          seenAt,
+        });
       });
     }
 
     const messages = await Message.find({
-      $or: [
-        { senderId: loggedInUserId, receiverId: userId },
-        { senderId: userId, receiverId: loggedInUserId },
+      $and: [
+        {
+          $or: [
+            { senderId: loggedInUserId, receiverId: userId },
+            { senderId: userId, receiverId: loggedInUserId },
+          ],
+        },
+        {
+          status: { $ne: "hide" },
+        },
+        {
+          hiddenFor: { $nin: [loggedInUserEmail] },
+        },
       ],
     }).populate("replyTo");
     res.status(200).json(messages);
@@ -203,12 +225,12 @@ export const sendMessage = async (req, res) => {
     let savedMessage = await newMessage.save();
     savedMessage = await savedMessage.populate("replyTo");
 
-    //web socket
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    const senderSocketId = getReceiverSocketId(loggedInUserId);
+    // websocket delivery depends on whether receiver has any active socket.
+    const receiverSocketIds = getReceiverSocketIds(receiverId);
+    const hasActiveReceiverSocket = receiverSocketIds.length > 0;
 
-    const deliveryStatus = receiverSocketId ? "delivered" : "sent";
-    const deliveredAt = receiverSocketId ? new Date() : null;
+    const deliveryStatus = hasActiveReceiverSocket ? "delivered" : "sent";
+    const deliveredAt = hasActiveReceiverSocket ? new Date() : null;
 
     if (savedMessage.deliveryStatus !== deliveryStatus) {
       savedMessage = await Message.findByIdAndUpdate(
@@ -218,15 +240,9 @@ export const sendMessage = async (req, res) => {
       ).populate("replyTo");
     }
 
-    // send to receiver
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", savedMessage);
-    }
-
-    // send to sender
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("newMessage", savedMessage);
-    }
+    // Send to all sockets of both users so every open tab/device stays in sync.
+    io.to(getUserRoomName(receiverId)).emit("newMessage", savedMessage);
+    io.to(getUserRoomName(loggedInUserId)).emit("newMessage", savedMessage);
 
     res.status(201).json(savedMessage);
   } catch (error) {
@@ -293,15 +309,9 @@ export const addReaction = async (req, res) => {
       return res.status(404).json({ message: "Message not found" });
     }
 
-    // realtime emit
-    const receiverSocketId = getReceiverSocketId(message.receiverId);
-    const senderSocketId = getReceiverSocketId(message.senderId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("reactionUpdated", message);
-    }
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("reactionUpdated", message);
-    }
+    // Realtime emit to user rooms to support multiple sockets per user.
+    io.to(getUserRoomName(message.receiverId)).emit("reactionUpdated", message);
+    io.to(getUserRoomName(message.senderId)).emit("reactionUpdated", message);
 
     res.status(200).json(message);
   } catch (error) {
@@ -332,15 +342,12 @@ export const markMessagesAsSeen = async (req, res) => {
     );
 
     messages.forEach((message) => {
-      const senderSocketId = getReceiverSocketId(message.senderId);
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("messageStatusUpdated", {
-          messageId: String(message._id),
-          deliveryStatus: "seen",
-          deliveredAt: seenAt,
-          seenAt,
-        });
-      }
+      io.to(getUserRoomName(message.senderId)).emit("messageStatusUpdated", {
+        messageId: String(message._id),
+        deliveryStatus: "seen",
+        deliveredAt: seenAt,
+        seenAt,
+      });
     });
 
     return res.status(200).json({ updated: messages.length });

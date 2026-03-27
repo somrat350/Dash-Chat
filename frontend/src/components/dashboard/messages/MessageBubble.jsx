@@ -32,6 +32,9 @@ const MessageBubble = ({
   const callType = msg.callData?.callType || "audio";
   const callStatus = msg.callData?.status || "completed";
   const deliveryStatus = msg.deliveryStatus || "sent";
+  const deletedLabel = isMe
+    ? "You unsent this message"
+    : "This message was deleted";
 
   const messageShapeClass = isMe
     ? `${isFirstInGroup ? "rounded-tr-md" : "rounded-tr-2xl"} ${isGroupedWithNext ? "rounded-br-md" : "rounded-br-2xl"}`
@@ -83,7 +86,7 @@ const MessageBubble = ({
       className={`chat relative group ${isMe ? "chat-end" : "chat-start"}`}
     >
       <div
-        className={`chat-bubble relative px-3 py-1.5 transition-colors duration-300 ${messageShapeClass} ${
+        className={`chat-bubble relative px-3 py-1.5 transition-colors duration-300 max-w-[85%] sm:max-w-md md:max-w-lg break-words ${messageShapeClass} ${
           isMe ? "bg-slate-800 text-white" : "bg-slate-500 text-white"
         }`}
       >
@@ -196,9 +199,15 @@ const MessageBubble = ({
             )}
           </div>
         ) : (
-          <div className="mt-1 flex items-end gap-1">
-            <p className="leading-relaxed">
-              {msg.status === "hide" ? "This message was deleted" : msg?.text}
+          <div className="mt-1 flex items-end gap-1 min-w-0">
+            <p
+              className={`leading-relaxed break-words break-all whitespace-pre-wrap min-w-0 flex-1 ${
+                msg.status === "hide"
+                  ? "opacity-80 blur-[0.6px] italic"
+                  : "opacity-100"
+              }`}
+            >
+              {msg.status === "hide" ? deletedLabel : msg?.text}
             </p>
 
             {/* Message Date */}
