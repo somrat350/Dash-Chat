@@ -107,7 +107,7 @@ const Hero = () => {
 
               <Link
                 to="/auth/login"
-                className="btn rounded-2xl h-12 px-6 bg-white text-secondary border-0 hover:bg-secondary hover:text-white"
+                className="btn btn-primary rounded-2xl h-12 px-6 text-primary-content border-0 shadow-lg shadow-primary/35 hover:bg-secondary hover:border-secondary hover:text-secondary-content"
               >
                 <MessageCircle size={18} /> Log In
               </Link>
