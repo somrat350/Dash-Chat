@@ -114,16 +114,7 @@ const Navbar = () => {
                     onClick={closeMobileMenu}
                     className="text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
                   >
-                    Dashboard
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/dashboard"
-                    onClick={closeMobileMenu}
-                    className="text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
-                  >
-                    Messages
+                    Continue Chat
                   </NavLink>
                 </li>
                 <li>
@@ -178,7 +169,7 @@ const Navbar = () => {
       </div>
 
       {/* Desktop View - Center */}
-      <div className="navbar-center hidden lg:flex">
+      <div className="navbar-center hidden lg:flex lg:pr-14 xl:pr-12">
         <ul className="menu menu-horizontal px-1 gap-2">
           {navLinks.map((link) => (
             <li key={link.name}>
@@ -238,7 +229,7 @@ const Navbar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost rounded-full pl-1 pr-3 gap-2"
+                className="btn btn-ghost btn-circle"
               >
                 <div className="avatar">
                   <div className="w-9 h-9 rounded-full border border-base-300 overflow-hidden">
@@ -254,14 +245,22 @@ const Navbar = () => {
                     )}
                   </div>
                 </div>
-                <span className="hidden lg:inline max-w-28 truncate text-sm font-medium">
-                  {authUser?.name || "My account"}
-                </span>
               </div>
               <ul
                 tabIndex={0}
                 className="dropdown-content menu bg-base-100 rounded-box z-20 w-52 p-2 shadow"
               >
+                <li className="px-2 py-1.5 pointer-events-none">
+                  <p className="font-semibold text-sm truncate text-base-content">
+                    {authUser?.name || "My account"}
+                  </p>
+                </li>
+                <div className="h-px bg-base-200 my-1" />
+                <li>
+                  <Link to="/dashboard" className="flex items-center gap-2">
+                    <LayoutDashboard size={16} /> Continue Chat
+                  </Link>
+                </li>
                 <li>
                   <Link to="/dashboard/profile">Profile</Link>
                 </li>

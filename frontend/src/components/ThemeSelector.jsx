@@ -1,9 +1,11 @@
-import { PaletteIcon } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
 import { THEMES } from "../constants/constants";
 
 const ThemeSelector = ({ place = "navbar" }) => {
   const { theme, setTheme } = useThemeStore();
+  const activeTheme = THEMES.find((themeOption) => themeOption.name === theme);
+  const activePreview = activeTheme?.colors?.slice(0, 3) || [];
 
   return (
     <div
@@ -11,8 +13,23 @@ const ThemeSelector = ({ place = "navbar" }) => {
     >
       {/* DROPDOWN TRIGGER */}
       {place === "navbar" ? (
-        <button tabIndex={0} className="btn btn-ghost btn-circle">
-          <PaletteIcon className="size-5" />
+        <button
+          tabIndex={0}
+          className="btn btn-ghost btn-circle border border-base-300/70 bg-base-100/70 backdrop-blur-sm hover:border-primary/50"
+          aria-label="Open theme selector"
+        >
+          <div className="relative">
+            <Sparkles className="size-4 text-primary" />
+            <span className="absolute -right-3 -bottom-2 flex gap-0.5">
+              {activePreview.map((color) => (
+                <span
+                  key={color}
+                  className="size-1.5 rounded-full border border-base-100"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </span>
+          </div>
         </button>
       ) : (
         <button
@@ -20,7 +37,7 @@ const ThemeSelector = ({ place = "navbar" }) => {
           className="btn btn-ghost bg-base-100 border border-slate-500"
         >
           Theme Switcher
-          <PaletteIcon className="size-5" />
+          <Sparkles className="size-5" />
         </button>
       )}
 
@@ -43,7 +60,11 @@ const ThemeSelector = ({ place = "navbar" }) => {
             `}
               onClick={() => setTheme(themeOption.name)}
             >
-              <PaletteIcon className="size-4" />
+              {theme === themeOption.name ? (
+                <Check className="size-4 text-primary" />
+              ) : (
+                <Sparkles className="size-4 text-base-content/60" />
+              )}
               <span className="text-sm font-medium">{themeOption.label}</span>
               {/* THEME PREVIEW COLORS */}
               <div className="ml-auto flex gap-1">
