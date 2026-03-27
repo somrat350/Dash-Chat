@@ -192,7 +192,7 @@ const Navbar = () => {
 
       {/* Right Side - Button */}
       <div className="gap-2 navbar-end pl-2 lg:pl-4">
-        <div className="ml-1 lg:ml-2">
+        <div className="tooltip tooltip-bottom ml-1 lg:ml-2" data-tip="Theme">
           <ThemeSelector />
         </div>
 
@@ -206,7 +206,7 @@ const Navbar = () => {
           <>
             <Link
               to="/dashboard"
-              className={`btn rounded-full hidden md:flex items-center gap-2 px-4 ${isDashboardRoute ? "btn-success text-white" : "btn-outline btn-success"}`}
+              className={`btn rounded-full hidden md:flex items-center gap-2 px-4 ${isDashboardRoute ? "btn-primary text-primary-content" : "btn-outline btn-primary"}`}
             >
               <LayoutDashboard size={18} />
               Continue Chat
@@ -214,8 +214,9 @@ const Navbar = () => {
 
             <Link
               to="/dashboard/notifications"
-              className="btn btn-circle btn-ghost relative"
+              className="btn btn-circle btn-ghost relative tooltip tooltip-bottom"
               aria-label="Notifications"
+              data-tip="Notification"
             >
               <Bell size={20} />
               {unreadCount > 0 && (
@@ -229,7 +230,8 @@ const Navbar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle"
+                className="btn btn-ghost btn-circle tooltip tooltip-bottom"
+                data-tip={authUser?.name || "My account"}
               >
                 <div className="avatar">
                   <div className="w-9 h-9 rounded-full border border-base-300 overflow-hidden">
