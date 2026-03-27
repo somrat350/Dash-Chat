@@ -35,6 +35,7 @@ const tabs = [
   { key: "outgoing", label: "Outgoing" },
   { key: "scheduled", label: "Scheduled" },
 ];
+const PAGE_SIZE = 12;
 
 const CALL_TIMEOUT_MS = 30_000;
 
@@ -253,6 +254,7 @@ const Calls = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
   const [streamClient, setStreamClient] = useState(null);
   const [activeCall, setActiveCall] = useState(null);
   const [activeCallType, setActiveCallType] = useState("audio");
@@ -264,13 +266,40 @@ const Calls = () => {
   const [activeCallRecordId, setActiveCallRecordId] = useState(null);
   const acceptedAtRef = useRef(null);
 
-  const { data: rawCalls = [], isLoading } = useQuery({
-    queryKey: ["calls"],
+  const { data: callsResponse, isLoading } = useQuery({
+    queryKey: ["dashboard-calls", activeTab, search, sortBy, currentPage],
     queryFn: async () => {
-      const res = await axiosSecure.get("/api/calls");
+      const res = await axiosSecure.get("/api/calls", {
+        params: {
+          page: currentPage,
+          limit: PAGE_SIZE,
+          tab: activeTab,
+          search: search.trim(),
+          sort: sortBy,
+        },
+      });
       return res.data;
     },
   });
+
+  const rawCalls = callsResponse?.data || [];
+  const callsStats = callsResponse?.stats || {
+    total: 0,
+    incoming: 0,
+    missed: 0,
+    scheduled: 0,
+  };
+  const pagination = callsResponse?.pagination || {
+    page: 1,
+    totalPages: 1,
+    hasPrevPage: false,
+    hasNextPage: false,
+    totalItems: rawCalls.length,
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, search, sortBy]);
 
   useEffect(() => {
     let mounted = true;
@@ -686,38 +715,6 @@ const Calls = () => {
 
   if (isLoading || isClientLoading) return <ComponentsLoader />;
 
-  const filtered = (() => {
-    const base = callsData.filter((call) => {
-      const matchesTab =
-        activeTab === "all" ||
-        (activeTab === "missed" && call.isMissedForViewer) ||
-        (activeTab === "scheduled" && call.type === "scheduled") ||
-        (activeTab !== "missed" &&
-          activeTab !== "scheduled" &&
-          call.type === activeTab);
-      const matchesSearch = call.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
-      return matchesTab && matchesSearch;
-    });
-
-    const sorted = [...base];
-    if (sortBy === "oldest") {
-      sorted.sort((a, b) => a.createdAtMs - b.createdAtMs);
-    } else if (sortBy === "longest") {
-      sorted.sort((a, b) => {
-        if (b.durationSeconds !== a.durationSeconds) {
-          return b.durationSeconds - a.durationSeconds;
-        }
-        return b.createdAtMs - a.createdAtMs;
-      });
-    } else {
-      sorted.sort((a, b) => b.createdAtMs - a.createdAtMs);
-    }
-
-    return sorted;
-  })();
-
   const getCallIcon = (call) => {
     if (call.isMissedForViewer)
       return <PhoneMissed size={18} className="text-error" />;
@@ -791,7 +788,7 @@ const Calls = () => {
           </div>
           <div className="stat-title text-xs">Total Calls</div>
           <div className="stat-value text-2xl text-base-content">
-            {callsData.length}
+            {callsStats.total}
           </div>
         </div>
         <div className="stat bg-base-200 rounded-xl p-4">
@@ -800,7 +797,7 @@ const Calls = () => {
           </div>
           <div className="stat-title text-xs">Incoming</div>
           <div className="stat-value text-2xl text-base-content">
-            {callsData.filter((c) => c.type === "incoming").length}
+            {callsStats.incoming}
           </div>
         </div>
         <div className="stat bg-base-200 rounded-xl p-4">
@@ -809,7 +806,7 @@ const Calls = () => {
           </div>
           <div className="stat-title text-xs">Missed</div>
           <div className="stat-value text-2xl text-base-content">
-            {callsData.filter((c) => c.isMissedForViewer).length}
+            {callsStats.missed}
           </div>
         </div>
         <div className="stat bg-base-200 rounded-xl p-4">
@@ -818,7 +815,7 @@ const Calls = () => {
           </div>
           <div className="stat-title text-xs">Scheduled</div>
           <div className="stat-value text-2xl text-base-content">
-            {callsData.filter((c) => c.type === "scheduled").length}
+            {callsStats.scheduled}
           </div>
         </div>
       </div>
@@ -863,121 +860,162 @@ const Calls = () => {
       </div>
 
       {/* Call List */}
-      {filtered.length === 0 ? (
+      {callsData.length === 0 ? (
         <div className="text-center py-12 bg-base-200 rounded-xl">
           <PhoneMissed size={48} className="mx-auto opacity-30 mb-3" />
           <p className="text-lg font-medium text-base-content/70">
             No calls found
           </p>
           <p className="text-sm text-base-content/50">
-            {callsData.length === 0
+            {pagination.totalItems === 0
               ? "You haven't made any calls yet. Use the call buttons in chat to make your first call!"
               : "Try adjusting your filter or search"}
           </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {filtered.map((call) => (
-            <div
-              key={call.id}
-              className="card bg-base-200 hover:bg-base-300 transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <div className="card-body p-4 gap-3">
-                {/* Header */}
-                <div className="flex items-center gap-3">
-                  <div className="avatar">
-                    <div className="w-12 h-12 rounded-full ring ring-primary/20 ring-offset-base-100 ring-offset-1">
-                      <img src={call.avatar} alt={call.name} />
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {callsData.map((call) => (
+              <div
+                key={call.id}
+                className="card bg-base-200 hover:bg-base-300 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <div className="card-body p-4 gap-3">
+                  {/* Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="avatar">
+                      <div className="w-12 h-12 rounded-full ring ring-primary/20 ring-offset-base-100 ring-offset-1">
+                        <img src={call.avatar} alt={call.name} />
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate text-base-content">
-                      {call.name}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-sm text-base-content/60">
-                      {getCallIcon(call)}
-                      <span className="capitalize">{call.type}</span>
-                      {call.medium === "video" && (
-                        <Video size={14} className="ml-1" />
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate text-base-content">
+                        {call.name}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-sm text-base-content/60">
+                        {getCallIcon(call)}
+                        <span className="capitalize">{call.type}</span>
+                        {call.medium === "video" && (
+                          <Video size={14} className="ml-1" />
+                        )}
+                      </div>
                     </div>
+                    {getStatusBadge(call)}
                   </div>
-                  {getStatusBadge(call)}
-                </div>
 
-                {/* Time & Duration */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/60">
-                  <span className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {call.time}
-                  </span>
-                  {call.duration && (
-                    <span
-                      className={`badge badge-sm gap-1 px-2 py-2 font-mono ${
-                        call.status === "completed"
-                          ? "badge-success text-success-content"
-                          : "badge-outline text-base-content/70"
-                      }`}
-                    >
-                      <LucidePhone size={12} />
-                      {call.duration}
+                  {/* Time & Duration */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/60">
+                    <span className="flex items-center gap-1">
+                      <Clock size={14} />
+                      {call.time}
                     </span>
+                    {call.duration && (
+                      <span
+                        className={`badge badge-sm gap-1 px-2 py-2 font-mono ${
+                          call.status === "completed"
+                            ? "badge-success text-success-content"
+                            : "badge-outline text-base-content/70"
+                        }`}
+                      >
+                        <LucidePhone size={12} />
+                        {call.duration}
+                      </span>
+                    )}
+                  </div>
+
+                  {call.duration && (
+                    <p className="text-xs text-base-content/50 -mt-1">
+                      Talked for {call.duration}
+                    </p>
                   )}
-                </div>
 
-                {call.duration && (
-                  <p className="text-xs text-base-content/50 -mt-1">
-                    Talked for {call.duration}
-                  </p>
-                )}
+                  {getReasonLine(call) && (
+                    <p className="text-xs text-base-content/50 -mt-1">
+                      {getReasonLine(call)}
+                    </p>
+                  )}
 
-                {getReasonLine(call) && (
-                  <p className="text-xs text-base-content/50 -mt-1">
-                    {getReasonLine(call)}
-                  </p>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() =>
-                      startCall(
-                        {
-                          id: call.otherUserId,
-                          name: call.name,
-                          image: call.avatar,
-                        },
-                        "audio",
-                      )
-                    }
-                    className="btn btn-primary btn-sm flex-1 gap-1"
-                    disabled={isCallLoading || !call.otherUserId}
-                  >
-                    <Phone size={15} />
-                    Call
-                  </button>
-                  <button
-                    onClick={() =>
-                      startCall(
-                        {
-                          id: call.otherUserId,
-                          name: call.name,
-                          image: call.avatar,
-                        },
-                        "video",
-                      )
-                    }
-                    className="btn btn-secondary btn-sm flex-1 gap-1"
-                    disabled={isCallLoading || !call.otherUserId}
-                  >
-                    <Video size={15} />
-                    Video
-                  </button>
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-1">
+                    <button
+                      onClick={() =>
+                        startCall(
+                          {
+                            id: call.otherUserId,
+                            name: call.name,
+                            image: call.avatar,
+                          },
+                          "audio",
+                        )
+                      }
+                      className="btn btn-primary btn-sm flex-1 gap-1"
+                      disabled={isCallLoading || !call.otherUserId}
+                    >
+                      <Phone size={15} />
+                      Call
+                    </button>
+                    <button
+                      onClick={() =>
+                        startCall(
+                          {
+                            id: call.otherUserId,
+                            name: call.name,
+                            image: call.avatar,
+                          },
+                          "video",
+                        )
+                      }
+                      className="btn btn-secondary btn-sm flex-1 gap-1"
+                      disabled={isCallLoading || !call.otherUserId}
+                    >
+                      <Video size={15} />
+                      Video
+                    </button>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          <div className="mt-7 flex flex-col items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-2xl border border-base-300 bg-base-200 px-2 py-2 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                className="btn btn-sm rounded-xl min-w-20 btn-ghost hover:bg-base-300"
+                disabled={!pagination.hasPrevPage}
+              >
+                Prev
+              </button>
+
+              <div className="min-w-32 px-2 text-center">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-base-content/50">
+                  Page
+                </p>
+                <p className="text-sm font-semibold text-base-content">
+                  {pagination.page} / {pagination.totalPages}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(pagination.totalPages, prev + 1),
+                  )
+                }
+                className="btn btn-sm rounded-xl min-w-20 btn-primary"
+                disabled={!pagination.hasNextPage}
+              >
+                Next
+              </button>
             </div>
-          ))}
-        </div>
+
+            <p className="text-xs text-base-content/60">
+              {pagination.totalItems} total calls
+            </p>
+          </div>
+        </>
       )}
     </div>
   );
