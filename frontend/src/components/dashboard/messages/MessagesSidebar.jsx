@@ -4,20 +4,33 @@ import { useEffect } from "react";
 import PartnerLoadingSkeleton from "./PartnerLoadingSkeleton";
 import NoPartnerFound from "./NoPartnerFound";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { useQuery } from "@tanstack/react-query";
+import { axiosSecure } from "../../../lib/axios";
 
 const MessagesSidebar = () => {
   const {
     setSelectedPartner,
     selectedPartner,
-    messagePartners,
-    messagePartnersLoading,
+    // messagePartners,
+    // messagePartnersLoading,
     getMessagePartners,
   } = useMessageStore();
   const { onlineUsers } = useAuthStore();
 
   useEffect(() => {
-    getMessagePartners();
+    // getMessagePartners();
   }, [getMessagePartners]);
+
+  const {
+    data: messagePartners = [],
+    isLoading: messagePartnersLoading = true,
+  } = useQuery({
+    queryKey: ["messagePartners"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/api/messages/messagePartners");
+      return res.data;
+    },
+  });
 
   const formatChatTime = (dateString) => {
     const date = new Date(dateString);
