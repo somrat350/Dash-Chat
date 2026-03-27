@@ -138,19 +138,9 @@ export const useAuthStore = create((set, get) => ({
       set({ socket });
     });
 
-    console.log({ BASE_URL, socket });
-
-    if (socket.connected) {
-      toast.success("Socket connected.");
-    } else {
-      toast.error("Socket connection failed!");
-    }
-
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
-
-    console.log(get().onlineUsers);
 
     socket.on("incomingCall", (callPayload) => {
       set({ incomingCall: callPayload });
