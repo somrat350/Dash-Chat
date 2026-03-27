@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useMessageStore } from "../../../store/useMessageStore";
 import MessageBubble from "./MessageBubble";
@@ -36,9 +36,10 @@ const isSameMessageSender = (firstMessage, secondMessage) => {
   return String(firstMessage.senderId) === String(secondMessage.senderId);
 };
 
-const MessagesContainer = () => {
+const MessagesContainer = ({ searchQuery = "" }) => {
   const messageEndRef = useRef(null);
   const containerRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
   const [currentVisibleDate, setCurrentVisibleDate] = useState("");
   const { authUser, socket } = useAuthStore();
   const [activeEmojiId, setActiveEmojiId] = useState(null);
@@ -53,7 +54,21 @@ const MessagesContainer = () => {
     clearReplyMessage,
   } = useMessageStore();
 
-  const firstUnreadIndex = messages.findIndex((message) => {
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredMessages = useMemo(() => {
+    if (!normalizedSearchQuery) return messages;
+
+    return messages.filter((message) => {
+      const callMeta = message.callData
+        ? `${message.callData.callType || ""} ${message.callData.status || ""} call`
+        : "";
+      const searchableText =
+        `${message.text || ""} ${message.messageType || ""} ${callMeta}`.toLowerCase();
+      return searchableText.includes(normalizedSearchQuery);
+    });
+  }, [messages, normalizedSearchQuery]);
+
+  const firstUnreadIndex = filteredMessages.findIndex((message) => {
     const isIncomingMessage =
       String(message.senderId) === String(selectedPartner?._id);
     const isUnread = message.deliveryStatus !== "seen";
@@ -61,23 +76,29 @@ const MessagesContainer = () => {
   });
 
   useEffect(() => {
-    console.log(socket);
-    if (!selectedPartner || !socket) return;
-    getMessagesByUserId(selectedPartner._id);
-    subscribeToMessage(selectedPartner._id);
+    if (!socket) return;
+    subscribeToMessage();
     return () => unsubscribeFromMessage();
-  }, [
-    socket,
-    selectedPartner,
-    getMessagesByUserId,
-    subscribeToMessage,
-    unsubscribeFromMessage,
-  ]);
+  }, [socket, subscribeToMessage, unsubscribeFromMessage]);
+
   useEffect(() => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView();
-    }
+    const selectedPartnerId =
+      selectedPartner?._id ||
+      selectedPartner?.id ||
+      selectedPartner?.userId ||
+      selectedPartner?.user?._id;
+    if (!selectedPartnerId || !socket) return;
+
+    getMessagesByUserId(selectedPartnerId);
+  }, [selectedPartner, socket, getMessagesByUserId]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !shouldAutoScrollRef.current) return;
+
+    container.scrollTop = container.scrollHeight;
   }, [messages]);
+
   useEffect(() => {
     clearReplyMessage();
     return () => {
@@ -93,6 +114,10 @@ const MessagesContainer = () => {
       const children = container.querySelectorAll("[data-message-date]");
       if (children.length === 0) return;
 
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      shouldAutoScrollRef.current = distanceFromBottom < 120;
+
       let visibleDate = "";
       const scrollTop = container.scrollTop;
 
@@ -107,7 +132,9 @@ const MessagesContainer = () => {
         }
       }
 
-      setCurrentVisibleDate(visibleDate);
+      setCurrentVisibleDate((prev) =>
+        prev === visibleDate ? prev : visibleDate,
+      );
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -133,12 +160,16 @@ const MessagesContainer = () => {
           <MessagesLoadingSkeleton />
         ) : messages.length === 0 ? (
           <NoMessagesFound />
+        ) : filteredMessages.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-sm text-base-content/60">
+            No messages found for "{searchQuery.trim()}"
+          </div>
         ) : (
           <>
-            {messages.map((msg, index) => {
+            {filteredMessages.map((msg, index) => {
               const currentLabel = getMessageDateLabel(msg.createdAt);
-              const previousMessage = messages[index - 1];
-              const nextMessage = messages[index + 1];
+              const previousMessage = filteredMessages[index - 1];
+              const nextMessage = filteredMessages[index + 1];
               const previousLabel = previousMessage
                 ? getMessageDateLabel(previousMessage.createdAt)
                 : null;

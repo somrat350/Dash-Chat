@@ -18,6 +18,7 @@ export const useMessageStore = create((set, get) => ({
 
   selectedPartner: null,
   setSelectedPartner: (partner) => set({ selectedPartner: partner }),
+  setMessages: (messages) => set({ messages }),
 
   searchNewChatPartner: async (searchText) => {
     try {
@@ -73,11 +74,33 @@ export const useMessageStore = create((set, get) => ({
   sendMessage: async (messageData) => {
     try {
       const { selectedPartner } = get();
+      const receiverId =
+        selectedPartner?._id ||
+        selectedPartner?.id ||
+        selectedPartner?.userId ||
+        selectedPartner?.user?._id;
+
+      if (!receiverId) {
+        toast.error("No valid user selected");
+        return;
+      }
+
       set({ isMessageSending: true });
-      await axiosSecure.post(
-        `/api/messages/send/${selectedPartner._id}`,
+      const res = await axiosSecure.post(
+        `/api/messages/send/${receiverId}`,
         messageData,
       );
+
+      if (res?.data?._id) {
+        set((state) => {
+          const alreadyExists = state.messages.some(
+            (message) => String(message._id) === String(res.data._id),
+          );
+          if (alreadyExists) return state;
+          return { messages: [...state.messages, res.data] };
+        });
+      }
+
       get().clearReplyMessage();
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send message");
@@ -86,37 +109,61 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  subscribeToMessage: (selectedPartner) => {
-    if (!selectedPartner) return;
-
+  subscribeToMessage: () => {
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
 
     socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
-      const isChatMessage =
-        newMessage.senderId === selectedPartner ||
-        newMessage.receiverId === selectedPartner;
+      const authUserId = String(useAuthStore.getState().authUser?._id || "");
+      const currentSelectedPartner = get().selectedPartner;
+      const selectedPartnerId = String(
+        currentSelectedPartner?._id ||
+          currentSelectedPartner?.id ||
+          currentSelectedPartner?.userId ||
+          currentSelectedPartner?.user?._id ||
+          "",
+      );
+      const senderId = String(newMessage.senderId || "");
+      const receiverId = String(newMessage.receiverId || "");
 
-      if (!isChatMessage) return;
+      const isCurrentChatMessage =
+        !!selectedPartnerId &&
+        (senderId === selectedPartnerId || receiverId === selectedPartnerId);
+      const isIncomingForMe = receiverId === authUserId;
+      const isRelevantToMe =
+        senderId === authUserId || receiverId === authUserId;
 
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessage] });
+      if (isCurrentChatMessage) {
+        set((state) => {
+          const alreadyExists = state.messages.some(
+            (message) => String(message._id) === String(newMessage._id),
+          );
+          if (alreadyExists) return state;
+          return { messages: [...state.messages, newMessage] };
+        });
 
-      if (newMessage.senderId === selectedPartner) {
-        axiosSecure
-          .patch(`/api/messages/chats/${selectedPartner}/seen`)
-          .catch((error) => {
-            console.error("Failed to mark message as seen:", error);
-          });
+        if (isIncomingForMe) {
+          axiosSecure
+            .patch(`/api/messages/chats/${selectedPartnerId}/seen`)
+            .catch((error) => {
+              console.error("Failed to mark message as seen:", error);
+            });
+        }
       }
 
-      const notificationSound = new Audio("/sounds/notification.mp3");
-      notificationSound.currentTime = 0;
-      notificationSound
-        .play()
-        .catch((e) => console.log("Audio play failed:", e));
+      if (isRelevantToMe) {
+        get().getMessagePartners();
+      }
+
+      if (isIncomingForMe && !isCurrentChatMessage) {
+        const notificationSound = new Audio("/sounds/notification.mp3");
+        notificationSound.currentTime = 0;
+        notificationSound
+          .play()
+          .catch((e) => console.log("Audio play failed:", e));
+      }
     });
 
     socket.on("messageStatusUpdated", (payload) => {
@@ -124,7 +171,7 @@ export const useMessageStore = create((set, get) => ({
 
       set((state) => ({
         messages: state.messages.map((msg) =>
-          msg._id === payload.messageId
+          String(msg._id) === String(payload.messageId)
             ? {
                 ...msg,
                 deliveryStatus: payload.deliveryStatus || msg.deliveryStatus,
@@ -150,6 +197,7 @@ export const useMessageStore = create((set, get) => ({
     if (!socket) return;
     socket.off("newMessage");
     socket.off("messageStatusUpdated");
+    socket.off("reactionUpdated");
   },
 
   // edit
@@ -199,6 +247,53 @@ export const useMessageStore = create((set, get) => ({
       }));
     } catch (error) {
       console.error("Delete failed", error);
+    }
+  },
+
+  clearChatForMe: async (userEmail) => {
+    try {
+      const { messages } = get();
+      if (!messages.length) return;
+
+      await Promise.all(
+        messages.map((message) =>
+          axiosSecure.patch(`/api/messages/delete/${message._id}`, {
+            mode: "me",
+            userEmail,
+          }),
+        ),
+      );
+
+      set({ messages: [] });
+      await get().getMessagePartners();
+      toast.success("Chat cleared");
+    } catch (error) {
+      console.error("Failed to clear chat", error);
+      toast.error("Failed to clear chat");
+    }
+  },
+
+  deleteChatConversation: async (userEmail, authUserId) => {
+    try {
+      const { messages } = get();
+      if (!messages.length) return;
+
+      await Promise.all(
+        messages.map((message) => {
+          const isMine = String(message.senderId) === String(authUserId);
+          return axiosSecure.patch(`/api/messages/delete/${message._id}`, {
+            mode: isMine ? "everyone" : "me",
+            userEmail,
+          });
+        }),
+      );
+
+      set({ messages: [] });
+      await get().getMessagePartners();
+      toast.success("Chat deleted");
+    } catch (error) {
+      console.error("Failed to delete chat", error);
+      toast.error("Failed to delete chat");
     }
   },
   //  reaction part
