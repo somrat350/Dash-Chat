@@ -1,4 +1,3 @@
-// store/useAppearanceStore.js
 import { create } from "zustand";
 
 export const useAppearanceStore = create((set) => ({

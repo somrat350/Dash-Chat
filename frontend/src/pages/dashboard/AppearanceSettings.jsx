@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { FaMobileButton } from "react-icons/fa6";
 import ThemeSelector from "../../components/ThemeSelector";
 import Breadcrumb from "../../components/dashboard/Breadcrumb";
-import { useAppearanceStore } from "../../../../backend/src/controllers/useAppearanceStore";
+import { useAppearanceStore } from "../../store/useAppearanceStore";
 
 // Load Google Fonts
 const loadGoogleFonts = () => {
@@ -52,7 +52,6 @@ const AppearanceSettings = () => {
     setSettings((prev) => {
       const updated = { ...prev, [key]: value };
 
-      
       setBackground(updated);
 
       return updated;
