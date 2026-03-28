@@ -3,6 +3,30 @@ import { axiosSecure } from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
+const createMessageSound = (src, volume) => {
+  if (typeof Audio === "undefined") return null;
+  const audio = new Audio(src);
+  audio.preload = "auto";
+  audio.volume = volume;
+  return audio;
+};
+
+const incomingMessageSound = createMessageSound(
+  "/sounds/notification.mp3",
+  0.8,
+);
+const outgoingMessageSound = createMessageSound(
+  "/sounds/notification.mp3",
+  0.5,
+);
+
+const playMessageSound = (audio) => {
+  if (!audio) return;
+  audio.pause();
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+};
+
 export const useMessageStore = create((set, get) => ({
   replyMessage: null,
   messagePartners: [],
@@ -63,6 +87,11 @@ export const useMessageStore = create((set, get) => ({
     try {
       set({ isMessagesLoading: true });
       const res = await axiosSecure.get(`/api/messages/chats/${userId}`);
+
+      // Mark messages as seen when chat opens
+      axiosSecure.patch(`/api/messages/chats/${userId}/seen`).catch((error) => {
+        console.error("Failed to mark messages as seen:", error);
+      });
       set({ messages: res.data });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to load messages");
@@ -99,6 +128,8 @@ export const useMessageStore = create((set, get) => ({
           if (alreadyExists) return state;
           return { messages: [...state.messages, res.data] };
         });
+
+        playMessageSound(outgoingMessageSound);
       }
 
       get().clearReplyMessage();
@@ -157,12 +188,8 @@ export const useMessageStore = create((set, get) => ({
         get().getMessagePartners();
       }
 
-      if (isIncomingForMe && !isCurrentChatMessage) {
-        const notificationSound = new Audio("/sounds/notification.mp3");
-        notificationSound.currentTime = 0;
-        notificationSound
-          .play()
-          .catch((e) => console.log("Audio play failed:", e));
+      if (isIncomingForMe) {
+        playMessageSound(incomingMessageSound);
       }
     });
 

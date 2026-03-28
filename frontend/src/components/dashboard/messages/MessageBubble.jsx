@@ -4,10 +4,12 @@ import {
   EllipsisVertical,
   Phone,
   PhoneMissed,
+  Plus,
   Smile,
   Video,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import EmojiPicker from "emoji-picker-react";
 import { useMessageBubbleStore } from "../../../store/useMessageBubbleStore";
 import DropdownMenu from "./DropdownMenu";
 
@@ -21,10 +23,13 @@ const MessageBubble = ({
   isFirstInGroup = true,
   isGroupedWithNext = false,
 }) => {
-  const { addReaction } = useMessageBubbleStore();
+  const { addReaction, removeReaction } = useMessageBubbleStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [tickAnimating, setTickAnimating] = useState(false);
   const isMe = msg.senderId === authUser?._id;
+  const canRemoveReaction =
+    !!msg.reactionBy && String(msg.reactionBy) === String(authUser?._id);
 
   const isDeleted =
     msg.status === "hide" || msg.text === "This message was deleted";
@@ -76,10 +81,23 @@ const MessageBubble = ({
     const closeAll = () => {
       setIsOpen(null);
       setIsMenuOpen(false);
+      setIsEmojiPickerOpen(false);
     };
     document.addEventListener("click", closeAll);
     return () => document.removeEventListener("click", closeAll);
   }, [setIsOpen]);
+
+  const handleQuickReaction = (emoji) => {
+    addReaction(msg._id, emoji, authUser._id);
+    setIsEmojiPickerOpen(false);
+    setIsOpen(null);
+  };
+
+  const handleCustomReaction = (emojiData) => {
+    addReaction(msg._id, emojiData.emoji, authUser._id);
+    setIsEmojiPickerOpen(false);
+    setIsOpen(null);
+  };
   return (
     <div
       key={msg._id}
@@ -94,29 +112,73 @@ const MessageBubble = ({
         <div
           className={`absolute -bottom-4 bg-base-200 rounded-full ${isMe ? "right-0" : "left-0"}`}
         >
-          <span className="text-lg">{msg.reaction}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!msg.reaction || !canRemoveReaction) return;
+              removeReaction(msg._id);
+            }}
+            className={`text-lg px-1 ${canRemoveReaction ? "cursor-pointer" : "cursor-default"}`}
+            aria-label={canRemoveReaction ? "Remove reaction" : "Reaction"}
+            title={
+              canRemoveReaction
+                ? "Click to remove reaction"
+                : "Only the reactor can remove"
+            }
+          >
+            {msg.reaction}
+          </button>
         </div>
 
         {/* Reaction Modal */}
         {isOpen && !isDeleted && (
-          <div
-            className={`z-60 absolute top-2 flex gap-2 justify-between items-center bg-base-100 px-4 py-2 rounded-full ${isMe ? "right-2" : "left-2"}`}
-          >
-            {quickEmojis.map((e, i) => (
-              <span
-                key={i}
-                onClick={() => addReaction(msg._id, e, authUser._id)}
-                className="cursor-pointer text-2xl hover:scale-120"
+          <div className={`z-60 absolute top-2 ${isMe ? "right-2" : "left-2"}`}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex gap-2 justify-between items-center bg-base-100 px-4 py-2 rounded-full"
+            >
+              {quickEmojis.map((e, i) => (
+                <span
+                  key={i}
+                  onClick={() => handleQuickReaction(e)}
+                  className="cursor-pointer text-2xl hover:scale-120"
+                >
+                  {e}
+                </span>
+              ))}
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEmojiPickerOpen((prev) => !prev);
+                }}
+                className="btn btn-xs btn-circle border border-base-content/20 bg-base-300/80 text-base-content hover:bg-primary/20"
+                aria-label="Add more emojis"
               >
-                {e}
-              </span>
-            ))}
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {isEmojiPickerOpen && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className={`absolute mt-2 ${isMe ? "right-0" : "left-0"}`}
+              >
+                <EmojiPicker
+                  onEmojiClick={handleCustomReaction}
+                  width={280}
+                  height={360}
+                />
+              </div>
+            )}
           </div>
         )}
 
         {/* Bubble Action Buttons */}
         <div
-          className={`absolute group-hover:flex gap-2 hidden top-2 ${isMe ? "-left-10" : "-right-20"}`}
+          className={`absolute group-hover:flex gap-2 hidden top-2 ${isMe ? "-left-20" : "-right-20"}`}
         >
           <button
             onClick={(e) => {
@@ -136,13 +198,15 @@ const MessageBubble = ({
               onClose={() => setIsMenuOpen(false)}
             />
           )}
-          {!isMe && (
+          {!isDeleted && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                setIsMenuOpen(false);
                 setIsOpen(!isOpen);
               }}
               className={`btn btn-sm btn-circle`}
+              aria-label="React to message"
             >
               <Smile />
             </button>

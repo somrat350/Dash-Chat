@@ -299,9 +299,10 @@ export const addReaction = async (req, res) => {
   try {
     const msgId = req.params.id;
     const { emoji } = req.body;
+    const userId = req.user?._id;
     const message = await Message.findByIdAndUpdate(
       msgId,
-      { reaction: emoji },
+      { reaction: emoji, reactionBy: userId },
       { new: true },
     );
 
@@ -317,6 +318,48 @@ export const addReaction = async (req, res) => {
   } catch (error) {
     console.error("Reaction add error:", error);
     res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const removeReaction = async (req, res) => {
+  try {
+    const msgId = req.params.id;
+    const userId = req.user?._id;
+    const message = await Message.findById(msgId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (!message.reaction) {
+      return res.status(400).json({ message: "No reaction to remove" });
+    }
+
+    if (!message.reactionBy || String(message.reactionBy) !== String(userId)) {
+      return res
+        .status(403)
+        .json({ message: "Only the reacting user can remove this reaction" });
+    }
+
+    const updatedMessage = await Message.findByIdAndUpdate(
+      msgId,
+      { $unset: { reaction: 1, reactionBy: 1 } },
+      { new: true },
+    );
+
+    io.to(getUserRoomName(updatedMessage.receiverId)).emit(
+      "reactionUpdated",
+      updatedMessage,
+    );
+    io.to(getUserRoomName(updatedMessage.senderId)).emit(
+      "reactionUpdated",
+      updatedMessage,
+    );
+
+    return res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.error("Reaction remove error:", error);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
