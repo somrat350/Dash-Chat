@@ -6,19 +6,24 @@ const iconMap = {
   friend: <UserPlus size={14} className="text-primary" />,
   message: <MessageCircle size={14} className="text-info" />,
   accept: <CheckCircle size={14} className="text-success" />,
+  reject: <CheckCircle size={14} className="text-warning" />,
+  unfriend: <MessageCircle size={14} className="text-error" />,
 };
 
 const Notifications = () => {
   const {
     notifications = [],
+    isNotificationsLoading,
     getNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
     acceptFriendRequest,
     rejectFriendRequest,
   } = useFriendStore();
 
   useEffect(() => {
     getNotifications();
-  }, [ getNotifications]);
+  }, [getNotifications]);
 
   // Unread count
   const unreadCount = notifications.filter((n) => n.unread).length;
@@ -27,12 +32,8 @@ const Notifications = () => {
   const earlier = notifications.filter((n) => n.section === "Earlier");
 
   const markAllRead = () => {
-    useFriendStore.setState((state) => ({
-      notifications: state.notifications.map((n) => ({
-        ...n,
-        unread: false,
-      })),
-    }));
+    if (!notifications.some((n) => n.unread)) return;
+    markAllNotificationsAsRead();
   };
 
   const renderNotifications = (list) => {
@@ -47,6 +48,7 @@ const Notifications = () => {
     return list.map((n) => (
       <div
         key={n.id}
+        onClick={() => n.unread && markNotificationAsRead(n.id)}
         className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:bg-base-200 hover:translate-x-1
         ${
           n.unread
@@ -112,26 +114,34 @@ const Notifications = () => {
 
         <button
           onClick={markAllRead}
-          className="text-sm text-primary hover:underline"
+          className={`text-sm text-primary hover:underline ${
+            unreadCount === 0 ? "opacity-40 pointer-events-none" : ""
+          }`}
         >
           Mark all as read
         </button>
       </div>
 
-      <div className="bg-base-100 border border-base-300 rounded-2xl shadow-sm p-4 space-y-6">
-        <div>
-          <h3 className="text-sm font-semibold text-base-content/70 mb-3">
-            Today
-          </h3>
-          <div className="space-y-2">{renderNotifications(today)}</div>
+      {isNotificationsLoading ? (
+        <div className="bg-base-100 border border-base-300 rounded-2xl shadow-sm p-8 text-center text-base-content/70">
+          Loading notifications...
         </div>
-        <div>
-          <h3 className="text-sm font-semibold text-base-content/70 mb-3">
-            Earlier
-          </h3>
-          <div className="space-y-2">{renderNotifications(earlier)}</div>
+      ) : (
+        <div className="bg-base-100 border border-base-300 rounded-2xl shadow-sm p-4 space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-base-content/70 mb-3">
+              Today
+            </h3>
+            <div className="space-y-2">{renderNotifications(today)}</div>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-base-content/70 mb-3">
+              Earlier
+            </h3>
+            <div className="space-y-2">{renderNotifications(earlier)}</div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

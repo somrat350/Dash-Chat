@@ -8,6 +8,7 @@ import {
   getMessagesByUserId,
   markMessagesAsSeen,
   recentMessages,
+  removeReaction,
   searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
@@ -26,5 +27,6 @@ messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
 
 messageRouter.patch("/:id/addReaction", addReaction);
+messageRouter.patch("/:id/removeReaction", removeReaction);
 
 export default messageRouter;

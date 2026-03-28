@@ -15,4 +15,14 @@ export const useMessageBubbleStore = create(() => ({
       toast.error(error?.response?.data?.message || "Failed to send reaction");
     }
   },
+
+  removeReaction: async (msgId) => {
+    try {
+      await axiosInstance.patch(`/api/messages/${msgId}/removeReaction`);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to remove reaction",
+      );
+    }
+  },
 }));

@@ -10,6 +10,8 @@ import {
   getFriendRequests,
   respondFriendRequest,
   getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
 } from "../controllers/friends.controllers.js";
 
 const friendsRouter = express.Router();
@@ -25,5 +27,10 @@ friendsRouter.get("/suggestions", getFriendSuggestions);
 friendsRouter.get("/requests", getFriendRequests);
 friendsRouter.post("/respond", respondFriendRequest);
 friendsRouter.get("/notifications", getNotifications);
+friendsRouter.patch("/notifications/read-all", markAllNotificationsAsRead);
+friendsRouter.patch(
+  "/notifications/:notificationId/read",
+  markNotificationAsRead,
+);
 
 export default friendsRouter;

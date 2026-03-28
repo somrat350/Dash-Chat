@@ -16,7 +16,7 @@ const GoogleBtn = () => {
   return (
     <button
       onClick={handleGoogleLogin}
-      className="btn bg-primary/25 hover:border-primary text-primary"
+      className="btn h-11 border border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
     >
       <svg
         aria-label="Google logo"
@@ -45,7 +45,7 @@ const GoogleBtn = () => {
           ></path>
         </g>
       </svg>
-      Login with Google
+      Continue with Google
     </button>
   );
 };

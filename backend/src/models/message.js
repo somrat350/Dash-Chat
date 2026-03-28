@@ -59,6 +59,11 @@ const messageSchema = new Schema(
     reaction: {
       type: String,
     },
+    reactionBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     callData: {
       callType: {
         type: String,

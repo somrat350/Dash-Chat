@@ -8,13 +8,16 @@ import {
 } from "lucide-react";
 import Logo from "./Logo";
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import ThemeSelector from "../ThemeSelector";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useFriendStore } from "../../store/useFriendsStore";
+import { useMessageStore } from "../../store/useMessageStore";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { authUser, userLoading, logoutUser } = useAuthStore();
+  const { authUser, userLoading, logoutUser, socket } = useAuthStore();
+  const { getUserById } = useMessageStore();
   const { notifications, getNotifications } = useFriendStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,6 +35,46 @@ const Navbar = () => {
     if (!authUser?._id) return;
     getNotifications();
   }, [authUser?._id, getNotifications]);
+
+  useEffect(() => {
+    if (!authUser?._id || !socket) return;
+
+    const isDashboardPage = location.pathname.startsWith("/dashboard");
+    if (isDashboardPage) return;
+
+    const notificationSound = new Audio("/sounds/notification.mp3");
+    notificationSound.preload = "auto";
+    notificationSound.volume = 0.8;
+
+    const handleIncomingMessageAlert = async (newMessage) => {
+      const isIncomingForMe =
+        String(newMessage?.receiverId || "") === String(authUser._id);
+      const isFromMe =
+        String(newMessage?.senderId || "") === String(authUser._id);
+
+      if (!isIncomingForMe || isFromMe) return;
+
+      notificationSound.pause();
+      notificationSound.currentTime = 0;
+      notificationSound.play().catch(() => {});
+
+      let senderName = "Someone";
+      try {
+        const sender = await getUserById(newMessage?.senderId);
+        if (sender?.name) senderName = sender.name;
+      } catch (_) {
+        // Keep fallback sender name when API fails
+      }
+
+      toast(`${senderName} sent a message`);
+    };
+
+    socket.on("newMessage", handleIncomingMessageAlert);
+
+    return () => {
+      socket.off("newMessage", handleIncomingMessageAlert);
+    };
+  }, [authUser?._id, getUserById, location.pathname, socket]);
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => notification.unread).length,
@@ -288,7 +331,7 @@ const Navbar = () => {
             </Link>
             <Link
               to="/auth/login"
-              className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white text-base-content transition text-[16px] md:text-[18px] bg-base-100"
+              className="btn btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 text-white text-[16px] md:text-[18px] transition hover:shadow-lg"
             >
               <MessageCircle size={22} />
               Start Chat
