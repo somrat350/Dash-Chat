@@ -86,7 +86,7 @@ export const useAuthStore = create((set, get) => ({
   loginWithGithub: async () => {},
   logoutUser: async () => {
     try {
-      Swal.fire({
+      const result = await Swal.fire({
         title: "Are you sure?",
         text: "You won't be able to access your chats after logging out!",
         icon: "warning",
@@ -94,17 +94,19 @@ export const useAuthStore = create((set, get) => ({
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Yes, logout!",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          await axiosInstance.post("/api/auth/logout");
-          set({ authUser: null });
-          get().disconnectSocket();
-          toast.success("Logged out successful!");
-        }
       });
+
+      if (!result.isConfirmed) return false;
+
+      await axiosInstance.post("/api/auth/logout");
+      set({ authUser: null });
+      get().disconnectSocket();
+      toast.success("Logged out successful!");
+      return true;
     } catch (error) {
       toast.error("Logout failed");
       console.error("Logout failed:", error);
+      return false;
     }
   },
   updateProfile: async (data) => {
@@ -139,8 +141,6 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
-
-    console.log(get().onlineUsers);
 
     socket.on("incomingCall", (callPayload) => {
       set({ incomingCall: callPayload });

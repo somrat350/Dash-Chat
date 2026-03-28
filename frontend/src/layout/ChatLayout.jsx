@@ -5,6 +5,7 @@ import PageTitleManager from "../components/PageTitleManager";
 
 const ChatLayout = () => {
   const { authUser, userLoading } = useAuthStore();
+
   if (userLoading) return;
   const baseClass =
     "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 focus:outline-none focus:ring-0 focus:ring-offset-0";
