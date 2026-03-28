@@ -4,7 +4,7 @@ import { useMessageStore } from "../../../store/useMessageStore";
 import MessageBubble from "./MessageBubble";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 import NoMessagesFound from "./NoMessagesFound";
-import { useAppearanceStore } from "../../../../../backend/src/controllers/useAppearanceStore";
+import { useAppearanceStore } from "../../../store/useAppearanceStore";
 
 const isSameCalendarDay = (firstDate, secondDate) => {
   return (
@@ -47,14 +47,14 @@ const MessagesContainer = ({ searchQuery = "" }) => {
   const [activeEmojiId, setActiveEmojiId] = useState(null);
 
   const bgStyle = chatBgImage
-  ? {
-      backgroundImage: `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${overlayOpacity})), url(${chatBgImage})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }
-  : chatBgColor
-  ? { backgroundColor: chatBgColor }
-  : {};
+    ? {
+        backgroundImage: `linear-gradient(rgba(0,0,0,${overlayOpacity}), rgba(0,0,0,${overlayOpacity})), url(${chatBgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : chatBgColor
+      ? { backgroundColor: chatBgColor }
+      : {};
 
   const {
     messages,
@@ -156,7 +156,8 @@ const MessagesContainer = ({ searchQuery = "" }) => {
   }, [messages]);
 
   return (
-    <div style={bgStyle}
+    <div
+      style={bgStyle}
       ref={containerRef}
       className="overflow-y-auto scroll-thin h-full flex-1 py-5 relative"
     >
@@ -167,8 +168,10 @@ const MessagesContainer = ({ searchQuery = "" }) => {
           </span>
         </div>
       )}
-      <div className=" style={bgStyle}
-      w-full p-4 flex flex-col">
+      <div
+        className=" style={bgStyle}
+      w-full p-4 flex flex-col"
+      >
         {isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : messages.length === 0 ? (
@@ -206,13 +209,13 @@ const MessagesContainer = ({ searchQuery = "" }) => {
                   : "mt-3";
 
               return (
-                <div 
+                <div
                   key={msg._id}
                   className={messageSpacingClass}
                   data-message-date={currentLabel}
                 >
                   {shouldShowDateLabel && (
-                    <div  className="flex justify-center my-2">
+                    <div className="flex justify-center my-2">
                       <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-base-200/60 text-base-content/60">
                         {currentLabel}
                       </span>
