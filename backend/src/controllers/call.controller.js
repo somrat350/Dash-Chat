@@ -55,6 +55,22 @@ const parseOptionalDate = (value, fieldName) => {
 export const getCalls = async (req, res) => {
   try {
     const userId = req.user._id;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      50,
+      Math.max(1, Number.parseInt(req.query.limit, 10) || 12),
+    );
+    const tab = String(req.query.tab || "all").toLowerCase();
+    const search = String(req.query.search || "")
+      .trim()
+      .toLowerCase();
+    const sort = String(req.query.sort || "newest").toLowerCase();
+    const hasPaginationQuery =
+      typeof req.query.page !== "undefined" ||
+      typeof req.query.limit !== "undefined" ||
+      typeof req.query.tab !== "undefined" ||
+      typeof req.query.search !== "undefined" ||
+      typeof req.query.sort !== "undefined";
 
     const calls = await Call.find({
       $or: [{ caller: userId }, { receiver: userId }],
@@ -63,7 +79,106 @@ export const getCalls = async (req, res) => {
       .populate("receiver", "name email photoURL")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(calls);
+    if (!hasPaginationQuery) {
+      return res.status(200).json(calls);
+    }
+
+    const normalizedCalls = calls
+      .map((call) => {
+        const caller = call?.caller;
+        const receiver = call?.receiver;
+
+        if (!caller && !receiver) return null;
+
+        const isIncoming =
+          receiver?._id?.toString() === req.user._id?.toString();
+        const otherUser =
+          (isIncoming ? caller : receiver) || caller || receiver || null;
+
+        if (!otherUser) return null;
+
+        const isMissedForViewer =
+          call.status === "missed" &&
+          receiver?._id?.toString() === req.user._id?.toString();
+
+        const callType =
+          call.status === "scheduled"
+            ? "scheduled"
+            : isMissedForViewer
+              ? "missed"
+              : isIncoming
+                ? "incoming"
+                : "outgoing";
+
+        return {
+          call,
+          callType,
+          isIncoming,
+          isMissedForViewer,
+          otherUserName: String(otherUser?.name || "").toLowerCase(),
+          createdAtMs: new Date(call.scheduledAt || call.createdAt).getTime(),
+          durationSeconds: Number(call.duration) || 0,
+        };
+      })
+      .filter(Boolean);
+
+    const stats = normalizedCalls.reduce(
+      (acc, entry) => {
+        acc.total += 1;
+        if (entry.callType === "incoming") acc.incoming += 1;
+        if (entry.isMissedForViewer) acc.missed += 1;
+        if (entry.callType === "scheduled") acc.scheduled += 1;
+        return acc;
+      },
+      { total: 0, incoming: 0, missed: 0, scheduled: 0 },
+    );
+
+    let filteredCalls = normalizedCalls.filter((entry) => {
+      const matchesTab =
+        tab === "all" ||
+        (tab === "missed" && entry.isMissedForViewer) ||
+        (tab === "scheduled" && entry.callType === "scheduled") ||
+        (tab !== "missed" && tab !== "scheduled" && entry.callType === tab);
+
+      const matchesSearch =
+        !search || entry.otherUserName.includes(search.toLowerCase());
+
+      return matchesTab && matchesSearch;
+    });
+
+    if (sort === "oldest") {
+      filteredCalls.sort((a, b) => a.createdAtMs - b.createdAtMs);
+    } else if (sort === "longest") {
+      filteredCalls.sort((a, b) => {
+        if (b.durationSeconds !== a.durationSeconds) {
+          return b.durationSeconds - a.durationSeconds;
+        }
+        return b.createdAtMs - a.createdAtMs;
+      });
+    } else {
+      filteredCalls.sort((a, b) => b.createdAtMs - a.createdAtMs);
+    }
+
+    const totalItems = filteredCalls.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+    const safePage = Math.min(page, totalPages);
+    const skip = (safePage - 1) * limit;
+    const pagedCalls = filteredCalls
+      .slice(skip, skip + limit)
+      .map((entry) => entry.call);
+
+    res.status(200).json({
+      data: pagedCalls,
+      pagination: {
+        page: safePage,
+        limit,
+        totalItems,
+        totalPages,
+        hasPrevPage: safePage > 1,
+        hasNextPage: safePage < totalPages,
+      },
+      stats,
+    });
   } catch (error) {
     console.error("Error fetching calls:", error);
     res.status(500).json({ message: "Internal server error" });

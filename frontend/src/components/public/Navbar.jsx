@@ -65,7 +65,11 @@ const Navbar = () => {
 
   return (
     <div
-      className={`navbar bg-base-200 shadow-sm px-4 md:px-10 transition-all duration-500 ${scrolled ? "backdrop-blur-md shadow-md" : "bg-base-200"}`}
+      className={`navbar sticky top-0 z-50 px-4 md:px-10 transition-all duration-500 ${
+        scrolled
+          ? "bg-base-100/55 backdrop-blur-xl backdrop-saturate-150 border-b border-base-300/60 shadow-md"
+          : "bg-base-200 shadow-sm"
+      }`}
     >
       {/* Mobile View */}
       <div className="navbar-start">
