@@ -46,7 +46,7 @@ const formatNotification = (n) => {
   const createdAtDate = new Date(createdAt);
 
   return {
-    id: n._id,
+    id: n._id,                                    
     type: mapNotificationType(n.type),
     name: n?.sender?.name || "Unknown",
     avatar: n?.sender?.photoURL || "",

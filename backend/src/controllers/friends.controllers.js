@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 import Notification from "../models/Notification.js";
+import { io, getUserRoomName } from "../lib/socket.js";
 
 export async function getMyFriends(req, res) {
   try {
@@ -63,12 +64,18 @@ export const sendRequest = async (req, res) => {
       receiver: receiverId,
     });
 
-    await Notification.create({
-      sender: senderId,
-      receiver: receiverId,
-      type: "friend_request",
-      message: "sent you a friend request",
-    });
+   const notification = await Notification.create({
+  sender: senderId,
+  receiver: receiverId,
+  type: "friend_request",
+  message: "sent you a friend request",
+});
+
+// 🔥 populate sender info
+const fullNotification = await notification.populate("sender", "name photoURL");
+
+// 🔥 REAL-TIME SEND
+io.to(getUserRoomName(receiverId)).emit("newNotification", fullNotification);
 
     res.status(200).json(friendRequest);
   } catch (error) {
@@ -88,6 +95,7 @@ export const updateRequest = async (req, res) => {
         User.findByIdAndUpdate(friendId, {
           $pull: { friends: userId },
         }),
+         
       ]);
       await Notification.create({
         sender: userId,
@@ -281,12 +289,17 @@ export const respondFriendRequest = async (req, res) => {
     notification.isRead = true;
     await notification.save();
 
-    await Notification.create({
-      sender: request.receiver,
-      receiver: request.sender,
-      type: "accepted",
-      message: "accepted your friend request",
-    });
+   const newNotification = await Notification.create({
+  sender: request.receiver,
+  receiver: request.sender,
+  type: "accepted",
+  message: "accepted your friend request",
+});
+
+const fullNotif = await newNotification.populate("sender", "name photoURL");
+
+//  real time notification
+io.to(getUserRoomName(request.sender)).emit("newNotification", fullNotif);
     return res.json({ message: "Friend request accepted" });
   }
 
@@ -302,6 +315,7 @@ export const respondFriendRequest = async (req, res) => {
     return res.json({ message: "Friend request rejected" });
   }
 };
+
 
 // notification
 export const getNotifications = async (req, res) => {

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { io } from "socket.io-client";
 import { SOCKET_BASE_URL } from "../lib/axios";
+import { useFriendStore } from "./useFriendsStore";
 
 const BASE_URL = SOCKET_BASE_URL;
 
@@ -141,6 +142,35 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+     
+    socket.on("getOnlineUsers", (userIds) => {
+  set({ onlineUsers: userIds });
+});
+
+//  notifiction 
+socket.off("newNotification"); 
+
+socket.on("newNotification", (data) => {
+  const { notifications } = useFriendStore.getState();
+
+  const formatted = {
+    id: data._id,
+    type: data.type === "friend_request" ? "friend" : data.type,
+    name: data.sender.name,
+    avatar: data.sender.photoURL,
+    message: data.message,
+    unread: true,
+    showActions: data.type === "friend_request",
+  };
+
+  useFriendStore.setState({
+    notifications: [formatted, ...notifications],
+  });
+
+ 
+});
+
+
 
     socket.on("incomingCall", (callPayload) => {
       set({ incomingCall: callPayload });
