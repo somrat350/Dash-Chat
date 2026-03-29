@@ -81,14 +81,15 @@ const Notifications = () => {
         {n.type === "friend" && (
           <div className="flex gap-2">
             <button
-              onClick={() => acceptFriendRequest(n.id)}
+             onClick={() => acceptFriendRequest(n.id)}
               className="btn btn-xs btn-primary"
             >
               Accept
             </button>
 
-            <button
-              onClick={() => rejectFriendRequest(n.id)}
+            <button 
+         onClick={() => rejectFriendRequest(n.id)}
+              
               className="btn btn-xs btn-ghost"
             >
               Reject
