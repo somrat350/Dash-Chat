@@ -84,7 +84,32 @@ export const useAuthStore = create((set, get) => ({
       set({ userLoading: false });
     }
   },
-  loginWithGithub: async () => {},
+  
+    loginWithGithub: async (code) => {
+  set({ userLoading: true });
+
+  try {
+    const res = await axiosInstance.get(
+      `/api/auth/loginWithGithub?code=${code}`
+    );
+
+    set({ authUser: res.data });
+
+    toast.success("GitHub login successful!");
+    get().connectSocket();
+
+    return true; 
+  } catch (error) {
+    console.error("GitHub login error:", error);
+    if (!get().authUser) {
+      toast.error("GitHub login failed");
+    }
+
+    return false;
+  } finally {
+    set({ userLoading: false });
+  }
+},
   logoutUser: async () => {
     try {
       const result = await Swal.fire({
