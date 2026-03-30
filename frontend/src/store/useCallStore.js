@@ -13,6 +13,15 @@ export const useCallStore = create((set) => ({
   clearCallIntent: () => set({ callIntent: null }),
 
   initiateCall: async (receiverId, type = "audio", extra = {}) => {
+    if (!receiverId) {
+      toast.error("No receiver selected for this call");
+      return null;
+    }
+
+    if (useCallStore.getState().isCallLoading) {
+      return null;
+    }
+
     try {
       set({ isCallLoading: true });
       const res = await axiosSecure.post("/api/calls", {
@@ -24,6 +33,9 @@ export const useCallStore = create((set) => ({
       });
       toast.success(
         `${type === "video" ? "Video" : "Audio"} call placed to ${res.data.receiver?.name || "user"}`,
+        {
+          id: `call-init-${type}-${receiverId}`,
+        },
       );
       return res.data;
     } catch (error) {

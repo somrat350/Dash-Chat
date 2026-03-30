@@ -10,6 +10,7 @@ import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
+import FeatureDetails from "../pages/public/FeatureDetails";
 import DashboardLayout from "../layout/DashboardLayout";
 import DashHome from "../pages/dashboard/DashHome";
 import Friends from "../pages/dashboard/Friends";
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/features",
         Component: Features,
+      },
+      {
+        path: "/features/:featureSlug",
+        Component: FeatureDetails,
       },
     ],
   },
@@ -112,39 +117,36 @@ const router = createBrowserRouter([
         Component: Settings,
       },
       {
-        path:"settings",
-        element:<SettingsLayout />,
-        children:[
+        path: "settings",
+        element: <SettingsLayout />,
+        children: [
           {
-            index:true,
-            element:<SettingsDefault />
+            index: true,
+            element: <SettingsDefault />,
           },
           {
-            path:"profile",
-            element:<ProfileSettings />
+            path: "profile",
+            element: <ProfileSettings />,
           },
           {
-            path:"appearance",
-            element:<AppearanceSettings />
+            path: "appearance",
+            element: <AppearanceSettings />,
           },
           {
-            path:"notifications",
-            element:<NotificationSettings />
+            path: "notifications",
+            element: <NotificationSettings />,
           },
           {
-            path:"privacy",
-            element:<PrivacySettings />
+            path: "privacy",
+            element: <PrivacySettings />,
           },
           {
-            path:"danger",
-            element:<DangerZone />
-          }
-
-      
-        ]
-
-      }
-    ]
+            path: "danger",
+            element: <DangerZone />,
+          },
+        ],
+      },
+    ],
   },
 ]);
 export default router;
