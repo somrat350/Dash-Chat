@@ -5,17 +5,23 @@ import {
   LogOut,
   MessageCircle,
   User,
+  ChevronDown,
 } from "lucide-react";
 import Logo from "./Logo";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useLayoutEffect } from "react";
+import gsap from "gsap";
 import toast from "react-hot-toast";
 import ThemeSelector from "../ThemeSelector";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useFriendStore } from "../../store/useFriendsStore";
 import { useMessageStore } from "../../store/useMessageStore";
+import { CHAT_FEATURES } from "../../constants/chatFeaturesData";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const featuresMenuRef = useRef(null);
+  const featuresButtonRef = useRef(null);
   const { authUser, userLoading, logoutUser, socket } = useAuthStore();
   const { getUserById } = useMessageStore();
   const { notifications, getNotifications } = useFriendStore();
@@ -30,6 +36,46 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useLayoutEffect(() => {
+    if (!featuresMenuRef.current) return;
+
+    const ctx = gsap.context(() => {
+      if (featuresOpen) {
+        const tl = gsap.timeline();
+        tl.fromTo(
+          featuresMenuRef.current,
+          { opacity: 0, scale: 0.95, y: -10 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out" },
+        ).fromTo(
+          "[data-feature-item]",
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.3, stagger: 0.08 },
+          "-=0.2",
+        );
+      }
+    }, featuresMenuRef);
+
+    return () => ctx.revert();
+  }, [featuresOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        featuresMenuRef.current &&
+        !featuresMenuRef.current.contains(e.target) &&
+        !featuresButtonRef.current?.contains(e.target)
+      ) {
+        setFeaturesOpen(false);
+      }
+    };
+
+    if (featuresOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [featuresOpen]);
 
   useEffect(() => {
     if (!authUser?._id) return;
@@ -83,9 +129,8 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Features", path: "/features" },
-    { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
+    { name: "About", path: "/about" },
     { name: "Privacy", path: "/privacy" },
   ];
 
@@ -137,7 +182,29 @@ const Navbar = () => {
             tabIndex={0}
             className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-200 rounded-box w-52"
           >
-            {navLinks.map((link) => (
+            <li>
+              <NavLink
+                to="/"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Home
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/features"
+                onClick={closeMobileMenu}
+                className="text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+              >
+                Features
+              </NavLink>
+            </li>
+            {navLinks.slice(1).map((link) => (
               <li key={link.name}>
                 <NavLink
                   to={link.path}
@@ -218,7 +285,93 @@ const Navbar = () => {
       {/* Desktop View - Center */}
       <div className="navbar-center hidden lg:flex lg:pr-14 xl:pr-12">
         <ul className="menu menu-horizontal px-1 gap-2">
-          {navLinks.map((link) => (
+          <li>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Home
+            </NavLink>
+          </li>
+
+          {/* Features Dropdown */}
+          <li className="relative">
+            <button
+              ref={featuresButtonRef}
+              onClick={() => setFeaturesOpen(!featuresOpen)}
+              className={`rounded-full px-4 py-2 text-[16px] font-medium transition flex items-center gap-1 ${
+                featuresOpen
+                  ? "bg-primary text-white"
+                  : "bg-base-200 hover:bg-base-300 hover:text-primary"
+              }`}
+            >
+              Features
+              <ChevronDown
+                size={18}
+                className={`transition-transform duration-300 ${
+                  featuresOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Features Menu */}
+            {featuresOpen && (
+              <div
+                ref={featuresMenuRef}
+                className="absolute top-full left-0 mt-2 w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-300/80 p-4 z-50"
+              >
+                <div className="grid grid-cols-1 gap-3">
+                  {CHAT_FEATURES.map((feature) => (
+                    <Link
+                      key={feature.slug}
+                      to={`/features/${feature.slug}`}
+                      data-feature-item
+                      onClick={() => setFeaturesOpen(false)}
+                      className="group p-3 rounded-xl hover:bg-base-200 transition-all duration-300 flex items-start gap-3"
+                    >
+                      <div
+                        className={`h-10 w-10 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center flex-shrink-0 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 overflow-hidden`}
+                      >
+                        <img
+                          src={feature.img}
+                          alt={feature.name}
+                          className="h-6 w-6 object-contain"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-base-content text-sm group-hover:text-primary transition-colors">
+                          {feature.name}
+                        </h4>
+                        <p className="text-base-content/70 text-xs line-clamp-2">
+                          {feature.description}
+                        </p>
+                      </div>
+                      <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        →
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-base-300">
+                  <Link
+                    to="/features"
+                    onClick={() => setFeaturesOpen(false)}
+                    className="text-center text-sm font-medium text-primary hover:text-primary/80 transition py-1 block"
+                  >
+                    View all features →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </li>
+
+          {navLinks.slice(1).map((link) => (
             <li key={link.name}>
               <NavLink
                 to={link.path}
