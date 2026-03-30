@@ -19,13 +19,16 @@ import { CHAT_FEATURES } from "../../constants/chatFeaturesData";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
+  // Open features dropdown if on /features or subroute on initial load
+  const location = useLocation();
+  const isFeaturesRoute = location.pathname.startsWith("/features");
+  const [featuresOpen, setFeaturesOpen] = useState(isFeaturesRoute);
   const featuresMenuRef = useRef(null);
   const featuresButtonRef = useRef(null);
   const { authUser, userLoading, logoutUser, socket } = useAuthStore();
   const { getUserById } = useMessageStore();
   const { notifications, getNotifications } = useFriendStore();
-  const location = useLocation();
+  // location already declared above
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +80,15 @@ const Navbar = () => {
     }
   }, [featuresOpen]);
 
+  // Auto-close features dropdown on navigation away from /features
+  useEffect(() => {
+    if (!location.pathname.startsWith("/features")) {
+      setFeaturesOpen(false);
+    } else {
+      setFeaturesOpen(true);
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     if (!authUser?._id) return;
     getNotifications();
@@ -127,14 +139,16 @@ const Navbar = () => {
     [notifications],
   );
 
+  // Order: Home, About, Contact, Privacy, Features (Features handled separately)
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Contact", path: "/contact" },
     { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" },
     { name: "Privacy", path: "/privacy" },
   ];
 
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
+  // isFeaturesRoute already declared above
 
   const closeMobileMenu = () => {
     const activeElement = document.activeElement;
@@ -182,6 +196,7 @@ const Navbar = () => {
             tabIndex={0}
             className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-200 rounded-box w-52"
           >
+            {/* Home */}
             <li>
               <NavLink
                 to="/"
@@ -195,30 +210,62 @@ const Navbar = () => {
                 Home
               </NavLink>
             </li>
+            {/* About */}
+            <li>
+              <NavLink
+                to="/about"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                About
+              </NavLink>
+            </li>
+            {/* Contact */}
+            <li>
+              <NavLink
+                to="/contact"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Contact
+              </NavLink>
+            </li>
+            {/* Privacy */}
+            <li>
+              <NavLink
+                to="/privacy"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Privacy
+              </NavLink>
+            </li>
+            {/* Features (last) */}
             <li>
               <NavLink
                 to="/features"
                 onClick={closeMobileMenu}
-                className="text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
               >
                 Features
               </NavLink>
             </li>
-            {navLinks.slice(1).map((link) => (
-              <li key={link.name}>
-                <NavLink
-                  to={link.path}
-                  onClick={closeMobileMenu}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "bg-primary text-white"
-                      : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              </li>
-            ))}
 
             {authUser ? (
               <>
@@ -285,6 +332,7 @@ const Navbar = () => {
       {/* Desktop View - Center */}
       <div className="navbar-center hidden lg:flex lg:pr-14 xl:pr-12">
         <ul className="menu menu-horizontal px-1 gap-2">
+          {/* Home */}
           <li>
             <NavLink
               to="/"
@@ -299,17 +347,63 @@ const Navbar = () => {
               Home
             </NavLink>
           </li>
-
-          {/* Features Dropdown */}
+          {/* About */}
+          <li>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              About
+            </NavLink>
+          </li>
+          {/* Contact */}
+          <li>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Contact
+            </NavLink>
+          </li>
+          {/* Privacy */}
+          <li>
+            <NavLink
+              to="/privacy"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Privacy
+            </NavLink>
+          </li>
+          {/* Features Dropdown (last) */}
           <li className="relative">
             <button
               ref={featuresButtonRef}
-              onClick={() => setFeaturesOpen(!featuresOpen)}
+              onClick={() => setFeaturesOpen((open) => !open)}
               className={`rounded-full px-4 py-2 text-[16px] font-medium transition flex items-center gap-1 ${
                 featuresOpen
                   ? "bg-primary text-white"
                   : "bg-base-200 hover:bg-base-300 hover:text-primary"
               }`}
+              aria-expanded={featuresOpen}
+              aria-haspopup="menu"
             >
               Features
               <ChevronDown
@@ -336,7 +430,7 @@ const Navbar = () => {
                       className="group p-3 rounded-xl hover:bg-base-200 transition-all duration-300 flex items-start gap-3"
                     >
                       <div
-                        className={`h-10 w-10 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center flex-shrink-0 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 overflow-hidden`}
+                        className={`h-10 w-10 rounded-lg bg-linear-to-br ${feature.color} flex items-center justify-center shrink-0 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 overflow-hidden`}
                       >
                         <img
                           src={feature.img}
@@ -370,23 +464,6 @@ const Navbar = () => {
               </div>
             )}
           </li>
-
-          {navLinks.slice(1).map((link) => (
-            <li key={link.name}>
-              <NavLink
-                to={link.path}
-                className={({ isActive }) =>
-                  `rounded-full px-4 py-2 text-[16px] font-medium transition ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : "bg-base-200 hover:bg-base-300 hover:text-primary"
-                  }`
-                }
-              >
-                {link.name}
-              </NavLink>
-            </li>
-          ))}
         </ul>
       </div>
 
@@ -420,7 +497,7 @@ const Navbar = () => {
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-error text-white text-[10px] flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-error text-white text-[10px] flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
