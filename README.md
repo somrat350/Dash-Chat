@@ -9,20 +9,20 @@ It supports direct messaging, friend system workflows, notification feeds, and S
 
 ## 2. Live Link and Demo 
 
-- Live App: ------------------
-- Demo Video: -------------------
+- Live App: [Click Here](URL)
+- Demo Video: [Click Here](URL)
 
 ## 3. Screenshots
 
 ### Home Hero
 
-![DashChat Hero Screenshot 1](./src/assets/hero-screenshot-1.PNG)
+![DashChat Hero Screenshot 1](frontend/src/assets/hero-screenshot-1.PNG)
 
 ### Visual Assets
 
-- Hero Variant: ![Hero Variant](./src/assets/hero2.png)
-- Chat Screenshot: ![Chat Screenshot](./src/assets/chat-screenshot-2.PNG)
-- Call Screenshot: ![Call Screenshot](./src/assets/call-screenshot.PNG)
+- Hero Variant: ![Hero Variant](frontend/src/assets/hero2.png)
+- Chat Screenshot: ![Chat Screenshot](frontend/src/assets/chat-screenshot-2.PNG)
+- Call Screenshot: ![Call Screenshot](frontend/src/assets/call-screenshot.PNG)
 
 ## 4. Features
 
@@ -101,7 +101,7 @@ npm install --prefix frontend
 Create backend .env inside backend:
 
 ```env
-PORT=5000
+PORT= your_port_here
 DB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 
@@ -173,11 +173,11 @@ Dash-Chat/
 
 ## 8. Author
 
-- Osamabin Somrat | LinkedIn:
-- Arman Hossain Shuvo | LinkedIn: https://linkedin.com/in/mdarman-islam/
-- Sabbir Hossain Sohag | LinkedIn: https://www.linkedin.com/in/sabbirhossainsohag
-- Tangila Khatun | LinkedIn:
-- Lima Akter | LinkedIn:
-- China Akter | LinkedIn:
+- Osamabin Somrat | [LinkedIn](URL)
+- Arman Hossain Shuvo | [LinkedIn](https://linkedin.com/in/mdarman-islam)
+- Sabbir Hossain Sohag | [LinkedIn](https://www.linkedin.com/in/sabbirhossainsohag)
+- Tangila Khatun | [LinkedIn](URL)
+- Lima Akter | [LinkedIn](URL)
+- China Akter | [LinkedIn](URL)
 
 ---
