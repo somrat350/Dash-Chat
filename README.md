@@ -174,7 +174,7 @@ Dash-Chat/
 ## 8. Author
 
 - Osamabin Somrat | LinkedIn:
-- Arman Hossain Shuvo | LinkedIn:
+- Arman Hossain Shuvo | LinkedIn: https://linkedin.com/in/mdarman-islam/
 - Sabbir Hossain Sohag | LinkedIn: https://www.linkedin.com/in/sabbirhossainsohag
 - Tangila Khatun | LinkedIn:
 - Lima Akter | LinkedIn:
