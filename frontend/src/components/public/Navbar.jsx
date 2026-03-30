@@ -396,7 +396,14 @@ const Navbar = () => {
           <li className="relative">
             <button
               ref={featuresButtonRef}
-              onClick={() => setFeaturesOpen((open) => !open)}
+              onClick={() => {
+                // Always navigate to /features if not already there
+                if (!location.pathname.startsWith("/features")) {
+                  navigate("/features");
+                } else {
+                  setFeaturesOpen((open) => !open);
+                }
+              }}
               className={`rounded-full px-4 py-2 text-[16px] font-medium transition flex items-center gap-1 ${
                 featuresOpen
                   ? "bg-primary text-white"
