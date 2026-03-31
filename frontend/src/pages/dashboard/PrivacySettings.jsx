@@ -1,11 +1,12 @@
 import { Eye, Ban, Lock, Settings, HatGlasses } from "lucide-react";
-import { useAuthStore } from "../../store/useAuthStore";
+
 import Breadcrumb from "../../components/dashboard/Breadcrumb";
 import Swal from "sweetalert2";
+import { usePrivacyStore } from "../../store/usePrivacyStore";
 
 const PrivacySettings = () => {
   const { blockedUsers, unblockUser, lastSeen, setLastSeen } =
-    useAuthStore();
+  usePrivacyStore();
 
   const handleUnblock = async (userId, userName) => {
     const result = await Swal.fire({

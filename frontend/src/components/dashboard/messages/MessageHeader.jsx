@@ -23,6 +23,7 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import { useCallStore } from "../../../store/useCallStore";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
+import { usePrivacyStore } from "../../../store/usePrivacyStore";
 
 const formatLastSeen = (lastSeenValue, currentTimeMs) => {
   if (!lastSeenValue) return "Offline";
@@ -78,7 +79,8 @@ const MessageHeader = ({
   const [presenceTick, setPresenceTick] = useState(0);
   const [isProfileInfoOpen, setIsProfileInfoOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
-  const { blockUser ,blockedUsers} = useAuthStore();
+  const { blockUser, unblockUser, blockedUsers } =
+  usePrivacyStore();
   const isPartnerBlocked = useMemo(() => {
   if (!selectedPartner) return false;
   return blockedUsers.some((user) => user._id === selectedPartner._id);
