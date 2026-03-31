@@ -11,14 +11,14 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import ThemeSelector from "../ThemeSelector";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useFriendStore } from "../../store/useFriendsStore";
 import { useMessageStore } from "../../store/useMessageStore";
+import { useNotificationStore } from "../../store/useNotificationStore";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { authUser, userLoading, logoutUser, socket } = useAuthStore();
   const { getUserById } = useMessageStore();
-  const { notifications, getNotifications } = useFriendStore();
+  const { notifications, getNotifications } = useNotificationStore();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -62,7 +62,8 @@ const Navbar = () => {
       try {
         const sender = await getUserById(newMessage?.senderId);
         if (sender?.name) senderName = sender.name;
-      } catch (_) {
+      } catch (error) {
+        console.log(error);
         // Keep fallback sender name when API fails
       }
 

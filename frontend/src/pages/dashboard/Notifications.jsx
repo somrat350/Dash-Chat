@@ -1,42 +1,65 @@
-import { useEffect } from "react";
-import { BellIcon, UserPlus, MessageCircle, CheckCircle } from "lucide-react";
-import { useFriendStore } from "../../store/useFriendsStore";
-
-const iconMap = {
-  friend: <UserPlus size={14} className="text-primary" />,
-  message: <MessageCircle size={14} className="text-info" />,
-  accept: <CheckCircle size={14} className="text-success" />,
-  reject: <CheckCircle size={14} className="text-warning" />,
-  unfriend: <MessageCircle size={14} className="text-error" />,
-};
+import { BellIcon } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import NotificationsCard from "../../components/dashboard/notifications/NotificationsCard";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNotificationStore } from "../../store/useNotificationStore";
 
 const Notifications = () => {
-  const {
-    notifications = [],
-    isNotificationsLoading,
-    getNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    acceptFriendRequest,
-    rejectFriendRequest,
-  } = useFriendStore();
+  const { getNotifications, markAllNotificationsAsRead } =
+    useNotificationStore();
+  const { socket } = useAuthStore();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => await getNotifications(),
+  });
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    getNotifications();
-  }, [getNotifications]);
+    socket.on("newNotification", (newNotification) => {
+      queryClient.setQueryData(["notifications"], (oldData) => {
+        if (!oldData) return [newNotification];
+        return [newNotification, ...oldData];
+      });
+      setUnreadCount((prev) => prev + 1);
+    });
 
-  // Unread count
-  const unreadCount = notifications.filter((n) => n.unread).length;
+    return () => socket.off("newNotification");
+  }, [socket, queryClient]);
 
-  const today = notifications.filter((n) => n.section === "Today");
-  const earlier = notifications.filter((n) => n.section === "Earlier");
+  useEffect(() => {
+    if (!notifications) return;
+    const count = notifications.filter((n) => !n.isRead).length;
+    setUnreadCount(count);
+  }, [notifications]);
 
-  const markAllRead = () => {
-    if (!notifications.some((n) => n.unread)) return;
-    markAllNotificationsAsRead();
+  const isToday = (dateInput) => {
+    if (!dateInput) return;
+    const date = new Date(dateInput);
+    const now = new Date();
+    return (
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
   };
 
-  const renderNotifications = (list) => {
+  const today = notifications.filter((n) => isToday(n?.createdAt));
+  const earlier = notifications.filter((n) => !isToday(n?.createdAt));
+
+  const markAllRead = async () => {
+    if (!notifications.some((n) => !n.isRead)) return;
+    await markAllNotificationsAsRead();
+    queryClient.setQueryData(["notifications"], (oldData = []) =>
+      oldData.map((n) => ({ ...n, isRead: true })),
+    );
+    setUnreadCount(0);
+  };
+
+  const renderNotifications = (list = []) => {
     if (!list.length) {
       return (
         <div className="text-center p-4 py-10 text-sm text-base-content/60">
@@ -46,57 +69,11 @@ const Notifications = () => {
     }
 
     return list.map((n) => (
-      <div
-        key={n.id}
-        onClick={() => n.unread && markNotificationAsRead(n.id)}
-        className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:bg-base-200 hover:translate-x-1
-        ${
-          n.unread
-            ? "border-l-4 border-primary bg-base-200/40"
-            : "border-base-200"
-        }`}
-      >
-        <div className="relative">
-          <img
-            src={n.avatar}
-            alt={n.name}
-            className="w-12 h-12 rounded-full object-cover shadow"
-          />
-          <div className="absolute -bottom-1 -right-1 bg-base-100 border border-base-300 rounded-full p-1">
-            {iconMap[n.type]}
-          </div>
-          {n.unread && (
-            <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full border border-base-100"></span>
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="text-sm">
-            <span className="font-semibold">{n.name}</span> {n.message}
-          </p>
-
-          <p className="text-xs text-base-content/60 mt-1">{n.time}</p>
-        </div>
-
-        {/* friend request actions */}
-        {n.type === "friend" && (
-          <div className="flex gap-2">
-            <button
-             onClick={() => acceptFriendRequest(n.id)}
-              className="btn btn-xs btn-primary"
-            >
-              Accept
-            </button>
-
-            <button 
-         onClick={() => rejectFriendRequest(n.id)}
-              
-              className="btn btn-xs btn-ghost"
-            >
-              Reject
-            </button>
-          </div>
-        )}
-      </div>
+      <NotificationsCard
+        key={n._id}
+        notification={n}
+        setUnreadCount={setUnreadCount}
+      />
     ));
   };
 
@@ -116,19 +93,21 @@ const Notifications = () => {
         <button
           onClick={markAllRead}
           className={`text-sm text-primary hover:underline ${
-            unreadCount === 0 ? "opacity-40 pointer-events-none" : ""
+            unreadCount === 0
+              ? "opacity-40 pointer-events-none"
+              : "cursor-pointer"
           }`}
         >
           Mark all as read
         </button>
       </div>
 
-      {isNotificationsLoading ? (
+      {isLoading ? (
         <div className="bg-base-100 border border-base-300 rounded-2xl shadow-sm p-8 text-center text-base-content/70">
           Loading notifications...
         </div>
       ) : (
-        <div className="bg-base-100 border border-base-300 rounded-2xl shadow-sm p-4 space-y-6">
+        <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-4 space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-base-content/70 mb-3">
               Today
