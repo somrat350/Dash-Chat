@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useMessageStore } from "../../../store/useMessageStore";
 import MessageBubble from "./MessageBubble";
@@ -42,7 +43,11 @@ const MessagesContainer = ({ searchQuery = "" }) => {
   const messageEndRef = useRef(null);
   const containerRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
+  const dateNodesRef = useRef([]);
+  const scrollRafRef = useRef(null);
+  const lastAnimatedMessageIdRef = useRef(null);
   const [currentVisibleDate, setCurrentVisibleDate] = useState("");
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const { authUser, socket } = useAuthStore();
   const [activeEmojiId, setActiveEmojiId] = useState(null);
 
@@ -112,6 +117,28 @@ const MessagesContainer = ({ searchQuery = "" }) => {
   }, [messages]);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    dateNodesRef.current = Array.from(
+      container.querySelectorAll("[data-message-date]"),
+    );
+  }, [filteredMessages]);
+
+  const scrollToLatestMessage = () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
+
+    shouldAutoScrollRef.current = true;
+    setShowScrollToBottom(false);
+  };
+
+  useEffect(() => {
     clearReplyMessage();
     return () => {
       clearReplyMessage();
@@ -122,13 +149,13 @@ const MessagesContainer = ({ searchQuery = "" }) => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
-      const children = container.querySelectorAll("[data-message-date]");
-      if (children.length === 0) return;
-
+    const updateScrollDerivedState = () => {
       const distanceFromBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight;
       shouldAutoScrollRef.current = distanceFromBottom < 120;
+
+      const children = dateNodesRef.current;
+      if (children.length === 0) return;
 
       let visibleDate = "";
       const scrollTop = container.scrollTop;
@@ -149,104 +176,198 @@ const MessagesContainer = ({ searchQuery = "" }) => {
       );
     };
 
-    container.addEventListener("scroll", handleScroll);
-    handleScroll();
+    const handleScroll = () => {
+      if (scrollRafRef.current !== null) return;
 
-    return () => container.removeEventListener("scroll", handleScroll);
+      scrollRafRef.current = window.requestAnimationFrame(() => {
+        updateScrollDerivedState();
+        scrollRafRef.current = null;
+      });
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    updateScrollDerivedState();
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, [messages, filteredMessages]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const endMarker = messageEndRef.current;
+
+    if (!container || !endMarker || messages.length === 0) {
+      setShowScrollToBottom(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show button when latest message marker is out of view.
+        setShowScrollToBottom(!entry.isIntersecting);
+      },
+      {
+        root: container,
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(endMarker);
+
+    return () => {
+      observer.disconnect();
+    };
   }, [messages]);
 
+  useEffect(() => {
+    const latestMessage = filteredMessages[filteredMessages.length - 1];
+    if (!latestMessage?._id) return;
+
+    // Skip animating the very first render to keep initial load snappy.
+    if (!lastAnimatedMessageIdRef.current) {
+      lastAnimatedMessageIdRef.current = latestMessage._id;
+      return;
+    }
+
+    if (
+      String(lastAnimatedMessageIdRef.current) === String(latestMessage._id)
+    ) {
+      return;
+    }
+
+    const container = containerRef.current;
+    const latestNode = container?.querySelector(
+      `[data-message-id="${latestMessage._id}"]`,
+    );
+
+    if (latestNode?.animate) {
+      latestNode.animate(
+        [
+          { opacity: 0, transform: "translateY(10px)" },
+          { opacity: 1, transform: "translateY(0px)" },
+        ],
+        {
+          duration: 180,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          fill: "both",
+        },
+      );
+    }
+
+    lastAnimatedMessageIdRef.current = latestMessage._id;
+  }, [filteredMessages]);
+
   return (
-    <div
-      style={bgStyle}
-      ref={containerRef}
-      className="overflow-y-auto scroll-thin h-full flex-1 py-5 relative"
-    >
-      {currentVisibleDate && (
-        <div className="sticky top-2 z-30 flex justify-center pointer-events-none">
-          <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-base-200/80 text-base-content/70 backdrop-blur-sm shadow-sm">
-            {currentVisibleDate}
-          </span>
-        </div>
-      )}
+    <div className="relative flex-1 min-h-0">
       <div
-        className=" style={bgStyle}
-      w-full p-4 flex flex-col"
+        style={bgStyle}
+        ref={containerRef}
+        className="overflow-y-auto scroll-thin h-full py-5"
       >
-        {isMessagesLoading ? (
-          <MessagesLoadingSkeleton />
-        ) : messages.length === 0 ? (
-          <NoMessagesFound />
-        ) : filteredMessages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-sm text-base-content/60">
-            No messages found for "{searchQuery.trim()}"
+        {currentVisibleDate && (
+          <div className="sticky top-2 z-30 flex justify-center pointer-events-none">
+            <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-base-200/80 text-base-content/70 backdrop-blur-sm shadow-sm">
+              {currentVisibleDate}
+            </span>
           </div>
-        ) : (
-          <>
-            {filteredMessages.map((msg, index) => {
-              const currentLabel = getMessageDateLabel(msg.createdAt);
-              const previousMessage = filteredMessages[index - 1];
-              const nextMessage = filteredMessages[index + 1];
-              const previousLabel = previousMessage
-                ? getMessageDateLabel(previousMessage.createdAt)
-                : null;
-              const shouldShowDateLabel =
-                currentLabel && currentLabel !== previousLabel;
-              const shouldShowUnreadDivider = index === firstUnreadIndex;
-
-              const isGroupedWithPrevious =
-                isSameMessageSender(msg, previousMessage) &&
-                currentLabel === previousLabel;
-              const isGroupedWithNext =
-                isSameMessageSender(msg, nextMessage) &&
-                currentLabel === getMessageDateLabel(nextMessage?.createdAt);
-              const isMe = String(msg.senderId) === String(authUser?._id);
-              const messageSpacingClass = isMe
-                ? isGroupedWithPrevious
-                  ? "mt-0.5"
-                  : "mt-2"
-                : isGroupedWithPrevious
-                  ? "mt-1"
-                  : "mt-3";
-
-              return (
-                <div
-                  key={msg._id}
-                  className={messageSpacingClass}
-                  data-message-date={currentLabel}
-                >
-                  {shouldShowDateLabel && (
-                    <div className="flex justify-center my-2">
-                      <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-base-200/60 text-base-content/60">
-                        {currentLabel}
-                      </span>
-                    </div>
-                  )}
-                  {shouldShowUnreadDivider && (
-                    <div className="sticky top-2 z-20 my-3 py-1 flex items-center gap-2">
-                      <div className="h-px flex-1 bg-base-300" />
-                      <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-1 rounded-full bg-base-200/95 backdrop-blur-sm text-primary shadow-sm">
-                        Unread messages
-                      </span>
-                      <div className="h-px flex-1 bg-base-300" />
-                    </div>
-                  )}
-                  <MessageBubble
-                    msg={msg}
-                    authUser={authUser}
-                    isFirstInGroup={!isGroupedWithPrevious}
-                    isGroupedWithNext={isGroupedWithNext}
-                    isOpen={activeEmojiId === msg._id}
-                    setIsOpen={(isOpen) =>
-                      setActiveEmojiId(isOpen ? msg._id : null)
-                    }
-                  />
-                </div>
-              );
-            })}
-            <div ref={messageEndRef} />
-          </>
         )}
+        <div className="w-full p-4 flex flex-col">
+          {isMessagesLoading ? (
+            <MessagesLoadingSkeleton />
+          ) : messages.length === 0 ? (
+            <NoMessagesFound />
+          ) : filteredMessages.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center text-sm text-base-content/60">
+              No messages found for "{searchQuery.trim()}"
+            </div>
+          ) : (
+            <>
+              {filteredMessages.map((msg, index) => {
+                const currentLabel = getMessageDateLabel(msg.createdAt);
+                const previousMessage = filteredMessages[index - 1];
+                const nextMessage = filteredMessages[index + 1];
+                const previousLabel = previousMessage
+                  ? getMessageDateLabel(previousMessage.createdAt)
+                  : null;
+                const shouldShowDateLabel =
+                  currentLabel && currentLabel !== previousLabel;
+                const shouldShowUnreadDivider = index === firstUnreadIndex;
+
+                const isGroupedWithPrevious =
+                  isSameMessageSender(msg, previousMessage) &&
+                  currentLabel === previousLabel;
+                const isGroupedWithNext =
+                  isSameMessageSender(msg, nextMessage) &&
+                  currentLabel === getMessageDateLabel(nextMessage?.createdAt);
+                const isMe = String(msg.senderId) === String(authUser?._id);
+                const messageSpacingClass = isMe
+                  ? isGroupedWithPrevious
+                    ? "mt-0.5"
+                    : "mt-2"
+                  : isGroupedWithPrevious
+                    ? "mt-1"
+                    : "mt-3";
+
+                return (
+                  <div
+                    key={msg._id}
+                    className={messageSpacingClass}
+                    data-message-date={currentLabel}
+                    data-message-id={msg._id}
+                  >
+                    {shouldShowDateLabel && (
+                      <div className="flex justify-center my-2">
+                        <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-base-200/60 text-base-content/60">
+                          {currentLabel}
+                        </span>
+                      </div>
+                    )}
+                    {shouldShowUnreadDivider && (
+                      <div className="sticky top-2 z-20 my-3 py-1 flex items-center gap-2">
+                        <div className="h-px flex-1 bg-base-300" />
+                        <span className="text-[11px] uppercase tracking-wider font-semibold px-2 py-1 rounded-full bg-base-200/95 backdrop-blur-sm text-primary shadow-sm">
+                          Unread messages
+                        </span>
+                        <div className="h-px flex-1 bg-base-300" />
+                      </div>
+                    )}
+                    <MessageBubble
+                      msg={msg}
+                      authUser={authUser}
+                      isFirstInGroup={!isGroupedWithPrevious}
+                      isGroupedWithNext={isGroupedWithNext}
+                      isOpen={activeEmojiId === msg._id}
+                      setIsOpen={(isOpen) =>
+                        setActiveEmojiId(isOpen ? msg._id : null)
+                      }
+                    />
+                  </div>
+                );
+              })}
+              <div ref={messageEndRef} />
+            </>
+          )}
+        </div>
       </div>
+
+      <button
+        type="button"
+        onClick={scrollToLatestMessage}
+        className={`absolute bottom-4 right-4 z-[90] btn btn-circle bg-primary text-primary-content border-2 border-base-100 shadow-2xl transition-all duration-200 ${
+          showScrollToBottom
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 translate-y-2 scale-90 pointer-events-none"
+        }`}
+        aria-label="Scroll to latest message"
+        title="Go to latest message"
+      >
+        <ChevronDown className="size-5" />
+      </button>
     </div>
   );
 };
