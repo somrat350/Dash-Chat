@@ -1,10 +1,13 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
-import gsap from "gsap";
+import React from "react";
 import { Quote, Star } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCoverflow, Pagination, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import "swiper/css/pagination";
 
 const Testimonials = () => {
-  const sectionRef = useRef(null);
-
   const testimonials = [
     {
       id: 1,
@@ -36,155 +39,91 @@ const Testimonials = () => {
     },
   ];
 
-  const marqueeItems = useMemo(
-    () => [...testimonials, ...testimonials],
-    [testimonials],
-  );
-
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-      tl.fromTo(
-        "[data-testimonial-header]",
-        { opacity: 0, y: 26 },
-        { opacity: 1, y: 0, duration: 0.65 },
-      ).fromTo(
-        "[data-testimonial-rail]",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.55 },
-        "-=0.32",
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section
-      ref={sectionRef}
-      className="relative overflow-hidden rounded-3xl bg-base-100 py-20 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-12 bottom-0 h-56 w-56 rounded-full bg-info/15 blur-3xl" />
+    <section className="relative overflow-hidden rounded-3xl bg-base-100 py-14 md:py-20 px-4 sm:px-6 lg:px-8">
+      {/* Background Blur */}
+      <div className="absolute -left-10 top-10 h-40 w-40 md:h-56 md:w-56 bg-primary/15 blur-3xl rounded-full" />
+      <div className="absolute -right-10 bottom-0 h-40 w-40 md:h-56 md:w-56 bg-info/15 blur-3xl rounded-full" />
 
-      <div className="relative mx-auto max-w-6xl">
-        <div
-          data-testimonial-header
-          className="mx-auto max-w-3xl text-center opacity-0"
-        >
-          <span className="inline-flex items-center rounded-full border border-primary/30 bg-base-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-            Customer voices
-          </span>
-          <h2 className="mt-4 text-3xl md:text-5xl font-black text-primary">
-            Loved by Teams and Individuals
-          </h2>
-          <p className="mt-3 text-sm md:text-base text-base-content/70 leading-relaxed">
-            Real users choose DashChat for speed, reliability, and smooth
-            communication experiences.
-          </p>
+      {/* Header */}
+      <div className="relative mx-auto max-w-3xl text-center">
+        <span className="inline-flex items-center rounded-full border border-primary/30 bg-base-200 px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase text-primary">
+          Customer voices
+        </span>
 
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-base-200 px-4 py-2 text-sm font-semibold text-base-content/80">
-            <Star size={16} className="text-amber-500" />
-            4.9/5 average satisfaction from active users
-          </div>
+        <h2 className="mt-4 text-2xl sm:text-3xl md:text-5xl font-black text-primary">
+          Loved by Teams & Individuals
+        </h2>
+
+        <p className="mt-3 text-xs sm:text-sm md:text-base text-base-content/70">
+          Real users choose DashChat for speed and smooth communication.
+        </p>
+
+        <div className="mt-5 inline-flex items-center gap-2 bg-base-200 px-3 py-1.5 rounded-full text-xs sm:text-sm">
+          <Star size={14} className="text-amber-500" />
+          4.9/5 user satisfaction
         </div>
+      </div>
 
-        <div
-          data-testimonial-rail
-          className="testimonial-rail-wrapper opacity-0 mt-10"
+      {/* Swiper */}
+      <div className="mt-10">
+        <Swiper
+          modules={[EffectCoverflow, Pagination, Autoplay]}
+          effect="coverflow"
+          grabCursor={true}
+          centeredSlides={true}
+          loop={true} // ✅ infinite loop
+          autoplay={{
+            delay: 2500,
+            disableOnInteraction: false,
+          }}
+          slidesPerView={1}
+          spaceBetween={16}
+          breakpoints={{
+            480: { slidesPerView: 1.1 },
+            640: { slidesPerView: 1.2 },
+            768: { slidesPerView: 2 },
+            1024: { slidesPerView: 2.5 },
+            1280: { slidesPerView: 3 },
+          }}
+          coverflowEffect={{
+            rotate: 25,
+            stretch: 0,
+            depth: 120,
+            modifier: 1,
+            slideShadows: false,
+          }}
+          pagination={{ clickable: true }}
         >
-          <div className="testimonial-fade-left" />
-          <div className="testimonial-fade-right" />
-
-          <div className="testimonial-marquee track-pause flex gap-5">
-            {marqueeItems.map((item, index) => (
-              <article
-                key={`${item.id}-${index}`}
-                className="group relative w-[292px] shrink-0 rounded-2xl border border-base-300/70 bg-base-200/75 p-5 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
+          {testimonials.map((item) => (
+            <SwiperSlide key={item.id}>
+              <article className="group w-full max-w-sm mx-auto rounded-2xl border bg-base-200/90 p-6 md:p-8 shadow-lg hover:shadow-2xl transition">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex items-center gap-4">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="h-12 w-12 rounded-full object-cover ring-2 ring-base-100"
+                      className="h-14 w-14 md:h-16 md:w-16 rounded-full object-cover"
                     />
                     <div>
-                      <h3 className="text-sm font-bold text-base-content">
+                      <h3 className="text-base md:text-lg font-bold">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-base-content/60">
+                      <p className="text-sm md:text-base text-gray-500">
                         {item.role}
                       </p>
                     </div>
                   </div>
-                  <Quote size={18} className="text-primary/70" />
+                  <Quote size={22} className="text-primary" />
                 </div>
-
-                <p className="mt-4 text-sm leading-relaxed text-base-content/75">
+                <p className="mt-5 text-sm md:text-base text-gray-700">
                   "{item.text}"
                 </p>
               </article>
-            ))}
-          </div>
-        </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
-
-      <style>{`
-        .testimonial-rail-wrapper {
-          position: relative;
-          overflow: hidden;
-          border-radius: 1rem;
-        }
-
-        .testimonial-fade-left,
-        .testimonial-fade-right {
-          pointer-events: none;
-          position: absolute;
-          top: 0;
-          z-index: 5;
-          height: 100%;
-          width: 70px;
-        }
-
-        .testimonial-fade-left {
-          left: 0;
-          background: linear-gradient(to right, hsl(var(--b1)) 25%, transparent);
-        }
-
-        .testimonial-fade-right {
-          right: 0;
-          background: linear-gradient(to left, hsl(var(--b1)) 25%, transparent);
-        }
-
-        .testimonial-marquee {
-          width: max-content;
-          animation: testimonial-marquee 18s linear infinite;
-          will-change: transform;
-        }
-
-        .track-pause:hover {
-          animation-play-state: paused;
-        }
-
-        @keyframes testimonial-marquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .testimonial-marquee {
-            animation-duration: 14s;
-          }
-        }
-      `}</style>
     </section>
   );
 };
