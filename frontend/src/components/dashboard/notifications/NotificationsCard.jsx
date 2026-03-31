@@ -1,6 +1,5 @@
 import { UserPlus, MessageCircle, CheckCircle } from "lucide-react";
 import { useFriendStore } from "../../../store/useFriendsStore";
-import { useAuthStore } from "../../../store/useAuthStore";
 import { useNotificationStore } from "../../../store/useNotificationStore";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -12,10 +11,9 @@ const iconMap = {
   unfriend: <MessageCircle size={14} className="text-error" />,
 };
 
-const NotificationsCard = ({ notification, setUnreadCount }) => {
+const NotificationsCard = ({ notification }) => {
   const { friendRequestAction } = useFriendStore();
   const { markNotificationAsRead } = useNotificationStore();
-  const { authUser } = useAuthStore();
   const queryClient = useQueryClient();
   const n = notification;
 
@@ -40,12 +38,6 @@ const NotificationsCard = ({ notification, setUnreadCount }) => {
     });
   };
 
-  const showFriendActions = () => {
-    if (n.type !== "friend_request" || authUser.friends.includes(n.sender._id))
-      return false;
-    return true;
-  };
-
   const markRead = async () => {
     if (n.isRead) return;
     await markNotificationAsRead(n._id);
@@ -54,15 +46,13 @@ const NotificationsCard = ({ notification, setUnreadCount }) => {
         item._id === n._id ? { ...item, isRead: true } : item,
       ),
     );
-    setUnreadCount((c) => c - 1);
   };
 
   const handleFriendAction = async (action) => {
+    const data = await friendRequestAction(n._id, action);
     queryClient.setQueryData(["notifications"], (old = []) =>
-      old.filter((item) => item._id !== n._id),
+      old.map((item) => (item._id === n._id ? data : item)),
     );
-    friendRequestAction(n._id, action);
-    setUnreadCount((c) => c - 1);
   };
 
   return (
@@ -99,7 +89,7 @@ const NotificationsCard = ({ notification, setUnreadCount }) => {
 
       {/* friend request actions */}
       <div className="flex gap-2">
-        {showFriendActions() && (
+        {n.type === "friend_request" && (
           <>
             <button
               onClick={() => handleFriendAction("accepted")}
