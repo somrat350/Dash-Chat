@@ -27,6 +27,20 @@ const userSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+     blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+  
+    blockedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,

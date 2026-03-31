@@ -302,13 +302,13 @@ const AppearanceSettings = () => {
         </div>
 
         {/* Example Chat Input */}
-        <div>
+        {/* <div>
           <textarea
             placeholder="Type message here..."
             className="textarea textarea-bordered w-full"
             onKeyUp={handleKeyPress}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );
