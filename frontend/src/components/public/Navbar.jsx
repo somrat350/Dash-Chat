@@ -13,8 +13,8 @@ import gsap from "gsap";
 import toast from "react-hot-toast";
 import ThemeSelector from "../ThemeSelector";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useFriendStore } from "../../store/useFriendsStore";
 import { useMessageStore } from "../../store/useMessageStore";
+import { useNotificationStore } from "../../store/useNotificationStore";
 import { CHAT_FEATURES } from "../../constants/chatFeaturesData";
 
 const Navbar = () => {
@@ -27,9 +27,9 @@ const Navbar = () => {
   const featuresButtonRef = useRef(null);
   const { authUser, userLoading, logoutUser, socket } = useAuthStore();
   const { getUserById } = useMessageStore();
-  const { notifications, getNotifications } = useFriendStore();
-  // location already declared above
+  const { getNotifications } = useNotificationStore();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,7 +91,16 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!authUser?._id) return;
-    getNotifications();
+    const fetchNotifications = async () => {
+      try {
+        const res = await getNotifications();
+        setUnreadCount(res.data.length);
+      } catch (error) {
+        console.error("Failed to fetch notifications", error);
+      }
+    };
+
+    fetchNotifications();
   }, [authUser?._id, getNotifications]);
 
   useEffect(() => {
@@ -120,7 +129,8 @@ const Navbar = () => {
       try {
         const sender = await getUserById(newMessage?.senderId);
         if (sender?.name) senderName = sender.name;
-      } catch (_) {
+      } catch (error) {
+        console.log(error);
         // Keep fallback sender name when API fails
       }
 
@@ -133,11 +143,6 @@ const Navbar = () => {
       socket.off("newMessage", handleIncomingMessageAlert);
     };
   }, [authUser?._id, getUserById, location.pathname, socket]);
-
-  const unreadCount = useMemo(
-    () => notifications.filter((notification) => notification.unread).length,
-    [notifications],
-  );
 
   // Order: Home, About, Contact, Privacy, Features (Features handled separately)
   const navLinks = [
@@ -514,7 +519,7 @@ const Navbar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle tooltip tooltip-bottom"
+                className="btn btn-ghost btn-circle tooltip tooltip-left"
                 data-tip={authUser?.name || "My account"}
               >
                 <div className="avatar">

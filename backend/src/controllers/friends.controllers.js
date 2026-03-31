@@ -44,38 +44,29 @@ export const sendRequest = async (req, res) => {
         .json({ message: "You are already friends with this user" });
     }
 
-    // check if a req already exists
-    const existingRequest = await FriendRequest.findOne({
-      $or: [
-        { sender: senderId, receiver: receiverId },
-        { sender: receiverId, receiver: senderId },
-      ],
-      status: "pending",
-    });
-
-    if (existingRequest) {
-      return res.status(400).json({
-        message: "A friend request already exists between you and this user",
-      });
-    }
-
     const friendRequest = await FriendRequest.create({
       sender: senderId,
       receiver: receiverId,
     });
 
-   const notification = await Notification.create({
-  sender: senderId,
-  receiver: receiverId,
-  type: "friend_request",
-  message: "sent you a friend request",
-});
+    const notification = await Notification.create({
+      sender: senderId,
+      receiver: receiverId,
+      type: "friend_request",
+      message: "sent you a friend request",
+    });
 
-// 🔥 populate sender info
-const fullNotification = await notification.populate("sender", "name photoURL");
+    // 🔥 populate sender info
+    const fullNotification = await notification.populate(
+      "sender",
+      "name photoURL",
+    );
 
-// 🔥 REAL-TIME SEND
-io.to(getUserRoomName(receiverId)).emit("newNotification", fullNotification);
+    // 🔥 REAL-TIME SEND
+    io.to(getUserRoomName(receiverId)).emit(
+      "newNotification",
+      fullNotification,
+    );
 
     res.status(200).json(friendRequest);
   } catch (error) {
@@ -95,7 +86,6 @@ export const updateRequest = async (req, res) => {
         User.findByIdAndUpdate(friendId, {
           $pull: { friends: userId },
         }),
-         
       ]);
       await Notification.create({
         sender: userId,
@@ -251,71 +241,86 @@ export const getFriendRequests = async (req, res) => {
   }
 };
 
-//  friendrequest response
+//  friend request response
 export const respondFriendRequest = async (req, res) => {
-  const { requestId, action } = req.body;
+  try {
+    const { requestId, action } = req.body;
 
-  const notification = await Notification.findById(requestId);
+    if (!["accepted", "rejected"].includes(action)) {
+      return res.status(400).json({ message: "Invalid action" });
+    }
 
-  if (!notification) {
-    return res.status(404).json({ message: "Notification not found" });
-  }
+    // Find notification
+    const notification = await Notification.findById(requestId);
+    if (!notification)
+      return res.status(404).json({ message: "Notification not found" });
 
-  const request = await FriendRequest.findOne({
-    $or: [
-      { sender: notification.sender, receiver: notification.receiver },
-      { sender: notification.receiver, receiver: notification.sender },
-    ],
-  });
-
-  if (!request) {
-    return res.status(404).json({ message: "Request not found" });
-  }
-
-  if (action === "accept") {
-    request.status = "accepted";
-    await request.save();
-
-    await Promise.all([
-      User.findByIdAndUpdate(request.sender, {
-        $addToSet: { friends: request.receiver },
-      }),
-
-      User.findByIdAndUpdate(request.receiver, {
-        $addToSet: { friends: request.sender },
-      }),
-    ]);
-
-    notification.isRead = true;
-    await notification.save();
-
-   const newNotification = await Notification.create({
-  sender: request.receiver,
-  receiver: request.sender,
-  type: "accepted",
-  message: "accepted your friend request",
-});
-
-const fullNotif = await newNotification.populate("sender", "name photoURL");
-
-//  real time notification
-io.to(getUserRoomName(request.sender)).emit("newNotification", fullNotif);
-    return res.json({ message: "Friend request accepted" });
-  }
-
-  if (action === "reject") {
-    request.status = "rejected";
-    await request.save();
-    await Notification.create({
-      sender: request.receiver,
-      receiver: request.sender,
-      type: "rejected",
-      message: "rejected your friend request",
+    // Find friend request
+    const request = await FriendRequest.findOne({
+      sender: notification.sender,
+      receiver: notification.receiver,
     });
-    return res.json({ message: "Friend request rejected" });
+
+    if (!request)
+      return res.status(404).json({ message: "Friend request not found" });
+
+    if (request.status !== "pending")
+      return res.status(400).json({ message: "Already responded" });
+
+    const senderId = request.sender;
+    const receiverId = request.receiver;
+
+    // If ACCEPT → add friends
+    if (action === "accepted") {
+      await Promise.all([
+        User.findByIdAndUpdate(senderId, {
+          $addToSet: { friends: receiverId },
+        }),
+        User.findByIdAndUpdate(receiverId, {
+          $addToSet: { friends: senderId },
+        }),
+      ]);
+    }
+
+    // Update OLD notification (receiver side)
+    notification.isRead = true;
+    notification.type = action;
+    notification.message =
+      action === "accepted" ? "is now your friend." : "request rejected.";
+
+    const updatedNotification = await notification
+      .save()
+      .then((n) => n.populate("sender", "name photoURL"));
+
+    // Create NEW notification for sender
+    const newNotification = await Notification.create({
+      sender: receiverId,
+      receiver: senderId,
+      type: action,
+      message: `${action} your friend request`,
+    });
+
+    const populatedNewNotification = await newNotification.populate(
+      "sender",
+      "name photoURL",
+    );
+
+    // Delete friend request
+    await FriendRequest.deleteOne({ _id: request._id });
+
+    // Real-time emit to sender
+    io.to(getUserRoomName(senderId)).emit(
+      "newNotification",
+      populatedNewNotification,
+    );
+
+    // Send updated notification back to receiver UI
+    return res.status(200).json(updatedNotification);
+  } catch (error) {
+    console.error("Respond Friend Request Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // notification
 export const getNotifications = async (req, res) => {
