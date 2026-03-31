@@ -206,8 +206,13 @@ export const sendMessage = async (req, res) => {
     const { userId: receiverId } = req.params;
 
     const isCallMessage = messageType === "call";
+    // Handle audio file
+    let audioPath = null;
+    if (req.file) {
+      audioPath = `/uploads/audio/${req.file.filename}`;
+    }
 
-    if (!text && !image && !isCallMessage) {
+    if (!text && !image && !audioPath && !isCallMessage) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
@@ -216,7 +221,8 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: text || null,
       image: image || null,
-      messageType: isCallMessage ? "call" : "text",
+      audio: audioPath,
+      messageType: isCallMessage ? "call" : audioPath ? "audio" : "text",
       callData: isCallMessage ? callData || {} : undefined,
       replyTo: replyTo || null,
       forwarded: forwarded || false,

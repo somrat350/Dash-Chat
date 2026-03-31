@@ -1,13 +1,10 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Quote, Star } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectCoverflow, Pagination, Autoplay } from "swiper/modules";
-
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
+import gsap from "gsap";
 
 const Testimonials = () => {
+  const containerRef = useRef(null);
+
   const testimonials = [
     {
       id: 1,
@@ -39,90 +36,79 @@ const Testimonials = () => {
     },
   ];
 
+  useEffect(() => {
+    const cards = containerRef.current.querySelectorAll(".testimonial-card");
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 50, scale: 0.95 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power3.out",
+      }
+    );
+  }, []);
+
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-base-100 py-14 md:py-20 px-4 sm:px-6 lg:px-8">
-      {/* Background Blur */}
-      <div className="absolute -left-10 top-10 h-40 w-40 md:h-56 md:w-56 bg-primary/15 blur-3xl rounded-full" />
-      <div className="absolute -right-10 bottom-0 h-40 w-40 md:h-56 md:w-56 bg-info/15 blur-3xl rounded-full" />
-
+    <section className="relative bg-base-100 py-14 md:py-20 px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="relative mx-auto max-w-3xl text-center">
-        <span className="inline-flex items-center rounded-full border border-primary/30 bg-base-200 px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase text-primary">
-          Customer voices
-        </span>
-
-        <h2 className="mt-4 text-2xl sm:text-3xl md:text-5xl font-black text-primary">
+      <div className="text-center max-w-3xl mx-auto mb-12">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-primary">
           Loved by Teams & Individuals
         </h2>
 
-        <p className="mt-3 text-xs sm:text-sm md:text-base text-base-content/70">
+        <p className="mt-3 text-sm md:text-base text-base-content/70">
           Real users choose DashChat for speed and smooth communication.
         </p>
 
-        <div className="mt-5 inline-flex items-center gap-2 bg-base-200 px-3 py-1.5 rounded-full text-xs sm:text-sm">
+        <div className="mt-5 inline-flex items-center gap-2 bg-base-200 px-3 py-1.5 rounded-full text-sm">
           <Star size={14} className="text-amber-500" />
           4.9/5 user satisfaction
         </div>
       </div>
 
-      {/* Swiper */}
-      <div className="mt-10">
-        <Swiper
-          modules={[EffectCoverflow, Pagination, Autoplay]}
-          effect="coverflow"
-          grabCursor={true}
-          centeredSlides={true}
-          loop={true} // ✅ infinite loop
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
-          slidesPerView={1}
-          spaceBetween={16}
-          breakpoints={{
-            480: { slidesPerView: 1.1 },
-            640: { slidesPerView: 1.2 },
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 2.5 },
-            1280: { slidesPerView: 3 },
-          }}
-          coverflowEffect={{
-            rotate: 25,
-            stretch: 0,
-            depth: 120,
-            modifier: 1,
-            slideShadows: false,
-          }}
-          pagination={{ clickable: true }}
-        >
-          {testimonials.map((item) => (
-            <SwiperSlide key={item.id}>
-              <article className="group w-full max-w-sm mx-auto rounded-2xl border bg-base-200/90 p-6 md:p-8 shadow-lg hover:shadow-2xl transition">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="h-14 w-14 md:h-16 md:w-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="text-base md:text-lg font-bold">
-                        {item.name}
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-500">
-                        {item.role}
-                      </p>
-                    </div>
-                  </div>
-                  <Quote size={22} className="text-primary" />
+      {/* Cards */}
+      <div
+        ref={containerRef}
+        className="
+          grid 
+          grid-cols-1 
+          sm:grid-cols-2 
+          lg:grid-cols-3 
+          gap-6
+          max-w-7xl 
+          mx-auto
+        "
+      >
+        {testimonials.map((item) => (
+          <article
+            key={item.id}
+            className="testimonial-card rounded-2xl border bg-base-200 p-6 shadow-lg hover:shadow-2xl transition"
+          >
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-14 w-14 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="font-bold">{item.name}</h3>
+                  <p className="text-sm text-gray-500">{item.role}</p>
                 </div>
-                <p className="mt-5 text-sm md:text-base text-gray-700">
-                  "{item.text}"
-                </p>
-              </article>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+              </div>
+              <Quote className="text-primary" size={20} />
+            </div>
+
+            <p className="mt-5 text-sm text-gray-700">
+              "{item.text}"
+            </p>
+          </article>
+        ))}
       </div>
     </section>
   );
