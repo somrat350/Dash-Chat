@@ -10,14 +10,17 @@ const notificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    type: String, 
+    type: {
+      type: String,
+      enum: ["friend_request", "message", "accepted", "rejected", "unfriend"],
+    },
     message: String,
     isRead: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Notification", notificationSchema);
