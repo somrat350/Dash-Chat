@@ -95,7 +95,12 @@ const DashboardLayout = () => {
         <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-15 is-drawer-open:w-50 lg:is-drawer-open:w-40">
           <div className="px-2 py-2.5">
             <Link to="/" className="flex items-center justify-center gap-1">
-              <ShipWheelIcon className="size-10 text-primary" />
+              {/* <ShipWheelIcon className="size-10 text-primary" /> */}
+              <img
+                src="/DashChat-logo.png"
+                alt="DashChat-logo"
+                className="h-10 w-10"
+              />
               <span className="text-xl font-bold font-mono bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary tracking-wider is-drawer-close:hidden">
                 DashChat
               </span>

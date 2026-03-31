@@ -5,19 +5,31 @@ import {
   LogOut,
   MessageCircle,
   User,
+  ChevronDown,
 } from "lucide-react";
 import Logo from "./Logo";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useLayoutEffect } from "react";
+import gsap from "gsap";
+import toast from "react-hot-toast";
 import ThemeSelector from "../ThemeSelector";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useFriendStore } from "../../store/useFriendsStore";
+import { useMessageStore } from "../../store/useMessageStore";
+import { useNotificationStore } from "../../store/useNotificationStore";
+import { CHAT_FEATURES } from "../../constants/chatFeaturesData";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { authUser, userLoading, logoutUser } = useAuthStore();
-  const { notifications, getNotifications } = useFriendStore();
+  // Open features dropdown if on /features or subroute on initial load
   const location = useLocation();
+  const isFeaturesRoute = location.pathname.startsWith("/features");
+  const [featuresOpen, setFeaturesOpen] = useState(isFeaturesRoute);
+  const featuresMenuRef = useRef(null);
+  const featuresButtonRef = useRef(null);
+  const { authUser, userLoading, logoutUser, socket } = useAuthStore();
+  const { getUserById } = useMessageStore();
+  const { getNotifications } = useNotificationStore();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,25 +40,120 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useLayoutEffect(() => {
+    if (!featuresMenuRef.current) return;
+
+    const ctx = gsap.context(() => {
+      if (featuresOpen) {
+        const tl = gsap.timeline();
+        tl.fromTo(
+          featuresMenuRef.current,
+          { opacity: 0, scale: 0.95, y: -10 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out" },
+        ).fromTo(
+          "[data-feature-item]",
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.3, stagger: 0.08 },
+          "-=0.2",
+        );
+      }
+    }, featuresMenuRef);
+
+    return () => ctx.revert();
+  }, [featuresOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        featuresMenuRef.current &&
+        !featuresMenuRef.current.contains(e.target) &&
+        !featuresButtonRef.current?.contains(e.target)
+      ) {
+        setFeaturesOpen(false);
+      }
+    };
+
+    if (featuresOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [featuresOpen]);
+
+  // Auto-close features dropdown on navigation away from /features
+  useEffect(() => {
+    if (!location.pathname.startsWith("/features")) {
+      setFeaturesOpen(false);
+    } else {
+      setFeaturesOpen(true);
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     if (!authUser?._id) return;
-    getNotifications();
+    const fetchNotifications = async () => {
+      try {
+        const res = await getNotifications();
+        setUnreadCount(res.data.length);
+      } catch (error) {
+        console.error("Failed to fetch notifications", error);
+      }
+    };
+
+    fetchNotifications();
   }, [authUser?._id, getNotifications]);
 
-  const unreadCount = useMemo(
-    () => notifications.filter((notification) => notification.unread).length,
-    [notifications],
-  );
+  useEffect(() => {
+    if (!authUser?._id || !socket) return;
 
+    const isDashboardPage = location.pathname.startsWith("/dashboard");
+    if (isDashboardPage) return;
+
+    const notificationSound = new Audio("/sounds/notification.mp3");
+    notificationSound.preload = "auto";
+    notificationSound.volume = 0.8;
+
+    const handleIncomingMessageAlert = async (newMessage) => {
+      const isIncomingForMe =
+        String(newMessage?.receiverId || "") === String(authUser._id);
+      const isFromMe =
+        String(newMessage?.senderId || "") === String(authUser._id);
+
+      if (!isIncomingForMe || isFromMe) return;
+
+      notificationSound.pause();
+      notificationSound.currentTime = 0;
+      notificationSound.play().catch(() => {});
+
+      let senderName = "Someone";
+      try {
+        const sender = await getUserById(newMessage?.senderId);
+        if (sender?.name) senderName = sender.name;
+      } catch (error) {
+        console.log(error);
+        // Keep fallback sender name when API fails
+      }
+
+      toast(`${senderName} sent a message`);
+    };
+
+    socket.on("newMessage", handleIncomingMessageAlert);
+
+    return () => {
+      socket.off("newMessage", handleIncomingMessageAlert);
+    };
+  }, [authUser?._id, getUserById, location.pathname, socket]);
+
+  // Order: Home, About, Contact, Privacy, Features (Features handled separately)
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Features", path: "/features" },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
     { name: "Privacy", path: "/privacy" },
   ];
 
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
+  // isFeaturesRoute already declared above
 
   const closeMobileMenu = () => {
     const activeElement = document.activeElement;
@@ -94,21 +201,76 @@ const Navbar = () => {
             tabIndex={0}
             className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-200 rounded-box w-52"
           >
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <NavLink
-                  to={link.path}
-                  onClick={closeMobileMenu}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "bg-primary text-white"
-                      : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              </li>
-            ))}
+            {/* Home */}
+            <li>
+              <NavLink
+                to="/"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Home
+              </NavLink>
+            </li>
+            {/* About */}
+            <li>
+              <NavLink
+                to="/about"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                About
+              </NavLink>
+            </li>
+            {/* Contact */}
+            <li>
+              <NavLink
+                to="/contact"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Contact
+              </NavLink>
+            </li>
+            {/* Privacy */}
+            <li>
+              <NavLink
+                to="/privacy"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Privacy
+              </NavLink>
+            </li>
+            {/* Features (last) */}
+            <li>
+              <NavLink
+                to="/features"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-secondary text-[16px] hover:bg-gray-100 hover:text-green-700"
+                }
+              >
+                Features
+              </NavLink>
+            </li>
 
             {authUser ? (
               <>
@@ -175,22 +337,145 @@ const Navbar = () => {
       {/* Desktop View - Center */}
       <div className="navbar-center hidden lg:flex lg:pr-14 xl:pr-12">
         <ul className="menu menu-horizontal px-1 gap-2">
-          {navLinks.map((link) => (
-            <li key={link.name}>
-              <NavLink
-                to={link.path}
-                className={({ isActive }) =>
-                  `rounded-full px-4 py-2 text-[16px] font-medium transition ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : "bg-base-200 hover:bg-base-300 hover:text-primary"
-                  }`
+          {/* Home */}
+          <li>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Home
+            </NavLink>
+          </li>
+          {/* About */}
+          <li>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              About
+            </NavLink>
+          </li>
+          {/* Contact */}
+          <li>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Contact
+            </NavLink>
+          </li>
+          {/* Privacy */}
+          <li>
+            <NavLink
+              to="/privacy"
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-[16px] font-medium transition ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-base-200 hover:bg-base-300 hover:text-primary"
+                }`
+              }
+            >
+              Privacy
+            </NavLink>
+          </li>
+          {/* Features Dropdown (last) */}
+          <li className="relative">
+            <button
+              ref={featuresButtonRef}
+              onClick={() => {
+                // Always navigate to /features if not already there
+                if (!location.pathname.startsWith("/features")) {
+                  navigate("/features");
+                } else {
+                  setFeaturesOpen((open) => !open);
                 }
+              }}
+              className={`rounded-full px-4 py-2 text-[16px] font-medium transition flex items-center gap-1 ${
+                featuresOpen
+                  ? "bg-primary text-white"
+                  : "bg-base-200 hover:bg-base-300 hover:text-primary"
+              }`}
+              aria-expanded={featuresOpen}
+              aria-haspopup="menu"
+            >
+              Features
+              <ChevronDown
+                size={18}
+                className={`transition-transform duration-300 ${
+                  featuresOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Features Menu */}
+            {featuresOpen && (
+              <div
+                ref={featuresMenuRef}
+                className="absolute top-full left-0 mt-2 w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-300/80 p-4 z-50"
               >
-                {link.name}
-              </NavLink>
-            </li>
-          ))}
+                <div className="grid grid-cols-1 gap-3">
+                  {CHAT_FEATURES.map((feature) => (
+                    <Link
+                      key={feature.slug}
+                      to={`/features/${feature.slug}`}
+                      data-feature-item
+                      onClick={() => setFeaturesOpen(false)}
+                      className="group p-3 rounded-xl hover:bg-base-200 transition-all duration-300 flex items-start gap-3"
+                    >
+                      <div
+                        className={`h-10 w-10 rounded-lg bg-linear-to-br ${feature.color} flex items-center justify-center shrink-0 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 overflow-hidden`}
+                      >
+                        <img
+                          src={feature.img}
+                          alt={feature.name}
+                          className="h-6 w-6 object-contain"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-base-content text-sm group-hover:text-primary transition-colors">
+                          {feature.name}
+                        </h4>
+                        <p className="text-base-content/70 text-xs line-clamp-2">
+                          {feature.description}
+                        </p>
+                      </div>
+                      <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        →
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-base-300">
+                  <Link
+                    to="/features"
+                    onClick={() => setFeaturesOpen(false)}
+                    className="text-center text-sm font-medium text-primary hover:text-primary/80 transition py-1 block"
+                  >
+                    View all features →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </li>
         </ul>
       </div>
 
@@ -224,7 +509,7 @@ const Navbar = () => {
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-error text-white text-[10px] flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-error text-white text-[10px] flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -234,7 +519,7 @@ const Navbar = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle tooltip tooltip-bottom"
+                className="btn btn-ghost btn-circle tooltip tooltip-left"
                 data-tip={authUser?.name || "My account"}
               >
                 <div className="avatar">
@@ -288,7 +573,7 @@ const Navbar = () => {
             </Link>
             <Link
               to="/auth/login"
-              className="btn btn-outline btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 hover:bg-secondary hover:text-white text-base-content transition text-[16px] md:text-[18px] bg-base-100"
+              className="btn btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 text-white text-[16px] md:text-[18px] transition hover:shadow-lg"
             >
               <MessageCircle size={22} />
               Start Chat

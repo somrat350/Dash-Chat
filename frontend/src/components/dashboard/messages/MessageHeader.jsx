@@ -244,7 +244,7 @@ const MessageHeader = ({
 
       <div className="flex items-center gap-2 sm:gap-3">
         <div
-          className={`transition-all duration-200 overflow-hidden ${isSearchOpen ? "w-32 sm:w-44 opacity-100" : "w-0 opacity-0"}`}
+          className={`hidden sm:block transition-all duration-200 overflow-hidden ${isSearchOpen ? "w-32 sm:w-44 opacity-100" : "w-0 opacity-0"}`}
         >
           <div className="flex items-center gap-1 bg-base-200 rounded-full px-2 py-1">
             <Search className="size-4 text-base-content/60" />
@@ -288,7 +288,7 @@ const MessageHeader = ({
         </button>
         <button
           onClick={toggleSearch}
-          className="text-primary btn btn-sm btn-circle tooltip tooltip-bottom"
+          className="hidden sm:inline-flex text-primary btn btn-sm btn-circle tooltip tooltip-bottom"
           data-tip="Search Messages"
           aria-label="Search messages"
         >

@@ -45,7 +45,7 @@ const Friends = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4  gap-6">
          {yourFriends.length > 0
           ? yourFriends.map((f) => (
-              <UserCard
+              <FriendListCard
                 key={f._id}
                 friend={f}
                 activeMenu={activeMenu}
