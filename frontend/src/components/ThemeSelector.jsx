@@ -8,8 +8,8 @@ const ThemeSelector = ({ place = "navbar" }) => {
   const activePreview = activeTheme?.colors?.slice(0, 3) || [];
 
   return (
-    <div 
-      className= {`dropdown ${place === "navbar" ? "dropdown-end" : "dropdown-start"}  `}
+    <div
+      className={`dropdown ${place === "navbar" ? "dropdown-end" : "dropdown-start"}  `}
     >
       {/* DROPDOWN TRIGGER */}
       {place === "navbar" ? (
@@ -43,11 +43,9 @@ const ThemeSelector = ({ place = "navbar" }) => {
 
       <div
         tabIndex={0}
-        className="dropdown-content 
-        absolute left-1/2 -translate-x-1/2
-
-         mt-2 p-1 shadow-2xl bg-base-200 backdrop-blur-lg rounded-2xl
-        w-60  border border-base-content/10 max-h-80 overflow-y-auto"
+        className={`dropdown-content ${place === "navbar" ? "dropdown-end" : "dropdown-start"}
+        absolute mt-2 p-1 shadow-2xl bg-base-200 backdrop-blur-lg rounded-2xl
+        w-60 border border-base-content/10 max-h-80 overflow-y-auto`}
       >
         <div className="space-y-1">
           {THEMES.map((themeOption) => (
