@@ -2,6 +2,12 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleBtn from "./GoogleBtn";
 
 const SocialLogin = () => {
+
+  const handleGithubLogin = () => {
+  const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+
+  window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email`;
+  };
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
@@ -9,7 +15,7 @@ const SocialLogin = () => {
       </GoogleOAuthProvider>
 
       <button
-        // onClick={loginWithGithub}
+       onClick={handleGithubLogin}
         className="btn h-11 border border-base-300 bg-base-100 text-base-content hover:border-primary hover:bg-primary/10"
       >
         <svg

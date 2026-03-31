@@ -29,6 +29,7 @@ import PrivacySettings from "../pages/dashboard/PrivacySettings";
 import DangerZone from "../pages/dashboard/DangerZone";
 import NotificationSettings from "../pages/dashboard/NotificationsSettings";
 import SettingsDefault from "../pages/dashboard/SettingsDefault";
+import GithubCallback from "../pages/auth/GithubCallback";
 
 const router = createBrowserRouter([
   {
@@ -78,6 +79,10 @@ const router = createBrowserRouter([
         path: "forgot-password",
         Component: ForgotPassword,
       },
+       {
+      path: "github/callback",
+      Component: GithubCallback,
+    },
     ],
   },
   {
