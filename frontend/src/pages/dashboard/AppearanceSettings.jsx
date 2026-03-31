@@ -148,7 +148,7 @@ const AppearanceSettings = () => {
           <h2 className="text-lg sm:text-xl font-semibold mb-2">
             Theme Selector
           </h2>
-          <ThemeSelector />
+          <ThemeSelector place="settings" />
         </section>
 
         {/* ---------- Chat Background ---------- */}
