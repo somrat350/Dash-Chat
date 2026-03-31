@@ -1,7 +1,7 @@
 import { BellIcon } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NotificationsCard from "../../components/dashboard/notifications/NotificationsCard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNotificationStore } from "../../store/useNotificationStore";
 
@@ -9,7 +9,6 @@ const Notifications = () => {
   const { getNotifications, markAllNotificationsAsRead } =
     useNotificationStore();
   const { socket } = useAuthStore();
-  const [unreadCount, setUnreadCount] = useState(0);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
@@ -18,23 +17,20 @@ const Notifications = () => {
 
   const queryClient = useQueryClient();
 
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.isRead).length;
+  }, [notifications]);
+
   useEffect(() => {
     socket.on("newNotification", (newNotification) => {
       queryClient.setQueryData(["notifications"], (oldData) => {
         if (!oldData) return [newNotification];
         return [newNotification, ...oldData];
       });
-      setUnreadCount((prev) => prev + 1);
     });
 
     return () => socket.off("newNotification");
   }, [socket, queryClient]);
-
-  useEffect(() => {
-    if (!notifications) return;
-    const count = notifications.filter((n) => !n.isRead).length;
-    setUnreadCount(count);
-  }, [notifications]);
 
   const isToday = (dateInput) => {
     if (!dateInput) return;
@@ -56,7 +52,6 @@ const Notifications = () => {
     queryClient.setQueryData(["notifications"], (oldData = []) =>
       oldData.map((n) => ({ ...n, isRead: true })),
     );
-    setUnreadCount(0);
   };
 
   const renderNotifications = (list = []) => {
@@ -68,13 +63,7 @@ const Notifications = () => {
       );
     }
 
-    return list.map((n) => (
-      <NotificationsCard
-        key={n._id}
-        notification={n}
-        setUnreadCount={setUnreadCount}
-      />
-    ));
+    return list.map((n) => <NotificationsCard key={n._id} notification={n} />);
   };
 
   return (
