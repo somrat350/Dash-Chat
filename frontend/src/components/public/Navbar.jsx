@@ -93,8 +93,9 @@ const Navbar = () => {
     if (!authUser?._id) return;
     const fetchNotifications = async () => {
       try {
-        const res = await getNotifications();
-        setUnreadCount(res.data.length);
+        const data = await getNotifications();
+        const unreadNotifications = data.filter((d) => !d.isRead);
+        setUnreadCount(unreadNotifications?.length);
       } catch (error) {
         console.error("Failed to fetch notifications", error);
       }
