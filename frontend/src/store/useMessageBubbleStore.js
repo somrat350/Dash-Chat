@@ -1,16 +1,21 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
+import { axiosSecure } from "../lib/axios";
 import toast from "react-hot-toast";
+import { useMessageStore } from "./useMessageStore";
 
 export const useMessageBubbleStore = create(() => ({
   addReaction: async (msgId, emoji) => {
     try {
-      console.log(emoji);
-      const res = await axiosInstance.patch(
+      const res = await axiosSecure.patch(
         `/api/messages/${msgId}/addReaction`,
         { emoji },
       );
-      console.log(res.data);
+
+      useMessageStore.setState((state) => ({
+        messages: state.messages.map((message) =>
+          String(message._id) === String(res.data?._id) ? res.data : message,
+        ),
+      }));
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send reaction");
     }
@@ -18,7 +23,15 @@ export const useMessageBubbleStore = create(() => ({
 
   removeReaction: async (msgId) => {
     try {
-      await axiosInstance.patch(`/api/messages/${msgId}/removeReaction`);
+      const res = await axiosSecure.patch(
+        `/api/messages/${msgId}/removeReaction`,
+      );
+
+      useMessageStore.setState((state) => ({
+        messages: state.messages.map((message) =>
+          String(message._id) === String(res.data?._id) ? res.data : message,
+        ),
+      }));
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Failed to remove reaction",

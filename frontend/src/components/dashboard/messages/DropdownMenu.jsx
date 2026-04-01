@@ -1,4 +1,4 @@
-import { Reply, Copy, Trash2, Edit, BrushCleaning } from "lucide-react";
+import { Reply, Copy, Trash2, Edit, BrushCleaning, Share2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import EditMessageModal from "./EditMessageModal";
@@ -6,7 +6,7 @@ import DeleteMessageModal from "./DeleteMessageModal";
 import { useMessageStore } from "../../../store/useMessageStore";
 import { useAuthStore } from "../../../store/useAuthStore";
 
-const DropdownMenu = ({ msg, isMe, onClose, isDeleted }) => {
+const DropdownMenu = ({ msg, isMe, onClose, isDeleted, onForward }) => {
   const { setReplyMessage, deleteMessage } = useMessageStore();
   const { authUser } = useAuthStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -56,6 +56,18 @@ const DropdownMenu = ({ msg, isMe, onClose, isDeleted }) => {
               className="btn rounded-lg w-full justify-start"
             >
               <Copy size={16} /> Copy
+            </button>
+
+            {/* Forward Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onForward?.(msg);
+                onClose();
+              }}
+              className="btn rounded-lg w-full justify-start"
+            >
+              <Share2 size={16} /> Forward
             </button>
 
             {/* Edit Button */}
