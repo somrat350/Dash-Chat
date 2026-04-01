@@ -5,19 +5,23 @@ import { useMessageStore } from "../../store/useMessageStore";
 
 const NotificationSettings = () => {
   // Load saved settings or default
-  const savedSettings = JSON.parse(localStorage.getItem("notificationSettings")) || {
+  const savedSettings = JSON.parse(
+    localStorage.getItem("notificationSettings"),
+  ) || {
     sound: true,
     browserNotification: false,
   };
 
   const [sound, setSound] = useState(savedSettings.sound);
-  const [browserNotification, setBrowserNotification] = useState(savedSettings.browserNotification);
+  const [browserNotification, setBrowserNotification] = useState(
+    savedSettings.browserNotification,
+  );
 
   // Save to localStorage whenever toggles change
   useEffect(() => {
     localStorage.setItem(
       "notificationSettings",
-      JSON.stringify({ sound, browserNotification })
+      JSON.stringify({ sound, browserNotification }),
     );
   }, [sound, browserNotification]);
 
@@ -30,7 +34,9 @@ const NotificationSettings = () => {
   const playSound = () => {
     if (!sound || !messageSound.current) return;
     messageSound.current.currentTime = 0;
-    messageSound.current.play().catch((err) => console.log("Audio blocked:", err));
+    messageSound.current
+      .play()
+      .catch((err) => console.log("Audio blocked:", err));
   };
 
   const showDesktopNotification = (message) => {
@@ -70,8 +76,16 @@ const NotificationSettings = () => {
   }, [messages, sound, browserNotification]);
 
   const pageFlow = [
-    { label: "Settings", link: "/dashboard/settings", icon: <Settings size={16} /> },
-    { label: "Notification", link: "/dashboard/settings/notifications", icon: <BellRing size={16} /> },
+    {
+      label: "Settings",
+      link: "/dashboard/settings",
+      icon: <Settings size={16} />,
+    },
+    {
+      label: "Notification",
+      link: "/dashboard/notifications",
+      icon: <BellRing size={16} />,
+    },
   ];
 
   return (
@@ -79,7 +93,6 @@ const NotificationSettings = () => {
       <Breadcrumb items={pageFlow} />
 
       <div className="mt-10 dark:bg-zinc-900 border rounded-xl p-6 space-y-10">
-
         {/* Message Sound */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -108,7 +121,8 @@ const NotificationSettings = () => {
             <div>
               <p className="font-medium">Browser Notifications</p>
               <p className="text-sm text-gray-500">
-                Receive desktop notifications even when the app is in background.
+                Receive desktop notifications even when the app is in
+                background.
               </p>
             </div>
           </div>
@@ -121,7 +135,6 @@ const NotificationSettings = () => {
             />
           </label>
         </div>
-
       </div>
     </div>
   );

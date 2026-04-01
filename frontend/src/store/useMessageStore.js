@@ -160,7 +160,7 @@ export const useMessageStore = create((set, get) => ({
       set({ newChatPartnerSearchResults: res.data });
     } catch (error) {
       console.error("Failed to fetch chat partners:", error);
-      set({ newChatSearchResults: [] });
+      set({ newChatPartnerSearchResults: [] });
     } finally {
       set({ newChatPartnerSearchLoading: false });
     }
