@@ -1,10 +1,21 @@
 import { MessageSquare, User, UserPlus } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { useFriendStore } from "../../../store/useFriendsStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SFriendsCard = ({ data }) => {
   const { onlineUsers } = useAuthStore();
+  const { sendFriendRequest } = useFriendStore();
   const isOnline = onlineUsers.includes(data._id);
-
+  const queryClient = useQueryClient();
+  const sendRequest = async () => {
+    await sendFriendRequest(data._id);
+    queryClient.setQueryData(["suggestedFriends"], (oldData) => {
+      if (!oldData) return [];
+      return oldData.filter((user) => user._id !== data._id);
+    });
+    queryClient.invalidateQueries(["suggestedFriends"]);
+  };
   return (
     <div
       className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 p-4 bg-base-200 border border-base-300 rounded-3xl 
@@ -50,7 +61,7 @@ const SFriendsCard = ({ data }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div onClick={sendRequest} className="flex items-center gap-2">
         <button className="cursor-pointer flex-1 h-10 px-4 bg-primary text-primary-content hover:shadow-lg hover:shadow-primary/20 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
           <UserPlus size={14} strokeWidth={2.5} /> Add Friend
         </button>

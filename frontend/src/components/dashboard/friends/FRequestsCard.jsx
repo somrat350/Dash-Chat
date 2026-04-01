@@ -10,11 +10,18 @@ const FRequestsCard = ({ data }) => {
   const isOnline = onlineUsers.includes(data.sender._id);
 
   const friendsRequestsActions = async (action) => {
-    const resData = await friendRequestAction(data._id, action);
-    console.log(resData, action);
-    // queryClient.setQueryData(["friendsRequests"], (old = []) =>
-    //   old.map((item) => (item._id === resData._id ? resData : item)),
-    // );
+    await friendRequestAction(data._id, action);
+    queryClient.setQueryData(["friendsRequests"], (oldData = []) => {
+      if (!oldData) return [];
+      return oldData.filter((item) => item._id !== data._id);
+    });
+    if (action === "accepted") {
+      queryClient.setQueryData(["myFriends"], (old = []) => {
+        const alreadyExists = old.find((f) => f._id === data._id);
+        if (alreadyExists) return old;
+        return [data, ...old];
+      });
+    }
   };
   return (
     <div className={`relative group transition-all duration-500`}>

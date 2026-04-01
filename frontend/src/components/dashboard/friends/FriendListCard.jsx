@@ -1,49 +1,42 @@
 import { Phone, MessageSquare, UserX, User } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { useFriendStore } from "../../../store/useFriendsStore";
+import { useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 
 const FriendListCard = ({ data }) => {
   const { onlineUsers } = useAuthStore();
+  const { unfriendUser } = useFriendStore();
+  const queryClient = useQueryClient();
   const isOnline = onlineUsers.includes(data._id);
-  // const handleUnfriendClick = () => {
-  //   const toastId = toast.custom(
-  //     (t) => (
-  //       <div
-  //         className={`bg-base-100 border border-base-300 shadow-2xl rounded-2xl p-5 w-[320px] flex flex-col gap-4 transition-all ${
-  //           t.visible ? "animate-enter" : "animate-leave"
-  //         }`}
-  //       >
-  //         <div className="flex flex-col gap-1">
-  //           <span className="text-base-content font-semibold text-sm">
-  //             Remove Friend?
-  //           </span>
-  //           <span className="text-base-content/60 text-xs">
-  //             Are you sure you want to unfriend{" "}
-  //             <span className="font-bold text-primary">{friend.name}</span>?
-  //           </span>
-  //         </div>
-  //         <div className="flex justify-end gap-2">
-  //           <button
-  //             className="px-4 py-2 text-xs font-bold rounded-xl hover:bg-base-200 transition"
-  //             onClick={() => toast.dismiss(toastId)}
-  //           >
-  //             Cancel
-  //           </button>
-  //           <button
-  //             className="bg-error text-error-content px-4 py-2 text-xs font-bold rounded-xl hover:opacity-90 transition"
-  //             onClick={async () => {
-  //               await unfriendUser(friend._id);
-  //               toast.success(`${friend.name} removed`);
-  //               toast.dismiss(toastId);
-  //             }}
-  //           >
-  //             Yes, Unfriend
-  //           </button>
-  //         </div>
-  //       </div>
-  //     ),
-  //     { position: "top-center" },
-  //   );
-  // };
+  const handleUnfriendClick = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will remove this person from your friends list.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444", // Using a red 'error' color for deletion
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, unfriend",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await unfriendUser(data._id);
+          queryClient.setQueryData(["myFriends"], (old = []) =>
+            old.filter((f) => f._id !== data._id),
+          );
+          queryClient.invalidateQueries({
+            queryKey: ["myFriends", "suggestedFriends"],
+          });
+
+          Swal.fire("Unfriended!", "The user has been removed.", "success");
+        } catch (error) {
+          console.log(error);
+          Swal.fire("Error", "Could not complete the request.", "error");
+        }
+      }
+    });
+  };
 
   return (
     <div
@@ -101,7 +94,7 @@ const FriendListCard = ({ data }) => {
           </button>
         </div>
         <button
-          // onClick={handleUnfriendClick}
+          onClick={handleUnfriendClick}
           className="cursor-pointer group/unfriend flex items-center justify-center gap-2 sm:gap-0 sm:hover:gap-2 px-4 sm:px-3 py-2.5 sm:py-2 overflow-hidden
             bg-error/10 sm:bg-error/5 hover:bg-error text-error hover:text-error-content rounded-xl transition-all duration-500 ease-in-out flex-1 md:flex-none"
         >

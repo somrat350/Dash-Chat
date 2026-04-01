@@ -42,9 +42,9 @@ export const useFriendStore = create((set, get) => ({
       });
       if (action === "accepted") {
         await get().getMyFriends();
+        await useAuthStore.getState().checkAuth();
       }
       toast.success(`Friend request ${action}`);
-      console.log(res.data);
       return res.data;
     } catch (error) {
       console.log(error);
@@ -52,20 +52,15 @@ export const useFriendStore = create((set, get) => ({
     }
   },
 
-  //  sendfriendrequest
+  //  send friend request
   sendFriendRequest: async (receiverId) => {
     try {
-      await axiosSecure.post(`/api/friends/send/${receiverId}`);
-
+      const res = await axiosSecure.post(`/api/friends/send/${receiverId}`);
       toast.success("Friend request sent");
+      return res.data;
     } catch (error) {
-      const message = error?.response?.data?.message;
-
-      if (message?.toLowerCase().includes("already")) {
-        toast("Already sent a friend request", { icon: "ℹ️" });
-      } else {
-        toast.error("Failed to send request");
-      }
+      const message = error.response?.data?.message;
+      toast.error(message);
     }
   },
   // get friend
@@ -83,19 +78,13 @@ export const useFriendStore = create((set, get) => ({
   // unfriend
   unfriendUser: async (id) => {
     try {
-      const { authUser } = useAuthStore.getState();
-
       await axiosSecure.patch("/api/friends/update", {
-        userId: authUser._id,
         friendId: id,
-        action: "delete",
+        action: "unfriend",
       });
-
-      set((state) => ({
-        friends: state.friends.map((f) =>
-          f._id === id ? { ...f, isFriend: false } : f,
-        ),
-      }));
+      await get().getMyFriends();
+      await useAuthStore.getState().checkAuth();
+      return;
     } catch (error) {
       console.error("Unfriend failed", error);
     }

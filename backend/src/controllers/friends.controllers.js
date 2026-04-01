@@ -29,19 +29,32 @@ export const sendRequest = async (req, res) => {
         .json({ message: "You can't send friend request to yourself" });
     }
 
+    // check if user is already friends
+    if (req.user.friends.includes(receiverId)) {
+      return res
+        .status(400)
+        .json({ message: "You are already friends with this user" });
+    }
+
+    // checking existing request
+    const existingRequest = await FriendRequest.findOne({
+      $or: [
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId },
+      ],
+    });
+    if (existingRequest) {
+      return res.status(400).json({
+        message: "Request already exist.",
+      });
+    }
+
     //checking existing user
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({
         message: "User Not Available.",
       });
-    }
-
-    // check if user is already friends
-    if (receiver.friends.includes(senderId)) {
-      return res
-        .status(400)
-        .json({ message: "You are already friends with this user" });
     }
 
     const friendRequest = await FriendRequest.create({
@@ -77,8 +90,9 @@ export const sendRequest = async (req, res) => {
 
 export const updateRequest = async (req, res) => {
   try {
-    const { userId, friendId, action } = req.body;
-    if (action === "delete") {
+    const userId = req.user._id;
+    const { friendId, action } = req.body;
+    if (action === "unfriend") {
       await Promise.all([
         User.findByIdAndUpdate(userId, {
           $pull: { friends: friendId },
@@ -87,12 +101,24 @@ export const updateRequest = async (req, res) => {
           $pull: { friends: userId },
         }),
       ]);
-      await Notification.create({
+      const notification = await Notification.create({
         sender: userId,
         receiver: friendId,
         type: "unfriend",
         message: "unfriended you",
       });
+
+      // 🔥 populate sender info
+      const fullNotification = await notification.populate(
+        "sender",
+        "name photoURL",
+      );
+
+      // 🔥 REAL-TIME SEND
+      io.to(getUserRoomName(friendId)).emit(
+        "newNotification",
+        fullNotification,
+      );
 
       return res.status(200).json({ message: "Unfriended successfully" });
     }
