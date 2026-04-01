@@ -33,7 +33,7 @@ const Sidebar = () => {
     });
 
   return (
-    <div className="h-screen flex flex-col bg-base-100">
+    <div className="flex h-full min-h-0 flex-col bg-base-100">
       {/* header area */}
       <div className="flex items-center justify-between px-4 pt-2">
         <h2 className="font-semibold text-lg">Chats</h2>
@@ -67,7 +67,7 @@ const Sidebar = () => {
       </div>
 
       {/* user list */}
-      <div className="flex-1 overflow-y-auto px-1">
+      <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-2">
         {messagePartnersLoading ? (
           <div className="flex justify-center items-center h-full text-gray-400 text-sm">
             Loading...
@@ -95,9 +95,9 @@ const Sidebar = () => {
                 </div>
               </div>
 
-              <div className="ml-3">
-                <h3 className="font-medium text-sm">{user.name}</h3>
-                <p className="text-xs text-gray-500">{user.email}</p>
+              <div className="ml-3 min-w-0">
+                <h3 className="truncate font-medium text-sm">{user.name}</h3>
+                <p className="truncate text-xs text-gray-500">{user.email}</p>
               </div>
             </div>
           ))

@@ -760,7 +760,7 @@ const Calls = () => {
   };
 
   return (
-    <div>
+    <div className="p-4 md:p-6">
       {/* Full-screen call overlay */}
       {streamClient && activeCall && (
         <StreamVideo client={streamClient}>
@@ -779,6 +779,11 @@ const Calls = () => {
           </StreamCall>
         </StreamVideo>
       )}
+
+      <div className="mb-5 flex items-center gap-2">
+        <LucidePhone size={20} className="text-primary" />
+        <h1 className="text-xl md:text-2xl font-bold">Calls</h1>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
