@@ -11,50 +11,25 @@ export const useFriendStore = create((set, get) => ({
   isSuggestionsLoading: false,
   isNotificationsLoading: false,
 
-  //  sugestfriend
+  //  suggested friend
   getFriendSuggestions: async () => {
     try {
-      set({ isSuggestionsLoading: true });
-
       const res = await axiosSecure.get("/api/friends/suggestions");
-
-      set({
-        suggestions: res.data.map((f) => ({
-          ...f,
-          isFriend: false,
-        })),
-      });
+      return res.data;
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to load users");
-    } finally {
-      set({ isSuggestionsLoading: false });
+      return [];
     }
   },
   // fetch friend requests
   getFriendRequests: async () => {
     try {
-      set({ isNotificationsLoading: true });
-
       const res = await axiosSecure.get("/api/friends/requests");
-
-      const formatted = res.data.map((req) => ({
-        id: req._id,
-        senderId: req.sender._id,
-        type: "friend",
-        name: req.sender.name,
-        avatar: req.sender.photoURL,
-        message: "sent you a friend request",
-        time: "now",
-        unread: true,
-        section: "Today",
-      }));
-
-      set({ notifications: formatted });
+      return res.data;
     } catch (error) {
       console.log(error);
       toast.error("Failed to load notifications");
-    } finally {
-      set({ isNotificationsLoading: false });
+      return [];
     }
   },
 
@@ -67,9 +42,9 @@ export const useFriendStore = create((set, get) => ({
       });
       if (action === "accepted") {
         await get().getMyFriends();
+        await useAuthStore.getState().checkAuth();
       }
       toast.success(`Friend request ${action}`);
-      console.log(res.data);
       return res.data;
     } catch (error) {
       console.log(error);
@@ -77,64 +52,39 @@ export const useFriendStore = create((set, get) => ({
     }
   },
 
-  //  sendfriendrequest
+  //  send friend request
   sendFriendRequest: async (receiverId) => {
     try {
-      await axiosSecure.post(`/api/friends/send/${receiverId}`);
-
+      const res = await axiosSecure.post(`/api/friends/send/${receiverId}`);
       toast.success("Friend request sent");
+      return res.data;
     } catch (error) {
-      const message = error?.response?.data?.message;
-
-      if (message?.toLowerCase().includes("already")) {
-        toast("Already sent a friend request", { icon: "ℹ️" });
-      } else {
-        toast.error("Failed to send request");
-      }
+      const message = error.response?.data?.message;
+      toast.error(message);
     }
   },
   // get friend
   getMyFriends: async () => {
     try {
-      set({ isFriendsLoading: true });
-
       const res = await axiosSecure.get("/api/friends");
-
-      set((state) => {
-        const suggestions = state.friends.filter((f) => !f.isFriend);
-        const myFriends = res.data.map((f) => ({
-          ...f,
-          isFriend: true,
-        }));
-
-        return {
-          friends: [...suggestions, ...myFriends],
-        };
-      });
+      return res.data;
     } catch (error) {
       console.log(error);
       toast.error("Failed to load friends");
-    } finally {
-      set({ isFriendsLoading: false });
+      return [];
     }
   },
 
   // unfriend
   unfriendUser: async (id) => {
     try {
-      const { authUser } = useAuthStore.getState();
-
       await axiosSecure.patch("/api/friends/update", {
-        userId: authUser._id,
         friendId: id,
-        action: "delete",
+        action: "unfriend",
       });
-
-      set((state) => ({
-        friends: state.friends.map((f) =>
-          f._id === id ? { ...f, isFriend: false } : f,
-        ),
-      }));
+      await get().getMyFriends();
+      await useAuthStore.getState().checkAuth();
+      return;
     } catch (error) {
       console.error("Unfriend failed", error);
     }
