@@ -6,6 +6,8 @@ import {
   MessageCircle,
   User,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useEffect, useMemo, useState, useRef, useLayoutEffect } from "react";
@@ -19,6 +21,7 @@ import { CHAT_FEATURES } from "../../constants/chatFeaturesData";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Open features dropdown if on /features or subroute on initial load
   const location = useLocation();
   const isFeaturesRoute = location.pathname.startsWith("/features");
@@ -180,23 +183,23 @@ const Navbar = () => {
       }`}
     >
       {/* Mobile View */}
-      <div className="navbar-start">
+      <div className="navbar-start flex items-center">
         <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
+          <div
+            tabIndex={0}
+            role="button"
+            className="btn btn-ghost lg:hidden transition-all duration-200 ml-[-10px] sm:ml-0"
+            aria-label="Toggle menu"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+          >
+            <span className="relative block w-6 h-6">
+              <Menu
+                className={`h-6 w-6 absolute left-0 top-0 transition-all duration-200 ${mobileMenuOpen ? "opacity-0 scale-90 rotate-45" : "opacity-100 scale-100 rotate-0"}`}
               />
-            </svg>
+              <X
+                className={`h-6 w-6 absolute left-0 top-0 transition-all duration-200 ${mobileMenuOpen ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-90 rotate-45"}`}
+              />
+            </span>
           </div>
           <ul
             tabIndex={0}
@@ -330,7 +333,7 @@ const Navbar = () => {
         </div>
 
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Logo />
         </div>
       </div>
@@ -574,10 +577,11 @@ const Navbar = () => {
             </Link>
             <Link
               to="/auth/login"
-              className="btn btn-success rounded-full flex items-center gap-2 px-5 lg:px-7 py-5 text-white text-[16px] md:text-[18px] transition hover:shadow-lg"
+              className="btn btn-success rounded-full flex items-center gap-2 px-3 sm:px-5 lg:px-7 py-2.5 sm:py-5 text-white text-xs sm:text-[16px] md:text-[18px] transition hover:shadow-lg min-h-0 h-9 sm:h-auto"
             >
-              <MessageCircle size={22} />
-              Start Chat
+              <MessageCircle size={18} className="sm:w-[22px] sm:h-[22px]" />
+              <span className="hidden xs:inline">Start Chat</span>
+              <span className="inline xs:hidden">Start Chat</span>
             </Link>
           </>
         )}

@@ -1,5 +1,15 @@
+import Waveform from "./Waveform";
 import EmojiPicker from "emoji-picker-react";
-import { Smile, Plus, Mic, XIcon, Send, X } from "lucide-react";
+import {
+  Smile,
+  Plus,
+  Mic,
+  XIcon,
+  Send,
+  X,
+  StopCircle,
+  Play,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useMessageStore } from "../../../store/useMessageStore";
@@ -12,6 +22,13 @@ const MessageInput = () => {
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [mediaStream, setMediaStream] = useState(null); // <-- add mediaStream state
+  // audioChunks state-এর বদলে ref ব্যবহার
+  const audioChunksRef = useRef([]);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const emojiRef = useRef(null);
@@ -130,25 +147,84 @@ const MessageInput = () => {
   };
 
   const handleSend = async () => {
-    if (!text.trim() && !imagePreview) return;
+    if (!text.trim() && !imagePreview && !audioBlob) {
+      toast.error("Message content is required");
+      return;
+    }
 
     stopTyping();
 
     let image = "";
+    let audio = "";
 
     if (imagePreview) {
       image = await uploadImage(imagePreview);
     }
 
+    if (audioBlob) {
+      // Upload audio to server or cloud storage, here just using local URL for demo
+      // You should replace this with your backend upload logic
+      // Example: const audioUrl = await uploadAudio(audioBlob);
+      audio = audioUrl;
+    }
+
     sendMessage({
       text: text.trim(),
       image,
+      audio,
       replyTo: replyMessage?._id || null,
     });
 
     setText("");
     setImagePreview(null);
+    setAudioBlob(null);
+    setAudioUrl("");
+    setAudioChunks([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Voice recording logic
+  const handleStartRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Audio recording not supported");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMediaStream(stream); // <-- set mediaStream for waveform
+      const recorder = new window.MediaRecorder(stream);
+      setMediaRecorder(recorder);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((track) => track.stop());
+        setMediaStream(null); // <-- cleanup mediaStream after stop
+      };
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleRemoveAudio = () => {
+    setAudioBlob(null);
+    setAudioUrl("");
+    audioChunksRef.current = [];
   };
 
   useEffect(() => {
@@ -185,6 +261,42 @@ const MessageInput = () => {
                 <XIcon className="w-4 h-4" />
               </button>
             </div>
+          </div>
+        )}
+        {isRecording && (
+          <div className="w-full mb-3 flex items-center gap-2">
+            {/* Live waveform animation while recording */}
+            <div className="flex-1 flex items-center justify-center bg-black rounded-lg py-2">
+              <span className="mr-2 text-xs text-cyan-300 animate-pulse">
+                Recording...
+              </span>
+              <Waveform
+                barCount={32}
+                color="#00f0ff"
+                height={32}
+                animate={true}
+                audioStream={mediaStream}
+              />
+            </div>
+            <button
+              onClick={handleStopRecording}
+              className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-700 cursor-pointer"
+              type="button"
+            >
+              <StopCircle className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        {audioBlob && (
+          <div className="w-full mb-3 flex items-center gap-2">
+            <audio controls src={audioUrl} className="w-40" />
+            <button
+              onClick={handleRemoveAudio}
+              className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700 cursor-pointer"
+              type="button"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
           </div>
         )}
         {replyMessage && (
@@ -241,10 +353,24 @@ const MessageInput = () => {
             }}
           />
 
-          {text.trim().length === 0 && !imagePreview ? (
-            <button className="btn btn-primary btn-circle hover:scale-110 transition">
-              <Mic />
-            </button>
+          {text.trim().length === 0 && !imagePreview && !audioBlob ? (
+            isRecording ? (
+              <button
+                className="btn btn-error btn-circle animate-pulse hover:scale-110 transition"
+                onClick={handleStopRecording}
+                type="button"
+              >
+                <StopCircle />
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary btn-circle hover:scale-110 transition"
+                onClick={handleStartRecording}
+                type="button"
+              >
+                <Mic />
+              </button>
+            )
           ) : isMessageSending ? (
             <span className="loading loading-spinner loading-xl"></span>
           ) : (
