@@ -1,5 +1,9 @@
 import User from "../models/User.js";
 
+
+
+
+
 export const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
