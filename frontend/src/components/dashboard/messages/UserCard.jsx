@@ -1,97 +1,64 @@
-
-import React, { useState, useEffect, useRef } from "react";
-import { Phone, MessageSquare, MoreVertical, User } from "lucide-react";
+import { MessageSquare, UserPlus, User } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { useFriendStore } from "../../../store/useFriendsStore";
 
-const UserCard = ({ friend, onSelect }) => {
+const UserCard = ({ friend }) => {
   const { onlineUsers } = useAuthStore();
-  const isOnline = onlineUsers.find((user) => user === friend._id);
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const toggleDropdown = (e) => {
-    e.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
+  const { sendFriendRequest } = useFriendStore();
+  const isOnline = onlineUsers.includes(friend._id);
+  const handleAddFriend = async (e) => {
+    e.stopPropagation(); 
+    await sendFriendRequest(friend._id);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
   return (
-    <div className="relative rounded-2xl p-5 shadow-sm hover:shadow-primary transition bg-base-200">
-   
-      <span
-        className={`absolute top-3 left-3 text-xs font-semibold ${
-          isOnline ? "text-green-500" : "text-gray-400"
-        }`}
-      >
-        {isOnline ? "Online" : "Offline"}
-      </span>
-      <div className="absolute top-3 right-3" ref={dropdownRef}>
-        <button
-          onClick={toggleDropdown}
-          className="text-gray-500 cursor-pointer hover:text-gray-700"
-        >
-          <MoreVertical size={18} />
-        </button>
+    <div className="group relative flex items-center gap-5 p-5 bg-base-100 border border-base-300 rounded-[24px] 
+      transition-all duration-300 hover:border-primary/40 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] 
+      hover:-translate-y-1 overflow-hidden">
+      <div className={`absolute left-0 top-0 w-[4px] h-full transition-all duration-500
+        ${isOnline ? "bg-success shadow-[2px_0_10px_rgba(34,197,94,0.3)]" : "bg-base-300"}`} />
 
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-xl border border-gray-200 z-50 overflow-hidden">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(friend); 
-                setDropdownOpen(false);
-              }}
-              className="w-full flex items-center cursor-pointer justify-center gap-2 px-4 py-3 text-gray-700 hover:text-white hover:bg-primary transition-all duration-300 font-medium rounded-xl"
-            >
-              <User size={16} className="text-primary group-hover:text-white" />
-              Details
-            </button>
+      <div className="relative shrink-0 z-10 pl-1">
+        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm ring-4 ring-base-200 transition-all duration-300 group-hover:ring-primary/10">
+          <img
+            src={friend.photoURL || "/avatar.png"}
+            alt={friend.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        </div>
+        
+        <div className={`absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border-2 border-base-100 transition-all duration-300
+          ${isOnline ? "bg-success text-success-content" : "bg-base-300 text-base-content/50"}`}>
+          <div className="flex items-center gap-1">
+            <span className={`w-1 h-1 rounded-full ${isOnline ? "bg-white animate-pulse" : "bg-gray-500"}`} />
+            {isOnline ? "Live" : "Off"}
           </div>
-        )}
+        </div>
       </div>
 
-     
-      <div className="flex flex-col items-center mt-6">
-        <img
-          src={friend.photoURL}
-          alt={friend.name}
-          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-        />
-        <h3 className="mt-3 font-semibold text-center text-gray-500">
-          {friend.name}
-        </h3>
+      <div className="flex-1 min-w-0 z-10">
+        <div className="flex flex-col mb-3">
+          <h3 className="font-bold text-[15px] text-base-content tracking-tight group-hover:text-primary transition-colors duration-300 truncate">
+            {friend.name}
+          </h3>
+          
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[11px] font-medium text-base-content/40 flex items-center gap-1.5">
+              <User size={12} className="text-primary/60" /> Suggested for you
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-2.5">
+          <button className="flex-[2.5] h-10 px-4 bg-primary text-primary-content hover:shadow-lg hover:shadow-primary/20 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 " onClick={handleAddFriend}>
+            <UserPlus size={14} strokeWidth={2.5} /> Add Friend
+          </button>
+          
+          <button className="flex-1 h-10 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all duration-300 flex items-center justify-center active:scale-95 group/msg">
+            <MessageSquare size={18} className="group-hover/msg:scale-110 transition-transform" />
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="relative overflow-hidden px-6 py-2.5 rounded-2xl btn btn-primary bg-primary group cursor-pointer"
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <Phone size={16} /> Call
-          </span>
-          <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-        </button>
-
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="relative overflow-hidden border btn btn-primary border-gray-200 flex items-center gap-2 px-2 py-2 bg-white rounded-2xl group cursor-pointer"
-        >
-          <span className="relative z-10 text-secondary group-hover:text-white transition-colors duration-300 flex items-center gap-2">
-            <MessageSquare size={20} /> Chat
-          </span>
-          <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-        </button>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity" />
     </div>
   );
 };

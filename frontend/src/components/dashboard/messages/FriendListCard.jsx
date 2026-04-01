@@ -1,88 +1,109 @@
+import { Phone, MessageSquare, UserX, User } from "lucide-react";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { useFriendStore } from "../../../store/useFriendsStore";
+import toast from "react-hot-toast";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Phone, MessageSquare, MoreVertical, User } from "lucide-react";
+const FriendListCard = ({ friend }) => {
+  const { onlineUsers } = useAuthStore();
+  const { unfriendUser } = useFriendStore();
 
-const FriendListCard = ({ friend, onSelect }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const toggleDropdown = (e) => {
-    e.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
-  };
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  return (
-    <div
-      className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl bg-base-200 shadow-sm hover:shadow-primary transition cursor-pointer"
-    >
-      <div className="flex items-center gap-4">
-        <img
-          src={friend.photoURL}
-          alt={friend.name}
-          className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
-        />
-        <div>
-          <h3 className="font-semibold text-gray-500">{friend.name}</h3>
-          <p className="text-sm text-primary font-medium">Friend</p>
-          <span
-            className={`text-xs ${
-              friend.isOnline ? "text-green-500" : "text-gray-400"
-            }`}
-          >
-            {friend.isOnline ? "Online" : "Offline"}
-          </span>
-        </div>
-      </div>
-      <div
-        className="flex w-full sm:w-auto flex-row gap-2 mt-2 sm:mt-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button className="flex-1 sm:flex-none relative overflow-hidden px-4 py-2.5 rounded-2xl btn btn-primary bg-primary group cursor-pointer flex items-center justify-center gap-2">
-          <span className="relative z-10 flex items-center gap-2">
-            <Phone size={16} /> Call
-          </span>
-          <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-        </button>
-        <button className="flex-1 sm:flex-none relative overflow-hidden border btn btn-primary border-gray-200 flex items-center justify-center gap-2 px-4 py-2.5 bg-white rounded-2xl group cursor-pointer">
-          <span className="relative z-10 text-secondary group-hover:text-white transition-colors duration-300 flex items-center gap-2">
-            <MessageSquare size={18} /> Chat
-          </span>
-          <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out rounded-2xl"></span>
-        </button>
-      </div>
-
-      <div className="absolute top-3 right-3" ref={dropdownRef}>
-        <button
-          onClick={toggleDropdown}
-          className="text-gray-500 cursor-pointer hover:text-gray-700"
-        >
-          <MoreVertical size={16} />
-        </button>
-
-        {dropdownOpen && (
-          <div className="absolute right-18 -m-12 w-44 bg-white shadow-xl rounded-xl border border-gray-200 z-50 overflow-hidden">
+  const isOnline = onlineUsers.includes(friend._id);
+  const handleUnfriendClick = () => {
+    const toastId = toast.custom(
+      (t) => (
+        <div className={`bg-base-100 border border-base-300 shadow-2xl rounded-2xl p-5 w-[320px] flex flex-col gap-4 transition-all ${
+          t.visible ? "animate-enter" : "animate-leave"
+        }`}>
+          <div className="flex flex-col gap-1">
+            <span className="text-base-content font-semibold text-sm">
+              Remove Friend?
+            </span>
+            <span className="text-base-content/60 text-xs">
+              Are you sure you want to unfriend <span className="font-bold text-primary">{friend.name}</span>?
+            </span>
+          </div>
+          <div className="flex justify-end gap-2">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(friend); 
-                setDropdownOpen(false);
-              }}
-              className="w-full flex items-center cursor-pointer justify-center gap-1 px-1 py-1 text-gray-700 hover:text-white hover:bg-primary transition-all duration-300 font-medium rounded-xl"
+              className="px-4 py-2 text-xs font-bold rounded-xl hover:bg-base-200 transition"
+              onClick={() => toast.dismiss(toastId)}
             >
-              <User size={16} className="text-primary group-hover:text-white" />
-              Details
+              Cancel
+            </button>
+            <button
+              className="bg-error text-error-content px-4 py-2 text-xs font-bold rounded-xl hover:opacity-90 transition"
+              onClick={async () => {
+                await unfriendUser(friend._id);
+                toast.success(`${friend.name} removed`);
+                toast.dismiss(toastId);
+              }}
+            >
+              Yes, Unfriend
             </button>
           </div>
-        )}
+        </div>
+      ),
+      { position: "top-center" }
+    );
+  };
+
+  
+
+  return (
+    <div className="group relative flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-base-100 border border-base-300 rounded-2xl 
+      transition-all duration-300 hover:shadow-md hover:border-primary/30 gap-4">
+      
+    
+      <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="relative shrink-0">
+          <img
+            src={friend.photoURL || "/avatar.png"}
+            alt={friend.name}
+            className="w-12 h-12 rounded-xl object-cover ring-2 ring-base-200"
+          />
+              <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-base-100
+            ${isOnline ? "bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-base-300"}`} 
+          />
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          <h3 className="font-bold text-[15px] text-base-content leading-tight truncate">
+            {friend.name}
+          </h3>
+          
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-1 text-base-content/40 shrink-0">
+              <User size={12} className="text-primary/70" />
+              <span className="text-[11px] font-medium">Friend</span>
+            </div>
+            
+            <div className="w-1 h-1 bg-base-300 rounded-full shrink-0" />
+
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0
+              ${isOnline ? "text-success bg-success/10" : "text-base-content/30 bg-base-200"}`}>
+              {isOnline ? "Online" : "Offline"}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto pt-2 md:pt-0 border-t md:border-none border-base-200">        
+        <div className="flex items-center gap-1 bg-base-200/50 p-1 rounded-xl border border-base-300/30">
+          <button className="p-2.5 md:p-2 hover:bg-primary hover:text-primary-content text-primary rounded-lg transition-all active:scale-95" title="Message">
+            <MessageSquare size={18} />
+          </button>
+          <button className="p-2.5 md:p-2 hover:bg-primary hover:text-primary-content text-primary rounded-lg transition-all active:scale-95" title="Call">
+            <Phone size={18} />
+          </button>
+        </div>
+        <button 
+          onClick={handleUnfriendClick}
+          className="group/unfriend flex items-center justify-center gap-2 md:gap-0 md:hover:gap-2 px-4 md:px-3 py-2.5 md:py-2 overflow-hidden
+            bg-error/10 md:bg-error/5 hover:bg-error text-error hover:text-error-content rounded-xl transition-all duration-500 ease-in-out flex-1 md:flex-none"
+        >
+          <UserX size={18} className="shrink-0" />
+          <span className="md:max-w-0 md:group-hover/unfriend:max-w-[80px] transition-all duration-500 overflow-hidden text-[12px] font-bold whitespace-nowrap">
+            Unfriend
+          </span>
+        </button>
       </div>
     </div>
   );
