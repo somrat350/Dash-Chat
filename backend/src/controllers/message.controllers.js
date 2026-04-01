@@ -317,6 +317,10 @@ export const addReaction = async (req, res) => {
     }
 
     // Realtime emit to user rooms to support multiple sockets per user.
+    console.log(`📤 Emitting reactionUpdated for message ${msgId} to users:`, {
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+    });
     io.to(getUserRoomName(message.receiverId)).emit("reactionUpdated", message);
     io.to(getUserRoomName(message.senderId)).emit("reactionUpdated", message);
 
@@ -351,6 +355,10 @@ export const removeReaction = async (req, res) => {
       msgId,
       { $unset: { reaction: 1, reactionBy: 1 } },
       { new: true },
+    );
+
+    console.log(
+      `📤 Emitting reactionUpdated after removal for message ${msgId}`,
     );
 
     io.to(getUserRoomName(updatedMessage.receiverId)).emit(
