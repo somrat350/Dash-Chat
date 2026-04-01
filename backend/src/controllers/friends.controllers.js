@@ -325,14 +325,38 @@ export const respondFriendRequest = async (req, res) => {
 // notification
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({
-      receiver: req.user._id,
-    })
-      .populate("sender", "name photoURL")
-      .sort({ createdAt: -1 });
+    const userId = req.user._id;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(notifications);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [notifications, totalCount, unreadCount, todayCount] =
+      await Promise.all([
+        Notification.find({ receiver: userId })
+          .populate("sender", "name photoURL")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+
+        Notification.countDocuments({ receiver: userId }),
+        Notification.countDocuments({ receiver: userId, isRead: false }),
+        Notification.countDocuments({
+          receiver: userId,
+          createdAt: { $gte: startOfToday },
+        }),
+      ]);
+
+    res.status(200).json({
+      notifications,
+      totalCount,
+      unreadCount,
+      todayCount,
+    });
   } catch (error) {
+    console.error("Error fetching notifications:", error);
     res.status(500).json({ message: "Failed to load notifications" });
   }
 };

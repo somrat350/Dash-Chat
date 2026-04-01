@@ -1,7 +1,7 @@
 import { UserPlus, MessageCircle, CheckCircle } from "lucide-react";
-import { useFriendStore } from "../../../store/useFriendsStore";
 import { useNotificationStore } from "../../../store/useNotificationStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 
 const iconMap = {
   friend_request: <UserPlus size={14} className="text-primary" />,
@@ -12,9 +12,9 @@ const iconMap = {
 };
 
 const NotificationsCard = ({ notification }) => {
-  const { friendRequestAction } = useFriendStore();
   const { markNotificationAsRead } = useNotificationStore();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const n = notification;
 
   const formatNotificationTime = (dateValue) => {
@@ -38,25 +38,38 @@ const NotificationsCard = ({ notification }) => {
     });
   };
 
-  const markRead = async () => {
+  const markRead = async (e) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (n.isRead) return;
     await markNotificationAsRead(n._id);
-    queryClient.setQueryData(["notifications"], (old = []) =>
-      old.map((item) =>
-        item._id === n._id ? { ...item, isRead: true } : item,
-      ),
-    );
+
+    // Update the infinite query cache structure
+    queryClient.setQueryData(["notifications"], (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        pages: oldData.pages.map((page) =>
+          page.map((item) =>
+            item._id === n._id ? { ...item, isRead: true } : item,
+          ),
+        ),
+      };
+    });
   };
 
-  const handleFriendAction = async (action) => {
-    const data = await friendRequestAction(n._id, action);
-    queryClient.setQueryData(["notifications"], (old = []) =>
-      old.map((item) => (item._id === n._id ? data : item)),
-    );
+  const handleClick = async () => {
+    if (n.type === "friend_request") {
+      await markRead();
+      navigate("/dashboard/friends");
+      return;
+    }
   };
 
   return (
     <div
+      onClick={handleClick}
       className={`cursor-pointer flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:bg-base-100 hover:translate-x-1
         ${
           n.isRead
@@ -89,23 +102,6 @@ const NotificationsCard = ({ notification }) => {
 
       {/* friend request actions */}
       <div className="flex gap-2">
-        {n.type === "friend_request" && (
-          <>
-            <button
-              onClick={() => handleFriendAction("accepted")}
-              className="btn btn-xs btn-primary"
-            >
-              Accept
-            </button>
-
-            <button
-              onClick={() => handleFriendAction("rejected")}
-              className="btn btn-xs btn-warning"
-            >
-              Reject
-            </button>
-          </>
-        )}
         {!n.isRead && (
           <button onClick={markRead} className="btn btn-xs btn-info">
             Mark as read
