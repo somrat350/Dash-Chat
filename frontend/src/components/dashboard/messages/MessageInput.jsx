@@ -26,8 +26,9 @@ const MessageInput = () => {
   const [audioUrl, setAudioUrl] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [mediaStream, setMediaStream] = useState(null); // <-- add mediaStream state
-  // audioChunks state-এর বদলে ref ব্যবহার
+  const [mediaStream, setMediaStream] = useState(null);
+  const [isAttachmentLoading, setIsAttachmentLoading] = useState(false);
+  const [attachmentProgress, setAttachmentProgress] = useState(0);
   const audioChunksRef = useRef([]);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -122,19 +123,50 @@ const MessageInput = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
 
+    setIsAttachmentLoading(true);
+    setAttachmentProgress(0);
+
     const reader = new FileReader();
-    reader.onload = () => setImagePreview(reader.result);
+    reader.onloadstart = () => setAttachmentProgress(10);
+    reader.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      const percent = Math.max(
+        10,
+        Math.min(70, Math.round((event.loaded / event.total) * 70)),
+      );
+      setAttachmentProgress(percent);
+    };
+    reader.onload = () => {
+      setImagePreview(reader.result);
+      setAttachmentProgress(100);
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+      setAttachmentProgress(0);
+      setIsAttachmentLoading(false);
+    };
+    reader.onloadend = () => {
+      setTimeout(() => {
+        setIsAttachmentLoading(false);
+        setAttachmentProgress(0);
+      }, 250);
+    };
     reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
     setImagePreview(null);
+    setIsAttachmentLoading(false);
+    setAttachmentProgress(0);
     if (textareaRef.current) textareaRef.current.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const uploadImage = async (userImage) => {
@@ -142,7 +174,16 @@ const MessageInput = () => {
     const base64 = userImage.split(",")[1];
     formData.append("image", base64);
     const imgApiUrl = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMG_BB_API}`;
-    const res = await axios.post(imgApiUrl, formData);
+    const res = await axios.post(imgApiUrl, formData, {
+      onUploadProgress: (event) => {
+        if (!event.total) {
+          setAttachmentProgress(85);
+          return;
+        }
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setAttachmentProgress(Math.min(100, percent));
+      },
+    });
     return res.data.data.url;
   };
 
@@ -158,7 +199,16 @@ const MessageInput = () => {
     let audio = "";
 
     if (imagePreview) {
-      image = await uploadImage(imagePreview);
+      setIsAttachmentLoading(true);
+      setAttachmentProgress(0);
+      try {
+        image = await uploadImage(imagePreview);
+      } catch {
+        toast.error("Image upload failed");
+        setIsAttachmentLoading(false);
+        setAttachmentProgress(0);
+        return;
+      }
     }
 
     if (audioBlob) {
@@ -168,7 +218,7 @@ const MessageInput = () => {
       audio = audioUrl;
     }
 
-    sendMessage({
+    await sendMessage({
       text: text.trim(),
       image,
       audio,
@@ -179,7 +229,9 @@ const MessageInput = () => {
     setImagePreview(null);
     setAudioBlob(null);
     setAudioUrl("");
-    setAudioChunks([]);
+    audioChunksRef.current = [];
+    setIsAttachmentLoading(false);
+    setAttachmentProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -209,7 +261,7 @@ const MessageInput = () => {
       };
       recorder.start();
       setIsRecording(true);
-    } catch (err) {
+    } catch {
       toast.error("Microphone access denied");
     }
   };
@@ -244,22 +296,40 @@ const MessageInput = () => {
 
   return (
     <>
-      <div className="self-end p-4 bg-base-200 w-full">
-        {imagePreview && (
+      <div className="self-end p-4 bg-base-200 w-full relative">
+        {(imagePreview || isAttachmentLoading) && (
           <div className="w-full mb-3 flex items-center">
             <div className="relative">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-20 h-20 object-cover rounded-lg border border-slate-700"
-              />
-              <button
-                onClick={removeImage}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700 cursor-pointer"
-                type="button"
-              >
-                <XIcon className="w-4 h-4" />
-              </button>
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover rounded-lg border border-slate-700"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-lg border border-slate-700 bg-base-300" />
+              )}
+
+              {isAttachmentLoading && (
+                <div className="absolute inset-0 rounded-lg bg-black/45 flex flex-col items-center justify-center gap-1 text-white">
+                  <span className="loading loading-spinner loading-sm" />
+                  <span className="text-[10px] font-medium">
+                    {attachmentProgress > 0
+                      ? `${attachmentProgress}%`
+                      : "Buffering..."}
+                  </span>
+                </div>
+              )}
+
+              {!isAttachmentLoading && imagePreview && (
+                <button
+                  onClick={removeImage}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700 cursor-pointer"
+                  type="button"
+                >
+                  <XIcon className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -371,7 +441,7 @@ const MessageInput = () => {
                 <Mic />
               </button>
             )
-          ) : isMessageSending ? (
+          ) : isMessageSending || isAttachmentLoading ? (
             <span className="loading loading-spinner loading-xl"></span>
           ) : (
             <button
@@ -384,7 +454,10 @@ const MessageInput = () => {
         </div>
 
         {showEmoji && (
-          <div ref={emojiRef} className="absolute bottom-full left-0 mb-2 z-40">
+          <div
+            ref={emojiRef}
+            className="absolute bottom-[calc(100%+8px)] left-4 z-50"
+          >
             <EmojiPicker onEmojiClick={onEmojiClick} />
           </div>
         )}

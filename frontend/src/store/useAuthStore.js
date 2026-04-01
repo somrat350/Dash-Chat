@@ -70,15 +70,20 @@ export const useAuthStore = create((set, get) => ({
   loginWithGoogle: async (code) => {
     set({ userLoading: true });
     try {
+      const encodedCode = encodeURIComponent(code || "");
       const res = await axiosInstance.get(
-        `/api/auth/loginWithGoogle?code=${code}`,
+        `/api/auth/loginWithGoogle?code=${encodedCode}`,
       );
       set({ authUser: res.data });
       toast.success("Logged in successful!");
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      toast.error("Google login failed.");
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Google login failed.";
+      toast.error(errorMessage);
       console.error("Google login error:", error);
     } finally {
       set({ userLoading: false });

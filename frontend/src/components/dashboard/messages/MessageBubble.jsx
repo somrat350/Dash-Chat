@@ -6,11 +6,15 @@ import {
   Plus,
   Smile,
   Video,
+  Check,
+  CheckCheck,
+  CornerUpRight,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { useMessageBubbleStore } from "../../../store/useMessageBubbleStore";
 import DropdownMenu from "./DropdownMenu";
+import ForwardMessageModal from "./ForwardMessageModal";
 
 const quickEmojis = ["👍", "❤️", "😀", "😭", "🙏", "👎", "😡"];
 
@@ -39,9 +43,14 @@ const AudioMessage = ({ src, createdAt, renderMessageStatusTick }) => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-1 mt-2">
+    <div className="flex flex-col items-start gap-1 mt-2 w-full">
       <div className="w-full flex items-center gap-2">
-        <audio controls src={src} ref={audioRef} className="w-40" />
+        <audio
+          controls
+          src={src}
+          ref={audioRef}
+          className="w-full max-w-40 sm:max-w-48"
+        />
         <Waveform
           barCount={24}
           color="#00f0ff"
@@ -51,7 +60,7 @@ const AudioMessage = ({ src, createdAt, renderMessageStatusTick }) => {
         />
       </div>
 
-      <p className="text-[10px] opacity-60 flex items-center gap-0.5">
+      <p className="text-[10px] opacity-60 flex items-center gap-0.5 self-end">
         {new Date(createdAt).toLocaleTimeString(undefined, {
           hour: "2-digit",
           minute: "2-digit",
@@ -76,6 +85,7 @@ const MessageBubble = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
   const longPressTimer = useRef(null);
 
   const isMobile =
@@ -128,9 +138,13 @@ const MessageBubble = ({
   }, [showActions, isMobile]);
 
   const renderMessageStatusTick = () => {
-    if (msg.deliveryStatus === "read") return "✔✔";
-    if (msg.deliveryStatus === "delivered") return "✔✔";
-    return "✔";
+    if (msg.deliveryStatus === "seen") {
+      return <CheckCheck size={14} className="text-blue-400" strokeWidth={3} />; // Blue double tick - message seen/read
+    }
+    if (msg.deliveryStatus === "delivered") {
+      return <CheckCheck size={14} className="text-gray-400" strokeWidth={3} />; // Gray double tick - message delivered (recipient online)
+    }
+    return <Check size={14} className="text-gray-400" strokeWidth={3} />; // Single tick - message sent (recipient offline)
   };
 
   const handleQuickReaction = (emoji) => {
@@ -148,7 +162,7 @@ const MessageBubble = ({
       onTouchEnd={handleTouchEnd}
     >
       <div
-        className={`chat-bubble relative px-3 py-1.5 max-w-[85%] break-words ${messageShapeClass} ${
+        className={`chat-bubble relative px-2.5 sm:px-3 py-1.5 max-w-[92vw] sm:max-w-[85%] break-words ${messageShapeClass} ${
           isMe ? "bg-slate-800 text-white" : "bg-slate-500 text-white"
         }`}
       >
@@ -170,9 +184,7 @@ const MessageBubble = ({
 
         {/* Actions */}
         <div
-          className={`absolute gap-2 top-2 ${
-            isMe ? "-left-20" : "-right-20"
-          } ${
+          className={`absolute gap-1.5 sm:gap-2 top-1.5 sm:top-2 ${isMe ? "-left-16 sm:-left-20" : "-right-16 sm:-right-20"} ${
             isMobile
               ? showActions
                 ? "flex"
@@ -185,7 +197,7 @@ const MessageBubble = ({
               setIsMenuOpen(!isMenuOpen);
               setIsOpen(null);
             }}
-            className="btn btn-sm btn-circle"
+            className="btn btn-xs sm:btn-sm btn-circle"
           >
             <EllipsisVertical />
           </button>
@@ -196,13 +208,14 @@ const MessageBubble = ({
               isMe={isMe}
               isDeleted={isDeleted}
               onClose={() => setIsMenuOpen(false)}
+              onForward={() => setShowForwardModal(true)}
             />
           )}
 
           {!isDeleted && (
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="btn btn-sm btn-circle"
+              className="btn btn-xs sm:btn-sm btn-circle"
             >
               <Smile />
             </button>
@@ -215,10 +228,14 @@ const MessageBubble = ({
             <p className="font-bold text-primary">
               {msg.replyTo.senderId === authUser._id ? "You" : "Them"}
             </p>
-            <p className="truncate italic">
-              {msg.replyTo.text || "📷 Image"}
-            </p>
+            <p className="truncate italic">{msg.replyTo.text || "📷 Image"}</p>
           </div>
+        )}
+
+        {msg.forwarded && (
+          <p className="mb-1 flex items-center gap-1 text-[10px] italic opacity-70">
+            <CornerUpRight size={11} /> Forwarded
+          </p>
         )}
 
         {/* Image */}
@@ -226,7 +243,7 @@ const MessageBubble = ({
           <img
             src={msg.image}
             alt="Shared"
-            className="rounded-lg h-48 object-cover"
+            className="rounded-lg w-full max-w-64 sm:max-w-72 h-auto max-h-56 object-cover"
           />
         )}
 
@@ -238,7 +255,7 @@ const MessageBubble = ({
             renderMessageStatusTick={renderMessageStatusTick}
           />
         ) : isCallMessage ? (
-          <div className="mt-2 min-w-52">
+          <div className="mt-2 min-w-0 w-full sm:min-w-52">
             <div className="flex items-center gap-2 font-semibold">
               {callStatus === "missed" ? (
                 <PhoneMissed size={16} />
@@ -254,21 +271,23 @@ const MessageBubble = ({
               {callStatus === "missed"
                 ? "Missed call"
                 : callStatus === "rejected"
-                ? "Call declined"
-                : callStatus === "cancelled"
-                ? "Call cancelled"
-                : callStatus === "failed"
-                ? "Call disconnected"
-                : "Call ended"}
+                  ? "Call declined"
+                  : callStatus === "cancelled"
+                    ? "Call cancelled"
+                    : callStatus === "failed"
+                      ? "Call disconnected"
+                      : "Call ended"}
             </p>
           </div>
         ) : (
-          <div className="mt-1 flex items-end gap-1">
-            <p className="break-words whitespace-pre-wrap flex-1">
+          <div className="mt-1 flex items-end gap-1.5 min-w-0">
+            <p
+              className={`break-words whitespace-pre-wrap flex-1 ${msg.status === "hide" ? "opacity-50 italic" : ""}`}
+            >
               {msg.status === "hide" ? deletedLabel : msg.text}
             </p>
 
-            <p className="text-[10px] opacity-60">
+            <p className="text-[10px] opacity-60 flex items-center gap-0.5 whitespace-nowrap flex-shrink-0">
               {new Date(msg.createdAt).toLocaleTimeString(undefined, {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -278,7 +297,57 @@ const MessageBubble = ({
             </p>
           </div>
         )}
+
+        {/* Emoji Picker Popup */}
+        {isOpen && !isDeleted && (
+          <div
+            className={`absolute top-full mt-2 z-50 bg-base-200 rounded-lg shadow-lg w-[min(92vw,320px)] ${isMe ? "right-0" : "left-0"}`}
+          >
+            {/* Quick Emojis */}
+            <div className="flex gap-1 p-2 border-b border-base-300">
+              {quickEmojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    handleQuickReaction(emoji);
+                    setIsOpen(false);
+                  }}
+                  className="text-xl p-2 hover:bg-base-300 rounded-lg transition-colors"
+                >
+                  {emoji}
+                </button>
+              ))}
+              <button
+                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                className="btn btn-ghost btn-xs sm:btn-sm btn-circle text-lg"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {/* Full Emoji Picker */}
+            {isEmojiPickerOpen && (
+              <div className="p-2">
+                <EmojiPicker
+                  onEmojiClick={handleCustomReaction}
+                  autoFocusSearch={false}
+                  height={300}
+                  width={"100%"}
+                  theme="dark"
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {showForwardModal && (
+        <ForwardMessageModal
+          message={msg}
+          authUserId={authUser?._id}
+          onClose={() => setShowForwardModal(false)}
+        />
+      )}
     </div>
   );
 };
