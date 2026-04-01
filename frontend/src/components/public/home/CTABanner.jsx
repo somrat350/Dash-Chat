@@ -46,14 +46,16 @@ const CTABanner = () => {
 
       // Glow animations - dual layer pulse
       gsap.to("[data-cta-glow]:first-of-type", {
-        opacity: gsap.utils.unitize(0.8),
+        // opacity: gsap.utils.unitize(0.8),
+        opacity: 0.8,
         duration: 3,
         repeat: -1,
         yoyo: true,
       });
 
       gsap.to("[data-cta-glow]:last-of-type", {
-        opacity: gsap.utils.unitize(0.7),
+        // opacity: gsap.utils.unitize(0.7),
+        opacity: 0.7,
         duration: 2.5,
         repeat: -1,
         yoyo: true,

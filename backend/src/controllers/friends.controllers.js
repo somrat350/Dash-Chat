@@ -29,19 +29,32 @@ export const sendRequest = async (req, res) => {
         .json({ message: "You can't send friend request to yourself" });
     }
 
+    // check if user is already friends
+    if (req.user.friends.includes(receiverId)) {
+      return res
+        .status(400)
+        .json({ message: "You are already friends with this user" });
+    }
+
+    // checking existing request
+    const existingRequest = await FriendRequest.findOne({
+      $or: [
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId },
+      ],
+    });
+    if (existingRequest) {
+      return res.status(400).json({
+        message: "Request already exist.",
+      });
+    }
+
     //checking existing user
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({
         message: "User Not Available.",
       });
-    }
-
-    // check if user is already friends
-    if (receiver.friends.includes(senderId)) {
-      return res
-        .status(400)
-        .json({ message: "You are already friends with this user" });
     }
 
     const friendRequest = await FriendRequest.create({
@@ -77,8 +90,9 @@ export const sendRequest = async (req, res) => {
 
 export const updateRequest = async (req, res) => {
   try {
-    const { userId, friendId, action } = req.body;
-    if (action === "delete") {
+    const userId = req.user._id;
+    const { friendId, action } = req.body;
+    if (action === "unfriend") {
       await Promise.all([
         User.findByIdAndUpdate(userId, {
           $pull: { friends: friendId },
@@ -87,12 +101,24 @@ export const updateRequest = async (req, res) => {
           $pull: { friends: userId },
         }),
       ]);
-      await Notification.create({
+      const notification = await Notification.create({
         sender: userId,
         receiver: friendId,
         type: "unfriend",
         message: "unfriended you",
       });
+
+      // 🔥 populate sender info
+      const fullNotification = await notification.populate(
+        "sender",
+        "name photoURL",
+      );
+
+      // 🔥 REAL-TIME SEND
+      io.to(getUserRoomName(friendId)).emit(
+        "newNotification",
+        fullNotification,
+      );
 
       return res.status(200).json({ message: "Unfriended successfully" });
     }
@@ -250,16 +276,8 @@ export const respondFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Invalid action" });
     }
 
-    // Find notification
-    const notification = await Notification.findById(requestId);
-    if (!notification)
-      return res.status(404).json({ message: "Notification not found" });
-
     // Find friend request
-    const request = await FriendRequest.findOne({
-      sender: notification.sender,
-      receiver: notification.receiver,
-    });
+    const request = await FriendRequest.findById(requestId);
 
     if (!request)
       return res.status(404).json({ message: "Friend request not found" });
@@ -281,16 +299,6 @@ export const respondFriendRequest = async (req, res) => {
         }),
       ]);
     }
-
-    // Update OLD notification (receiver side)
-    notification.isRead = true;
-    notification.type = action;
-    notification.message =
-      action === "accepted" ? "is now your friend." : "request rejected.";
-
-    const updatedNotification = await notification
-      .save()
-      .then((n) => n.populate("sender", "name photoURL"));
 
     // Create NEW notification for sender
     const newNotification = await Notification.create({
@@ -315,7 +323,7 @@ export const respondFriendRequest = async (req, res) => {
     );
 
     // Send updated notification back to receiver UI
-    return res.status(200).json(updatedNotification);
+    return res.status(200).json({ message: "Success." });
   } catch (error) {
     console.error("Respond Friend Request Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -325,14 +333,38 @@ export const respondFriendRequest = async (req, res) => {
 // notification
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({
-      receiver: req.user._id,
-    })
-      .populate("sender", "name photoURL")
-      .sort({ createdAt: -1 });
+    const userId = req.user._id;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(notifications);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [notifications, totalCount, unreadCount, todayCount] =
+      await Promise.all([
+        Notification.find({ receiver: userId })
+          .populate("sender", "name photoURL")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+
+        Notification.countDocuments({ receiver: userId }),
+        Notification.countDocuments({ receiver: userId, isRead: false }),
+        Notification.countDocuments({
+          receiver: userId,
+          createdAt: { $gte: startOfToday },
+        }),
+      ]);
+
+    res.status(200).json({
+      notifications,
+      totalCount,
+      unreadCount,
+      todayCount,
+    });
   } catch (error) {
+    console.error("Error fetching notifications:", error);
     res.status(500).json({ message: "Failed to load notifications" });
   }
 };
