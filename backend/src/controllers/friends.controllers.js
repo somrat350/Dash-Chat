@@ -250,16 +250,8 @@ export const respondFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Invalid action" });
     }
 
-    // Find notification
-    const notification = await Notification.findById(requestId);
-    if (!notification)
-      return res.status(404).json({ message: "Notification not found" });
-
     // Find friend request
-    const request = await FriendRequest.findOne({
-      sender: notification.sender,
-      receiver: notification.receiver,
-    });
+    const request = await FriendRequest.findById(requestId);
 
     if (!request)
       return res.status(404).json({ message: "Friend request not found" });
@@ -281,16 +273,6 @@ export const respondFriendRequest = async (req, res) => {
         }),
       ]);
     }
-
-    // Update OLD notification (receiver side)
-    notification.isRead = true;
-    notification.type = action;
-    notification.message =
-      action === "accepted" ? "is now your friend." : "request rejected.";
-
-    const updatedNotification = await notification
-      .save()
-      .then((n) => n.populate("sender", "name photoURL"));
 
     // Create NEW notification for sender
     const newNotification = await Notification.create({
@@ -315,7 +297,7 @@ export const respondFriendRequest = async (req, res) => {
     );
 
     // Send updated notification back to receiver UI
-    return res.status(200).json(updatedNotification);
+    return res.status(200).json({ message: "Success." });
   } catch (error) {
     console.error("Respond Friend Request Error:", error);
     res.status(500).json({ message: "Server error" });
