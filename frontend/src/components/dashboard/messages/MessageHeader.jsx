@@ -22,6 +22,8 @@ import { useMessageStore } from "../../../store/useMessageStore";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useCallStore } from "../../../store/useCallStore";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
+import { usePrivacyStore } from "../../../store/usePrivacyStore";
 
 const formatLastSeen = (lastSeenValue, currentTimeMs) => {
   if (!lastSeenValue) return "Offline";
@@ -61,7 +63,10 @@ const MessageHeader = ({
   searchQuery,
   setSearchQuery,
 }) => {
-  const { onlineUsers, authUser, typingUsers } = useAuthStore();
+  const { onlineUsers, authUser, typingUsers, } = useAuthStore();
+
+
+
   const {
     selectedPartner,
     setSelectedPartner,
@@ -74,6 +79,12 @@ const MessageHeader = ({
   const [presenceTick, setPresenceTick] = useState(0);
   const [isProfileInfoOpen, setIsProfileInfoOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const { blockUser, unblockUser, blockedUsers } =
+  usePrivacyStore();
+  const isPartnerBlocked = useMemo(() => {
+  if (!selectedPartner) return false;
+  return blockedUsers.some((user) => user._id === selectedPartner._id);
+}, [blockedUsers, selectedPartner]);
   const receiverId =
     selectedPartner?._id ||
     selectedPartner?.id ||
@@ -166,9 +177,45 @@ const MessageHeader = ({
     setConfirmAction("clear");
   };
 
-  const handleBlockUser = () => {
-    toast.error(`${partnerName} blocked`);
+
+  const handleBlockUser = async () => {
+    if (!selectedPartner) return;
+
+    const result = await Swal.fire({
+      title: `Block ${partnerName}?`,
+      text: "You will not be able to see or chat with this user.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, block",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      blockUser(selectedPartner); // Zustand state update
+      toast.success(`${partnerName} blocked`);
+    }
   };
+  const handleUnblockUser = async () => {
+  if (!selectedPartner) return;
+
+  const result = await Swal.fire({
+    title: `Unblock ${partnerName}?`,
+    text: "You will be able to see and chat with this user again.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, unblock",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+  });
+
+  if (result.isConfirmed) {
+    await unblockUser(selectedPartner); // Zustand + API call (store এ handle হবে)
+    toast.success(`${partnerName} unblocked`);
+  }
+};
 
   const handleReportUser = () => {
     toast.success(`Report submitted for ${partnerName}`);
@@ -328,12 +375,21 @@ const MessageHeader = ({
               </button>
             </li>
             <li>
-              <button
-                onClick={handleBlockUser}
-                className="btn btn-sm hover:bg-red-500/20 hover:text-red-500"
-              >
-                <Ban size={16} /> Block ({partnerName})
-              </button>
+              {isPartnerBlocked ? (
+                <button
+                  onClick={handleUnblockUser}
+                  className="btn btn-sm hover:bg-green-500/20 hover:text-green-500"
+                >
+                  <Ban size={16} /> Unblock ({partnerName})
+                </button>
+              ) : (
+                <button
+                  onClick={handleBlockUser}
+                  className="btn btn-sm hover:bg-red-500/20 hover:text-red-500"
+                >
+                  <Ban size={16} /> Block ({partnerName})
+                </button>
+              )}
             </li>
             <li>
               <button

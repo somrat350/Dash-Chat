@@ -27,6 +27,37 @@ const playMessageSound = (audio) => {
   audio.play().catch(() => {});
 };
 
+const canUseDesktopNotification = () =>
+  typeof window !== "undefined" &&
+  typeof Notification !== "undefined" &&
+  "Notification" in window &&
+  window.isSecureContext;
+
+const isPageBackgrounded = () => {
+  if (typeof document === "undefined") return false;
+  return document.hidden || !document.hasFocus();
+};
+
+const toIdString = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    if (value._id) return String(value._id);
+    if (value.id) return String(value.id);
+    if (typeof value.toString === "function") return String(value.toString());
+  }
+  return String(value);
+};
+
+const resolveNotificationAssetUrl = (assetPath) => {
+  if (typeof window === "undefined") return assetPath;
+  try {
+    return new URL(assetPath, window.location.origin).toString();
+  } catch {
+    return assetPath;
+  }
+};
+
 export const useMessageStore = create((set, get) => ({
   replyMessage: null,
   messagePartners: [],
@@ -43,6 +74,82 @@ export const useMessageStore = create((set, get) => ({
   selectedPartner: null,
   setSelectedPartner: (partner) => set({ selectedPartner: partner }),
   setMessages: (messages) => set({ messages }),
+
+  requestNotificationPermission: async () => {
+    if (!canUseDesktopNotification()) return "unsupported";
+    if (Notification.permission === "granted") return "granted";
+    if (Notification.permission === "denied") return "denied";
+
+    try {
+      const permission = await Notification.requestPermission();
+      return permission;
+    } catch (error) {
+      console.error("Notification permission request failed:", error);
+      return "default";
+    }
+  },
+
+  showIncomingDesktopNotification: (newMessage) => {
+    if (!canUseDesktopNotification()) return;
+    if (Notification.permission !== "granted") return;
+
+    const state = get();
+    const senderId = toIdString(newMessage?.senderId);
+
+    const selectedPartner = state.selectedPartner;
+    const selectedPartnerId = String(
+      selectedPartner?._id ||
+        selectedPartner?.id ||
+        selectedPartner?.userId ||
+        selectedPartner?.user?._id ||
+        "",
+    );
+
+    const partnerFromList = state.messagePartners.find(
+      (partner) => String(partner?.user?._id || "") === senderId,
+    );
+
+    const senderName =
+      String(newMessage?.senderName || "").trim() ||
+      (senderId && senderId === selectedPartnerId
+        ? selectedPartner?.name || selectedPartner?.user?.name
+        : null) ||
+      partnerFromList?.user?.name ||
+      "New message";
+
+    const senderPhoto =
+      (senderId && senderId === selectedPartnerId
+        ? selectedPartner?.photoURL || selectedPartner?.user?.photoURL
+        : null) ||
+      partnerFromList?.user?.photoURL ||
+      undefined;
+
+    let body = "Sent you a message";
+    if (newMessage?.text?.trim()) body = newMessage.text.trim();
+    else if (newMessage?.image) body = "📷 Image";
+    else if (newMessage?.audio) body = "🎤 Voice message";
+    else if (newMessage?.messageType === "call") body = "📞 Call update";
+
+    const appLogo = resolveNotificationAssetUrl("/DashChat-logo.png");
+
+    try {
+      const notification = new Notification("DashChat", {
+        body: `${senderName}: ${body}`,
+        icon: appLogo,
+        badge: appLogo,
+        image: senderPhoto,
+        tag: `message-${senderId || "unknown"}`,
+        renotify: true,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch (error) {
+      console.error("Desktop notification creation failed:", error);
+    }
+  },
 
   searchNewChatPartner: async (searchText) => {
     try {
@@ -147,17 +254,16 @@ export const useMessageStore = create((set, get) => ({
     socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
-      const authUserId = String(useAuthStore.getState().authUser?._id || "");
+      const authUserId = toIdString(useAuthStore.getState().authUser?._id);
       const currentSelectedPartner = get().selectedPartner;
-      const selectedPartnerId = String(
+      const selectedPartnerId = toIdString(
         currentSelectedPartner?._id ||
           currentSelectedPartner?.id ||
           currentSelectedPartner?.userId ||
-          currentSelectedPartner?.user?._id ||
-          "",
+          currentSelectedPartner?.user?._id,
       );
-      const senderId = String(newMessage.senderId || "");
-      const receiverId = String(newMessage.receiverId || "");
+      const senderId = toIdString(newMessage?.senderId);
+      const receiverId = toIdString(newMessage?.receiverId);
 
       const isCurrentChatMessage =
         !!selectedPartnerId &&
@@ -190,6 +296,12 @@ export const useMessageStore = create((set, get) => ({
 
       if (isIncomingForMe) {
         playMessageSound(incomingMessageSound);
+
+        const shouldShowDesktopNotification = true;
+
+        if (shouldShowDesktopNotification) {
+          get().showIncomingDesktopNotification(newMessage);
+        }
       }
     });
 
@@ -211,9 +323,10 @@ export const useMessageStore = create((set, get) => ({
     });
 
     socket.on("reactionUpdated", (updatedMsg) => {
+      console.log("🎉 Reaction Updated:", updatedMsg);
       set((state) => ({
         messages: state.messages.map((msg) =>
-          msg._id === updatedMsg._id ? updatedMsg : msg,
+          String(msg._id) === String(updatedMsg._id) ? updatedMsg : msg,
         ),
       }));
     });
@@ -341,23 +454,67 @@ export const useMessageStore = create((set, get) => ({
   setReplyMessage: (msg) => set({ replyMessage: msg }),
   clearReplyMessage: () => set({ replyMessage: null }),
 
-  //  forward
-  forwardMessage: async (message, receiverEmail) => {
+  // forward
+  forwardMessage: async (message, receiverIds) => {
     try {
+      const normalizedReceiverIds = Array.isArray(receiverIds)
+        ? receiverIds.map((id) => String(id || "").trim()).filter(Boolean)
+        : [String(receiverIds || "").trim()].filter(Boolean);
+
+      const uniqueReceiverIds = [...new Set(normalizedReceiverIds)];
+
+      if (uniqueReceiverIds.length === 0) {
+        toast.error("Please select a recipient");
+        return false;
+      }
+
       const messageData = {
-        text: message.text,
+        text: message?.text || null,
+        image: message?.image || null,
         forwarded: true,
-        originalSender: message.sender,
+        originalSender: message?.senderName || "",
       };
-      const res = await axiosSecure.post(
-        `/api/messages/send/${receiverEmail}`,
-        messageData,
+
+      if (!messageData.text && !messageData.image) {
+        toast.error("This message type cannot be forwarded yet");
+        return false;
+      }
+
+      const results = await Promise.allSettled(
+        uniqueReceiverIds.map((receiverId) =>
+          axiosSecure.post(`/api/messages/send/${receiverId}`, messageData),
+        ),
       );
-      set((state) => ({
-        messages: [...state.messages, res.data],
-      }));
+
+      const successCount = results.filter(
+        (result) => result.status === "fulfilled",
+      ).length;
+
+      if (successCount === 0) {
+        toast.error("Forward failed");
+        return false;
+      }
+
+      get().getMessagePartners();
+
+      if (successCount === uniqueReceiverIds.length) {
+        toast.success(
+          successCount > 1
+            ? `Message forwarded to ${successCount} recipients`
+            : "Message forwarded",
+        );
+      } else {
+        toast.success(`Message forwarded to ${successCount} recipients`);
+        toast.error(
+          `Failed for ${uniqueReceiverIds.length - successCount} recipients`,
+        );
+      }
+
+      return true;
     } catch (error) {
       console.error("Forward failed", error);
+      toast.error(error?.response?.data?.message || "Forward failed");
+      return false;
     }
   },
 }));

@@ -1,175 +1,177 @@
-import {
-  Search,
-  MoreVertical,
-  Info,
-  Check,
-  BellOff,
-  CircleX,
-  ArrowLeft,
-  Video,
-  Phone,
-} from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+// import {
+//   Search,
+//   MoreVertical,
+//   Info,
+//   Check,
+//   BellOff,
+//   CircleX,
+//   ArrowLeft,
+//   Video,
+//   Phone,
+// } from "lucide-react";
+// import { useState, useRef, useEffect } from "react";
 
-import ProfileDropdown from "./ProfileDropdown";
-import SearchDropdown from "./SearchDropdown";
-import { useMessageStore } from "../../../../../store/useMessageStore";
-import { useAuthStore } from "../../../../../store/useAuthStore";
-import { useCallStore } from "../../../../../store/useCallStore";
-import { useQueryClient } from "@tanstack/react-query";
+// import ProfileDropdown from "./ProfileDropdown";
+// import SearchDropdown from "./SearchDropdown";
+// import { useMessageStore } from "../../../../../store/useMessageStore";
+// import { useAuthStore } from "../../../../../store/useAuthStore";
+// import { useCallStore } from "../../../../../store/useCallStore";
+// import { useQueryClient } from "@tanstack/react-query";
 
-export default function ChatHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [search, setSearch] = useState(false);
-  const [openProfile, setOpenProfile] = useState(false);
-  const { selectedPartner, setSelectedPartner } = useMessageStore();
-  const { onlineUsers } = useAuthStore();
-  const { initiateCall } = useCallStore();
-  const queryClient = useQueryClient();
+// export default function ChatHeader() {
+//   const [menuOpen, setMenuOpen] = useState(false);
+//   const [search, setSearch] = useState(false);
+//   const [openProfile, setOpenProfile] = useState(false);
+//   const { selectedPartner, setSelectedPartner } = useMessageStore();
+//   const { onlineUsers } = useAuthStore();
+//   const { initiateCall } = useCallStore();
+//   const queryClient = useQueryClient();
 
-  const handleCall = async (type) => {
-    if (!selectedPartner?._id) return;
-    await initiateCall(selectedPartner._id, type);
-    queryClient.invalidateQueries({ queryKey: ["calls"] });
-  };
-  const isOnline = onlineUsers.includes(selectedPartner.email);
-  const menuRef = useRef(null);
+//   const handleCall = async (type) => {
+//     if (!selectedPartner?._id) return;
+//     await initiateCall(selectedPartner._id, type);
+//     queryClient.invalidateQueries({ queryKey: ["calls"] });
+//   };
+//   const isOnline = onlineUsers.includes(selectedPartner.email);
+//   const menuRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+//   useEffect(() => {
+//     function handleClickOutside(event) {
+//       if (menuRef.current && !menuRef.current.contains(event.target)) {
+//         setMenuOpen(false);
+//       }
+//     }
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, []);
 
-  const partnerName = selectedPartner?.name?.trim() || "Unknown User";
-  const nameWords = partnerName.split(/\s+/).filter(Boolean);
-  const displayPartnerName =
-    nameWords.length > 10 ? `${nameWords[0]}..` : partnerName;
+//   const partnerName = selectedPartner?.name?.trim() || "Unknown User";
+//   const nameWords = partnerName.split(/\s+/).filter(Boolean);
+//   const displayPartnerName =
+//     nameWords.length > 10 ? `${nameWords[0]}..` : partnerName;
 
-  return (
-    <>
-      <div
-        className={`sticky top-0 z-50 bg-white border-b border-primary/30 transition-all duration-300`}
-      >
-        <div className="flex items-center justify-between px-2 sm:px-4 py-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSelectedPartner(null)}
-              className="md:hidden hover:bg-primary/20 rounded-full p-1"
-              aria-label="Back to chat list"
-            >
-              <ArrowLeft />
-            </button>
+//   return (
+//     <>
+//       <div
+//         className={`sticky top-0 z-50 bg-white border-b border-primary/30 transition-all duration-300`}
+//       >
+//         <div className="flex items-center justify-between px-2 sm:px-4 py-3">
+//           <div className="flex items-center gap-2">
+//             <button
+//               onClick={() => setSelectedPartner(null)}
+//               className="md:hidden hover:bg-primary/20 rounded-full p-1"
+//               aria-label="Back to chat list"
+//             >
+//               <ArrowLeft />
+//             </button>
 
-            <div
-              onClick={() => setOpenProfile(true)}
-              className="flex items-center gap-3 cursor-pointer mr-5"
-            >
-              <img
-                src={selectedPartner?.photoURL || "/default-avatar.jpg"}
-                alt="profile"
-                className="w-10 h-10 rounded-full"
-              />
-              <div className="flex flex-col">
-                <h2 className="font-medium text-gray-800 text-sm md:text-base lg:text-lg">
-                  {displayPartnerName}
-                </h2>
-                <span className="text-xs text-gray-500">
-                  {isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-          </div>
+//             <div
+//               onClick={() => setOpenProfile(true)}
+//               className="flex items-center gap-3 cursor-pointer mr-5"
+//             >
+//               <img
+//                 src={selectedPartner?.photoURL || "/default-avatar.jpg"}
+//                 alt="profile"
+//                 className="w-10 h-10 rounded-full"
+//               />
+//               <div className="flex flex-col">
+//                 <h2 className="font-medium text-gray-800 text-sm md:text-base lg:text-lg">
+//                   {displayPartnerName}
+//                 </h2>
+//                 <span className="text-xs text-gray-500">
+//                   {isOnline ? "Online" : "Offline"}
+//                 </span>
+//               </div>
+//             </div>
+//           </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-3 md:gap-4 lg:gap-5 relative">
-            <Video
-              onClick={() => handleCall("video")}
-              className="cursor-pointer text-gray-700 hover:text-primary transition"
-              size={20}
-            />
-            <Phone
-              onClick={() => handleCall("audio")}
-              className="cursor-pointer text-gray-700 hover:text-primary transition"
-              size={17}
-            />
+//           {/* Right side actions */}
+//           <div className="flex items-center gap-3 md:gap-4 lg:gap-5 relative">
+//             <Video
+//               onClick={() => handleCall("video")}
+//               className="cursor-pointer text-gray-700 hover:text-primary transition"
+//               size={20}
+//             />
+//             <Phone
+//               onClick={() => handleCall("audio")}
+//               className="cursor-pointer text-gray-700 hover:text-primary transition"
+//               size={17}
+//             />
 
-            <div className="hidden sm:block">
-              {/* <SearchDropdown search={search} setSearch={setSearch} /> */}
-            </div>
-            {/* <CallDropdown /> */}
+//             <div className="hidden sm:block">
+//               {/* <SearchDropdown search={search} setSearch={setSearch} /> */}
+//             </div>
+//             {/* <CallDropdown /> */}
 
-            <SearchDropdown search={search} setSearch={setSearch} />
+//             <SearchDropdown search={search} setSearch={setSearch} />
 
-            <Search
-              onClick={() => setSearch(!search)}
-              className="cursor-pointer text-gray-700 hidden sm:block"
-              size={20}
-            />
+//             <Search
+//               onClick={() => setSearch(!search)}
+//               className="cursor-pointer text-gray-700 hidden  sm:block"
+//               size={20}
+//             />
 
-            <div ref={menuRef} className="relative"></div>
+//             {/* <div ref={menuRef} className="relative"></div> */}
 
-            {/* More icon */}
-            <div ref={menuRef} className="relative">
-              <MoreVertical
-                className="cursor-pointer text-gray-700"
-                size={20}
-                onClick={() => setMenuOpen(!menuOpen)}
-              />
+//             {/* More icon */}
+//             <div ref={menuRef} className="relative">
+//               <MoreVertical
+//                 className="cursor-pointer text-gray-700"
+//                 size={20}
+//                 onClick={() => setMenuOpen(!menuOpen)}
+//               />
+//               {/* </div> */}
 
-              {/* Dropdown menu */}
-              {menuOpen && (
-                <div className="absolute right-0 mt-5 w-48 bg-white border border-primary rounded-lg shadow-lg z-50 overflow-hidden">
-                  <button
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    onClick={() => {
-                      setOpenProfile(true);
-                      setMenuOpen(false);
-                    }}
-                  >
-                    <div className="flex gap-2">
-                      <Info /> Contact Info
-                    </div>
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                    <div className="flex gap-2">
-                      <Check /> Select Messages
-                    </div>
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                    <div className="flex gap-2">
-                      <BellOff /> Mute Notification
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedPartner(null);
-                      setMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    <div className="flex gap-2">
-                      <CircleX /> Close chat
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+//               {/* Dropdown menu */}
+//               {menuOpen && (
+//                 <div className="absolute right-0 mt-5 w-48 bg-white border border-primary rounded-lg shadow-lg z-50 overflow-hidden">
+//                   <button
+//                     className="block w-full text-left px-4 py-2 hover:bg-gray-10"
+//                     onClick={() => {
+//                       setOpenProfile(true);
+//                       setMenuOpen(false);
+//                     }}
+//                   >
+//                     <div className="flex gap-2">
+//                       <Info /> Contact Info
+//                     </div>
+//                   </button>
+//                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+//                     <div className="flex gap-2">
+//                       <Check /> Select Messages
+//                     </div>
+//                   </button>
+//                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+//                     <div className="flex gap-2">
+//                       <BellOff /> Mute Notification
+//                     </div>
+//                   </button>
+//                   <button
+//                     onClick={() => {
+//                       setSelectedPartner(null);
+//                       setMenuOpen(false);
+//                     }}
+//                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+//                   >
+//                     <div className="flex gap-2">
+//                       <CircleX /> Close chat
+//                     </div>
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </div>
 
-        {/* Render ProfilePanel if openProfile is true */}
+//         {/* Render ProfilePanel if openProfile is true */}
 
-        <ProfileDropdown
-          openProfile={openProfile}
-          setOpenProfile={setOpenProfile}
-          user={selectedPartner}
-        />
-      </div>
-    </>
-  );
-}
+//         <ProfileDropdown
+//           openProfile={openProfile}
+//           setOpenProfile={setOpenProfile}
+//           user={selectedPartner}
+//         />
+//       </div>
+//     </>
+//   );
+// }
+

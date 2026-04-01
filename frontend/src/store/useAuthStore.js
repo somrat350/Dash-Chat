@@ -70,46 +70,26 @@ export const useAuthStore = create((set, get) => ({
   loginWithGoogle: async (code) => {
     set({ userLoading: true });
     try {
+      const encodedCode = encodeURIComponent(code || "");
       const res = await axiosInstance.get(
-        `/api/auth/loginWithGoogle?code=${code}`,
+        `/api/auth/loginWithGoogle?code=${encodedCode}`,
       );
       set({ authUser: res.data });
       toast.success("Logged in successful!");
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      toast.error("Google login failed.");
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Google login failed.";
+      toast.error(errorMessage);
       console.error("Google login error:", error);
     } finally {
       set({ userLoading: false });
     }
   },
-  
-    loginWithGithub: async (code) => {
-  set({ userLoading: true });
-
-  try {
-    const res = await axiosInstance.get(
-      `/api/auth/loginWithGithub?code=${code}`
-    );
-
-    set({ authUser: res.data });
-
-    toast.success("GitHub login successful!");
-    get().connectSocket();
-
-    return true; 
-  } catch (error) {
-    console.error("GitHub login error:", error);
-    if (!get().authUser) {
-      toast.error("GitHub login failed");
-    }
-
-    return false;
-  } finally {
-    set({ userLoading: false });
-  }
-},
+  loginWithGithub: async () => {},
   logoutUser: async () => {
     try {
       const result = await Swal.fire({
@@ -167,35 +147,31 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
-     
+
     socket.on("getOnlineUsers", (userIds) => {
-  set({ onlineUsers: userIds });
-});
+      set({ onlineUsers: userIds });
+    });
 
-//  notifiction 
-socket.off("newNotification"); 
+    //  notifiction
+    socket.off("newNotification");
 
-socket.on("newNotification", (data) => {
-  const { notifications } = useFriendStore.getState();
+    socket.on("newNotification", (data) => {
+      const { notifications } = useFriendStore.getState();
 
-  const formatted = {
-    id: data._id,
-    type: data.type === "friend_request" ? "friend" : data.type,
-    name: data.sender.name,
-    avatar: data.sender.photoURL,
-    message: data.message,
-    unread: true,
-    showActions: data.type === "friend_request",
-  };
+      const formatted = {
+        id: data._id,
+        type: data.type === "friend_request" ? "friend" : data.type,
+        name: data.sender.name,
+        avatar: data.sender.photoURL,
+        message: data.message,
+        unread: true,
+        showActions: data.type === "friend_request",
+      };
 
-  useFriendStore.setState({
-    notifications: [formatted, ...notifications],
-  });
-
- 
-});
-
-
+      useFriendStore.setState({
+        notifications: [formatted, ...notifications],
+      });
+    });
 
     socket.on("incomingCall", (callPayload) => {
       set({ incomingCall: callPayload });
