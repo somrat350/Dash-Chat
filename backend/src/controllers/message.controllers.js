@@ -206,8 +206,13 @@ export const sendMessage = async (req, res) => {
     const { userId: receiverId } = req.params;
 
     const isCallMessage = messageType === "call";
+    // Handle audio file
+    let audioPath = null;
+    if (req.file) {
+      audioPath = `/uploads/audio/${req.file.filename}`;
+    }
 
-    if (!text && !image && !isCallMessage) {
+    if (!text && !image && !audioPath && !isCallMessage) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
@@ -216,7 +221,8 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: text || null,
       image: image || null,
-      messageType: isCallMessage ? "call" : "text",
+      audio: audioPath,
+      messageType: isCallMessage ? "call" : audioPath ? "audio" : "text",
       callData: isCallMessage ? callData || {} : undefined,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
@@ -311,6 +317,10 @@ export const addReaction = async (req, res) => {
     }
 
     // Realtime emit to user rooms to support multiple sockets per user.
+    console.log(`📤 Emitting reactionUpdated for message ${msgId} to users:`, {
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+    });
     io.to(getUserRoomName(message.receiverId)).emit("reactionUpdated", message);
     io.to(getUserRoomName(message.senderId)).emit("reactionUpdated", message);
 
@@ -345,6 +355,10 @@ export const removeReaction = async (req, res) => {
       msgId,
       { $unset: { reaction: 1, reactionBy: 1 } },
       { new: true },
+    );
+
+    console.log(
+      `📤 Emitting reactionUpdated after removal for message ${msgId}`,
     );
 
     io.to(getUserRoomName(updatedMessage.receiverId)).emit(

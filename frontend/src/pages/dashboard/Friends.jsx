@@ -1,92 +1,192 @@
-import { useState, useEffect } from "react";
-import FriendProfileModal from "../../components/dashboard/messages/FriendProfileModal";
+import { useState, useMemo } from "react";
+import { Users, Wifi, Search, UserPlus2, Bell } from "lucide-react";
+import { Link } from "react-router";
 import { useFriendStore } from "../../store/useFriendsStore";
-import Pagination from "../../components/Pagination";
-import UserCard from "../../components/dashboard/messages/UserCard";
-import FriendListCard from "../../components/dashboard/messages/FriendListCard";
-
+import { useAuthStore } from "../../store/useAuthStore";
+import StatCard from "../../components/dashboard/StatCard";
+import MyFriends from "../../components/dashboard/friends/MyFriends";
+import FriendsRequests from "../../components/dashboard/friends/FriendsRequests";
+import SuggestedFriends from "../../components/dashboard/friends/SuggestedFriends";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Friends = () => {
-  const { friends,suggestions, getFriendSuggestions,getMyFriends } = useFriendStore();
-  const [activeMenu, setActiveMenu] = useState(null);
-  const [selectedFriend, setSelectedFriend] = useState(null);
+  const { suggestions, notifications } = useFriendStore();
+  const { onlineUsers, authUser } = useAuthStore();
+  const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => n.unread).length,
+    [notifications],
+  );
+  const queryClient = useQueryClient();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-
-  useEffect(() => {
-  const loadData = async () => {
-    await getMyFriends();          
-    await getFriendSuggestions();  
-  };
-
-  loadData();
-
-  const handleClickOutside = (e) => {
-    if (!e.target.closest(".dropdown")) setActiveMenu(null);
-  };
-
-  document.addEventListener("click", handleClickOutside);
-
-  return () => document.removeEventListener("click", handleClickOutside);
-}, []);
-
-  const yourFriends = friends;
-
-  const totalPages = Math.ceil(suggestions.length / itemsPerPage);
-  const currentSuggestions = suggestions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const onlineFriends = authUser?.friends.filter((f) =>
+    onlineUsers.includes(f),
   );
 
+  const requestCount =
+    queryClient.getQueryData(["friendsRequests"])?.length || 0;
+
   return (
-    <div className="flex-1 p-6">
-      <h2 className="text-lg font-semibold mb-4">Your Friends</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-4  gap-6">
-         {yourFriends.length > 0
-          ? yourFriends.map((f) => (
-              <FriendListCard
-                key={f._id}
-                friend={f}
-                activeMenu={activeMenu}
-                setActiveMenu={setActiveMenu}
-                onSelect={setSelectedFriend}
-              />
-            ))
-          : <p className="text-sm text-gray-500">No friends yet</p>} 
-          
+    <div className="p-4 md:p-6 space-y-6 bg-base-100 pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-2xl font-bold">Friends</h1>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input w-full pl-10 rounded-full bg-base-200"
+            />
+            <Search className="absolute left-3 top-3 opacity-40" size={18} />
+          </div>
+
+          <button
+            onClick={() => setActiveTab("suggested")}
+            className="btn btn-primary rounded-full flex items-center gap-2 px-3 md:px-4"
+          >
+            <UserPlus2 size={18} />
+            <span className="hidden sm:inline">Add Friend</span>
+          </button>
+
+          <Link
+            to="/dashboard/notifications"
+            className="btn btn-circle btn-ghost relative bg-base-200"
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-error text-white text-[10px] flex items-center justify-center border-2 border-base-100">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
-
-      <h2 className="text-lg font-semibold mt-10 mb-4">Suggested Friends</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        {currentSuggestions.length > 0
-          ? currentSuggestions.map((f) => (
-              <UserCard
-                key={f._id}
-                friend={f}
-                activeMenu={activeMenu}
-                setActiveMenu={setActiveMenu}
-                onSelect={setSelectedFriend}
-              />
-            ))
-          : <p className="text-sm text-gray-500">No suggestions</p>}
-      </div>
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
-
-      {selectedFriend && (
-        <FriendProfileModal
-          friend={{
-            ...selectedFriend,
-            avatar: selectedFriend.photoURL,
-          }}
-          onClose={() => setSelectedFriend(null)}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <StatCard
+          title="My Friends"
+          value={authUser?.friends.length}
+          icon={<Users size={18} />}
         />
-      )}
+        <StatCard
+          title="Suggested Friends"
+          value={suggestions.length}
+          icon={<UserPlus2 size={18} />}
+        />
+        <StatCard
+          title="Online Friends"
+          value={onlineFriends?.length}
+          icon={<Wifi size={18} />}
+        />
+        <StatCard
+          title="Request Friends"
+          value={requestCount}
+          icon={<UserPlus2 size={18} />}
+        />
+      </div>
+      <div className="flex gap-1 sm:gap-2 bg-base-200 p-1 w-fit rounded-full overflow-x-auto">
+        {["all", "friends", "requests", "suggested"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => {
+              setActiveTab(tab);
+              setSearch("");
+            }}
+            className={`cursor-pointer px-2.5 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium sm:font-bold transition-all whitespace-nowrap ${
+              activeTab === tab
+                ? "bg-primary text-white shadow-md"
+                : "hover:bg-base-300 opacity-60"
+            }`}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        {activeTab === "all" && (
+          <div className="space-y-10">
+            <FriendsRequests />
+            <MyFriends />
+            <SuggestedFriends />
+          </div>
+        )}
+        {activeTab === "friends" && <MyFriends />}
+        {activeTab === "requests" && <FriendsRequests />}
+        {activeTab === "suggested" && <SuggestedFriends />}
+      </div>
+
+      {/* <div className="mt-4">
+        {activeTab === "all" && search === "" ? (
+          <div className="space-y-10">
+            <div className="space-y-4">
+              <SectionHeader
+                title="Suggested Friends"
+                icon={<UserPlus2 size={20} className="text-primary" />}
+                onNext={() =>
+                  setSuggestIndex((prev) =>
+                    prev + (isMobile ? 1 : 5) < suggestions.length
+                      ? prev + (isMobile ? 1 : 5)
+                      : prev,
+                  )
+                }
+                onPrev={() =>
+                  setSuggestIndex((prev) =>
+                    Math.max(prev - (isMobile ? 1 : 5), 0),
+                  )
+                }
+              />
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+                {visibleSuggestions.map((f) => (
+                  <UserCard key={f._id} friend={f} />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <SectionHeader
+                title="My Friends"
+                icon={<Users size={20} className="text-primary" />}
+                onNext={() =>
+                  setFriendIndex((prev) =>
+                    prev + (isMobile ? 1 : 4) < friends.length
+                      ? prev + (isMobile ? 1 : 4)
+                      : prev,
+                  )
+                }
+                onPrev={() =>
+                  setFriendIndex((prev) =>
+                    Math.max(prev - (isMobile ? 1 : 4), 0),
+                  )
+                }
+              />
+              <div className="flex flex-col gap-3">
+                {visibleFriends.map((f) => (
+                  <FriendListCard key={f._id} friend={f} />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={
+              activeTab === "suggested"
+                ? "grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4"
+                : "flex flex-col gap-3"
+            }
+          >
+            {filteredData(activeTab).map((f) =>
+              activeTab === "suggested" ? (
+                <UserCard key={f._id} friend={f} />
+              ) : (
+                <FriendListCard key={f._id} friend={f} />
+              ),
+            )}
+          </div>
+        )}
+      </div> */}
     </div>
   );
 };

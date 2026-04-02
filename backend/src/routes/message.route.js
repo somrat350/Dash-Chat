@@ -12,6 +12,7 @@ import {
   searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
+import { uploadAudio } from "../middleware/audioUpload.js";
 
 const messageRouter = express.Router();
 
@@ -22,7 +23,7 @@ messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
 messageRouter.get("/chats/:userId", getMessagesByUserId);
 messageRouter.patch("/chats/:userId/seen", markMessagesAsSeen);
-messageRouter.post("/send/:userId", sendMessage);
+messageRouter.post("/send/:userId", uploadAudio.single("audio"), sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
 

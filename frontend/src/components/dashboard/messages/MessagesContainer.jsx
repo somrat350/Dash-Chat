@@ -69,6 +69,7 @@ const MessagesContainer = ({ searchQuery = "" }) => {
     subscribeToMessage,
     unsubscribeFromMessage,
     clearReplyMessage,
+    requestNotificationPermission,
   } = useMessageStore();
 
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -97,6 +98,47 @@ const MessagesContainer = ({ searchQuery = "" }) => {
     subscribeToMessage();
     return () => unsubscribeFromMessage();
   }, [socket, subscribeToMessage, unsubscribeFromMessage]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!("Notification" in window)) return;
+    if (!window.isSecureContext) return;
+
+    const askedBefore = window.localStorage.getItem(
+      "dashchat-desktop-notification-asked",
+    );
+
+    const tryRequestPermission = async () => {
+      const permission = await requestNotificationPermission();
+      if (permission && permission !== "default") {
+        window.localStorage.setItem("dashchat-desktop-notification-asked", "1");
+      }
+    };
+
+    if (!askedBefore && Notification.permission === "default") {
+      // Some browsers block non-user-gesture prompts; best effort on mount.
+      tryRequestPermission();
+    }
+
+    if (Notification.permission !== "default") return;
+
+    // Retry on the first user interaction so browsers can show the prompt.
+    const handleFirstUserGesture = () => {
+      tryRequestPermission();
+    };
+
+    window.addEventListener("pointerdown", handleFirstUserGesture, {
+      once: true,
+      capture: true,
+    });
+
+    return () => {
+      window.removeEventListener("pointerdown", handleFirstUserGesture, {
+        capture: true,
+      });
+    };
+  }, [requestNotificationPermission]);
 
   useEffect(() => {
     const selectedPartnerId =

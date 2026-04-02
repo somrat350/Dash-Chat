@@ -31,6 +31,12 @@ app.use(express.json());
 app.use(cors({ origin: corsOriginValidator, credentials: true }));
 app.use(cookieParser());
 
+// Serve audio uploads statically
+app.use(
+  "/uploads/audio",
+  express.static(path.join(__dirname, "uploads", "audio")),
+);
+
 //auth routes
 app.use("/api/auth", authRouter);
 //messages routes

@@ -14,6 +14,7 @@ const AddPartnerModal = () => {
     newChatPartnerSearchResults: users,
     setSelectedPartner,
   } = useMessageStore();
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchTerm.trim()) {
@@ -25,11 +26,22 @@ const AddPartnerModal = () => {
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchNewChatPartner, searchTerm, setEmptyNewChatPartner]);
+
+  const handleCloseModal = () => {
+    setSearchTerm("");
+    setEmptyNewChatPartner([]);
+    document.getElementById("add_partner_modal")?.close();
+  };
+
   return (
     <>
       <dialog
         id="add_partner_modal"
         className="modal modal-bottom sm:modal-middle"
+        onClose={() => {
+          setSearchTerm("");
+          setEmptyNewChatPartner([]);
+        }}
       >
         <div className="modal-box flex flex-col max-h-[80vh]">
           <div className="sticky top-0 z-10 bg-base-200 space-y-2 w-full rounded-2xl p-3 mb-1">
@@ -63,16 +75,20 @@ const AddPartnerModal = () => {
               {users.map((user) => (
                 <div
                   key={user._id}
-                  className={`flex items-center justify-between gap-1 p-3 border-b border-base-content/20 transition-colors bg-base-100 hover:bg-primary/20`}
+                  className="flex flex-col gap-3 border-b border-base-content/20 bg-base-100 p-3 transition-colors hover:bg-primary/20 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="flex items-center justify-start gap-1">
+                  <div className="flex items-center justify-start gap-3">
                     {/* Avatar */}
-                    <div className={`avatar relative`}>
+                    <div className="avatar relative shrink-0">
                       <div
-                        className={`text-base-content rounded-full w-12 h-12 flex items-center justify-center ${user.photoURL ? "" : "border border-base-content"}`}
+                        className={`flex h-12 w-12 items-center justify-center rounded-full text-base-content ${user.photoURL ? "" : "border border-base-content"}`}
                       >
                         {user.photoURL ? (
-                          <img src={user.photoURL} alt={user.name} />
+                          <img
+                            src={user.photoURL}
+                            alt={user.name}
+                            className="h-full w-full rounded-full object-cover"
+                          />
                         ) : (
                           <User className="w-6 h-6" />
                         )}
@@ -83,7 +99,7 @@ const AddPartnerModal = () => {
                     </div>
 
                     {/* User Info */}
-                    <div className="flex flex-col items-start">
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-sm break-all line-clamp-1">
                         {user.name}
                       </h3>
@@ -92,16 +108,16 @@ const AddPartnerModal = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="btn btn-sm btn-primary">
+                  <div className="flex w-full items-center gap-2 sm:w-auto sm:justify-end">
+                    <button className="btn btn-sm btn-primary flex-1 sm:flex-none">
                       Add Friend
                     </button>
                     <button
                       onClick={() => {
                         setSelectedPartner(user);
-                        document.getElementById("add_partner_modal").close();
+                        handleCloseModal();
                       }}
-                      className="btn btn-sm btn-primary btn-outline"
+                      className="btn btn-sm btn-primary btn-outline flex-1 sm:flex-none"
                     >
                       Send Message
                     </button>
@@ -113,7 +129,9 @@ const AddPartnerModal = () => {
 
           <div className="modal-action">
             <form method="dialog">
-              <button className="btn">Close</button>
+              <button className="btn" onClick={handleCloseModal}>
+                Close
+              </button>
             </form>
           </div>
         </div>

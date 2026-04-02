@@ -18,6 +18,9 @@ const messageSchema = new Schema(
     image: {
       type: String,
     },
+    audio: {
+      type: String,
+    },
     messageType: {
       type: String,
       enum: ["text", "call"],
