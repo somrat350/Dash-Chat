@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Quote, Star } from "lucide-react";
 import gsap from "gsap";
+import Marquee from "react-fast-marquee";
 
 const Testimonials = () => {
   const containerRef = useRef(null);
@@ -49,7 +50,7 @@ const Testimonials = () => {
         duration: 0.6,
         stagger: 0.15,
         ease: "power3.out",
-      }
+      },
     );
   }, []);
 
@@ -71,44 +72,49 @@ const Testimonials = () => {
         </div>
       </div>
 
-      {/* Cards */}
       <div
         ref={containerRef}
-        className="
-          grid 
-          grid-cols-1 
-          sm:grid-cols-2 
-          lg:grid-cols-3 
-          gap-6
-          max-w-7xl 
-          mx-auto
-        "
+        className="max-w-[100vw] rounded-2xl overflow-x-hidden"
       >
-        {testimonials.map((item) => (
-          <article
-            key={item.id}
-            className="testimonial-card rounded-2xl border bg-base-200 p-6 shadow-lg hover:shadow-2xl transition"
-          >
-            <div className="flex justify-between items-start gap-4">
-              <div className="flex items-center gap-4">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-14 w-14 rounded-full object-cover"
-                />
-                <div>
-                  <h3 className="font-bold">{item.name}</h3>
-                  <p className="text-sm text-gray-500">{item.role}</p>
+        <Marquee
+          pauseOnHover
+          pauseOnClick
+          autoFill
+          speed={50}
+          gradientWidth={50}
+          gradient={true}
+          gradientColor={"#2337"}
+        >
+          {testimonials.map((item) => (
+            <article
+              key={item.id}
+              className="testimonial-card shrink-0 w-3xs sm:w-full max-w-90 h-50 mx-3 rounded-2xl border border-base-300 bg-base-200 p-6 shadow-md hover:shadow-xl transition-shadow"
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="avatar">
+                    <div className="h-12 w-12 rounded-full overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base-content">{item.name}</h3>
+                    <p className="text-xs text-base-content/60">{item.role}</p>
+                  </div>
                 </div>
+                <Quote className="text-primary/40 shrink-0" size={24} />
               </div>
-              <Quote className="text-primary" size={20} />
-            </div>
 
-            <p className="mt-5 text-sm text-gray-700">
-              "{item.text}"
-            </p>
-          </article>
-        ))}
+              <p className="mt-5 text-sm leading-relaxed text-base-content/80">
+                "{item.text}"
+              </p>
+            </article>
+          ))}
+        </Marquee>
       </div>
     </section>
   );

@@ -19,7 +19,7 @@ const PublicLayout = () => {
         <nav className="sticky top-0 z-50">
           <Navbar />
         </nav>
-        <section className="max-w-7xl mx-auto px-4 py-8 grow">
+        <section className="w-full max-w-7xl mx-auto px-4 py-8 grow">
           <Outlet />
         </section>
         <footer>

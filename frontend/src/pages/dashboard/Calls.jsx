@@ -760,7 +760,7 @@ const Calls = () => {
   };
 
   return (
-    <div>
+    <div className="p-4 lg:p-6">
       {/* Full-screen call overlay */}
       {streamClient && activeCall && (
         <StreamVideo client={streamClient}>
