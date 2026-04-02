@@ -72,7 +72,7 @@ const DashboardLayout = () => {
         type="checkbox"
         className="hidden lg:block drawer-toggle"
       />
-      <div className="drawer-content h-screen flex flex-col relative overflow-hidden">
+      <div className="drawer-content flex flex-col relative overflow-hidden">
         {/* Page content here */}
         <div
           className={`h-full min-h-0 ${isChatDetailView ? "pb-0" : "pb-20"} lg:pb-0`}
