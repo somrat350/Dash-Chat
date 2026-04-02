@@ -10,7 +10,7 @@ const Chats = () => {
   return (
     <>
       <AddPartnerModal />
-      <div className="hidden h-full min-h-0 w-full overflow-hidden md:flex">
+      <div className="hidden h-screen min-h-0 w-full overflow-hidden md:flex">
         <MessagesSidebar />
         {selectedPartner ? <MessagesView /> : <NoPartnerSelected />}
       </div>
