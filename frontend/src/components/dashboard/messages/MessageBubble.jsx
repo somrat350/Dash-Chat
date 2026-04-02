@@ -22,6 +22,7 @@ const quickEmojis = ["👍", "❤️", "😀", "😭", "🙏", "👎", "😡"];
 const AudioMessage = ({ src, createdAt, renderMessageStatusTick }) => {
   const [waveformAnimate, setWaveformAnimate] = useState(false);
   const audioRef = useRef(null);
+  const [audioElement, setAudioElement] = useState(null);
 
   useEffect(() => {
     const audioEl = audioRef.current;
@@ -48,7 +49,10 @@ const AudioMessage = ({ src, createdAt, renderMessageStatusTick }) => {
         <audio
           controls
           src={src}
-          ref={audioRef}
+          ref={(node) => {
+            audioRef.current = node;
+            setAudioElement(node);
+          }}
           className="w-full max-w-40 sm:max-w-48"
         />
         <Waveform
@@ -56,7 +60,7 @@ const AudioMessage = ({ src, createdAt, renderMessageStatusTick }) => {
           color="#00f0ff"
           height={24}
           animate={waveformAnimate}
-          audio={audioRef.current}
+          audio={audioElement}
         />
       </div>
 
@@ -82,6 +86,8 @@ const MessageBubble = ({
 }) => {
   const { addReaction, removeReaction } = useMessageBubbleStore();
 
+  const bubbleRef = useRef(null);
+  const emojiPickerRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -94,6 +100,8 @@ const MessageBubble = ({
     window.matchMedia("(pointer: coarse)").matches;
 
   const isMe = msg.senderId === authUser?._id;
+  const isOwnReaction =
+    !!msg.reaction && String(msg.reactionBy) === String(authUser?._id);
 
   const isDeleted =
     msg.status === "hide" || msg.text === "This message was deleted";
@@ -137,6 +145,24 @@ const MessageBubble = ({
     return () => document.removeEventListener("touchstart", close);
   }, [showActions, isMobile]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const clickedInsideBubble =
+        bubbleRef.current && bubbleRef.current.contains(event.target);
+      const clickedInsidePicker =
+        emojiPickerRef.current && emojiPickerRef.current.contains(event.target);
+
+      if (!clickedInsideBubble && !clickedInsidePicker) {
+        setIsMenuOpen(false);
+        setIsEmojiPickerOpen(false);
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setIsOpen]);
+
   const renderMessageStatusTick = () => {
     if (msg.deliveryStatus === "seen") {
       return <CheckCheck size={14} className="text-blue-400" strokeWidth={3} />; // Blue double tick - message seen/read
@@ -148,11 +174,26 @@ const MessageBubble = ({
   };
 
   const handleQuickReaction = (emoji) => {
-    addReaction(msg._id, emoji);
+    if (isOwnReaction && msg.reaction === emoji) {
+      removeReaction(msg._id);
+    } else {
+      addReaction(msg._id, emoji);
+    }
+    setIsOpen(false);
+    setIsEmojiPickerOpen(false);
   };
 
   const handleCustomReaction = (emojiData) => {
-    addReaction(msg._id, emojiData.emoji);
+    const selectedEmoji = emojiData?.emoji;
+    if (!selectedEmoji) return;
+
+    if (isOwnReaction && msg.reaction === selectedEmoji) {
+      removeReaction(msg._id);
+    } else {
+      addReaction(msg._id, selectedEmoji);
+    }
+    setIsOpen(false);
+    setIsEmojiPickerOpen(false);
   };
 
   return (
@@ -162,7 +203,8 @@ const MessageBubble = ({
       onTouchEnd={handleTouchEnd}
     >
       <div
-        className={`chat-bubble relative px-2.5 sm:px-3 py-1.5 max-w-[92vw] sm:max-w-[85%] break-words ${messageShapeClass} ${
+        ref={bubbleRef}
+        className={`chat-bubble relative px-2.5 sm:px-3 py-1.5 max-w-[92vw] sm:max-w-[85%] wrap-break-word ${messageShapeClass} ${
           isMe ? "bg-slate-800 text-white" : "bg-slate-500 text-white"
         }`}
       >
@@ -173,12 +215,17 @@ const MessageBubble = ({
               isMe ? "right-0" : "left-0"
             }`}
           >
-            <button
-              onClick={() => removeReaction(msg._id)}
-              className="text-lg px-1"
-            >
-              {msg.reaction}
-            </button>
+            {isOwnReaction ? (
+              <button
+                onClick={() => removeReaction(msg._id)}
+                className="text-lg px-1"
+                type="button"
+              >
+                {msg.reaction}
+              </button>
+            ) : (
+              <span className="text-lg px-1">{msg.reaction}</span>
+            )}
           </div>
         )}
 
@@ -189,12 +236,15 @@ const MessageBubble = ({
               ? showActions
                 ? "flex"
                 : "hidden"
-              : "group-hover:flex hidden"
+              : isMenuOpen || isOpen
+                ? "flex"
+                : "group-hover:flex hidden"
           }`}
         >
           <button
             onClick={() => {
               setIsMenuOpen(!isMenuOpen);
+              setIsEmojiPickerOpen(false);
               setIsOpen(null);
             }}
             className="btn btn-xs sm:btn-sm btn-circle"
@@ -213,12 +263,63 @@ const MessageBubble = ({
           )}
 
           {!isDeleted && (
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="btn btn-xs sm:btn-sm btn-circle"
-            >
-              <Smile />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsOpen(!isOpen);
+                  setIsMenuOpen(false);
+                  if (isOpen) setIsEmojiPickerOpen(false);
+                }}
+                className="btn btn-xs sm:btn-sm btn-circle"
+                type="button"
+              >
+                <Smile />
+              </button>
+
+              {isOpen && !isDeleted && (
+                <div
+                  ref={emojiPickerRef}
+                  className={`absolute top-full mt-2 z-50 w-[min(92vw,320px)] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/95 shadow-2xl backdrop-blur-sm ${
+                    isMe ? "right-0" : "left-0"
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Quick Emojis */}
+                  <div className="flex items-center justify-between gap-1 border-b border-base-content/10 bg-base-200/70 px-2 py-2">
+                    {quickEmojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => handleQuickReaction(emoji)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-[20px] leading-none transition-colors hover:bg-base-300"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-base-content transition-colors hover:bg-base-300"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
+                  {/* Full Emoji Picker */}
+                  {isEmojiPickerOpen && (
+                    <div className="p-2">
+                      <EmojiPicker
+                        onEmojiClick={handleCustomReaction}
+                        autoFocusSearch={false}
+                        height={300}
+                        width={"100%"}
+                        theme="dark"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -282,12 +383,12 @@ const MessageBubble = ({
         ) : (
           <div className="mt-1 flex items-end gap-1.5 min-w-0">
             <p
-              className={`break-words whitespace-pre-wrap flex-1 ${msg.status === "hide" ? "opacity-50 italic" : ""}`}
+              className={`wrap-break-word whitespace-pre-wrap flex-1 ${msg.status === "hide" ? "opacity-50 italic" : ""}`}
             >
               {msg.status === "hide" ? deletedLabel : msg.text}
             </p>
 
-            <p className="text-[10px] opacity-60 flex items-center gap-0.5 whitespace-nowrap flex-shrink-0">
+            <p className="text-[10px] opacity-60 flex items-center gap-0.5 whitespace-nowrap shrink-0">
               {new Date(msg.createdAt).toLocaleTimeString(undefined, {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -295,48 +396,6 @@ const MessageBubble = ({
               })}
               {renderMessageStatusTick()}
             </p>
-          </div>
-        )}
-
-        {/* Emoji Picker Popup */}
-        {isOpen && !isDeleted && (
-          <div
-            className={`absolute top-full mt-2 z-50 bg-base-200 rounded-lg shadow-lg w-[min(92vw,320px)] ${isMe ? "right-0" : "left-0"}`}
-          >
-            {/* Quick Emojis */}
-            <div className="flex gap-1 p-2 border-b border-base-300">
-              {quickEmojis.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => {
-                    handleQuickReaction(emoji);
-                    setIsOpen(false);
-                  }}
-                  className="text-xl p-2 hover:bg-base-300 rounded-lg transition-colors"
-                >
-                  {emoji}
-                </button>
-              ))}
-              <button
-                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className="btn btn-ghost btn-xs sm:btn-sm btn-circle text-lg"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-
-            {/* Full Emoji Picker */}
-            {isEmojiPickerOpen && (
-              <div className="p-2">
-                <EmojiPicker
-                  onEmojiClick={handleCustomReaction}
-                  autoFocusSearch={false}
-                  height={300}
-                  width={"100%"}
-                  theme="dark"
-                />
-              </div>
-            )}
           </div>
         )}
       </div>
