@@ -7,25 +7,20 @@ import StatCard from "../../components/dashboard/StatCard";
 import MyFriends from "../../components/dashboard/friends/MyFriends";
 import FriendsRequests from "../../components/dashboard/friends/FriendsRequests";
 import SuggestedFriends from "../../components/dashboard/friends/SuggestedFriends";
-import { useQueryClient } from "@tanstack/react-query";
+import { useNotificationStore } from "../../store/useNotificationStore";
 
 const Friends = () => {
-  const { suggestions, notifications } = useFriendStore();
-  const { onlineUsers, authUser } = useAuthStore();
+  const { suggestions, friends, friendsRequests } = useFriendStore();
+  const { notifications } = useNotificationStore();
+  const { onlineUsers } = useAuthStore();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const unreadCount = useMemo(
     () => notifications.filter((n) => n.unread).length,
     [notifications],
   );
-  const queryClient = useQueryClient();
 
-  const onlineFriends = authUser?.friends.filter((f) =>
-    onlineUsers.includes(f),
-  );
-
-  const requestCount =
-    queryClient.getQueryData(["friendsRequests"])?.length || 0;
+  const onlineFriends = friends.filter((f) => onlineUsers.includes(f._id));
 
   return (
     <div className="p-4 md:p-6 space-y-6 bg-base-100 pb-20">
@@ -68,7 +63,7 @@ const Friends = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           title="My Friends"
-          value={authUser?.friends.length}
+          value={friends.length}
           icon={<Users size={18} />}
         />
         <StatCard
@@ -83,7 +78,7 @@ const Friends = () => {
         />
         <StatCard
           title="Request Friends"
-          value={requestCount}
+          value={friendsRequests?.length}
           icon={<UserPlus2 size={18} />}
         />
       </div>

@@ -25,12 +25,24 @@ const Footer = () => {
   ];
 
   const contactInfo = [
-    { icon: Mail, text: "support@dashchat.com", href: "mailto:support@dashchat.com" },
+    {
+      icon: Mail,
+      text: "support@dashchat.com",
+      href: "mailto:support@dashchat.com",
+    },
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: "https://www.facebook.com/somrat350/", label: "Facebook" },
-    { icon: Github, href: "https://github.com/somrat350/Dash-Chat", label: "GitHub" },
+    {
+      icon: Facebook,
+      href: "https://www.facebook.com/somrat350/",
+      label: "Facebook",
+    },
+    {
+      icon: Github,
+      href: "https://github.com/somrat350/Dash-Chat",
+      label: "GitHub",
+    },
   ];
 
   const handleSend = () => {
@@ -48,12 +60,12 @@ const Footer = () => {
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.set("[data-footer-section]", { opacity: 1 });
-      
+
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
       tl.fromTo(
         "[data-footer-section]",
         { y: 34, scale: 0.97 },
-        { y: 0, scale: 1, duration: 0.5, stagger: 0.1 }
+        { y: 0, scale: 1, duration: 0.5, stagger: 0.1 },
       );
     }, sectionRef);
 
@@ -64,12 +76,12 @@ const Footer = () => {
     <footer
       ref={sectionRef}
       role="contentinfo"
-      className="relative mt-8 sm:mt-12 border-t-2 border-primary/30 bg-gradient-to-b from-base-100 to-base-100/80 shadow-lg rounded-t-2xl py-6 px-4 sm:px-6 lg:px-8"
+      className="relative mt-8 sm:mt-12 border-t-2 border-primary/30 bg-linear-to-b from-base-100 to-base-100/80 shadow-lg rounded-t-2xl py-6 px-4 sm:px-6 lg:px-8 w-full overflow-hidden"
     >
       {/* Background Elements */}
       <div className="pointer-events-none absolute -left-16 top-10 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-primary/10 blur-2xl" />
       <div className="pointer-events-none absolute -right-12 bottom-0 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-info/10 blur-2xl" />
-      
+
       <div className="relative mx-auto max-w-7xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-8">
           {/* Brand */}
@@ -81,7 +93,8 @@ const Footer = () => {
               <Logo />
             </div>
             <p className="text-base-content/70 text-sm leading-relaxed max-w-xs sm:max-w-full">
-              Connect instantly with friends and family. Simple, reliable, secure.
+              Connect instantly with friends and family. Simple, reliable,
+              secure.
             </p>
             <div className="flex gap-4 mt-1">
               {socialLinks.map((social, idx) => (
@@ -146,7 +159,10 @@ const Footer = () => {
                   href={info.href}
                   className="flex items-center justify-center sm:justify-start gap-2 text-base-content/70 hover:text-primary transition-colors duration-300 text-sm group"
                 >
-                  <info.icon size={14} className="group-hover:scale-110 transition-transform" />
+                  <info.icon
+                    size={14}
+                    className="group-hover:scale-110 transition-transform"
+                  />
                   <span>{info.text}</span>
                 </a>
               ))}
@@ -154,11 +170,10 @@ const Footer = () => {
           </div>
 
           {/* Contact Form */}
-          <div
-            data-footer-section
-            className="flex flex-col gap-2"
-          >
-            <h3 className="text-primary font-bold text-lg text-center sm:text-left">Send Message</h3>
+          <div data-footer-section className="flex flex-col gap-2">
+            <h3 className="text-primary font-bold text-lg text-center sm:text-left">
+              Send Message
+            </h3>
             <p className="text-base-content/70 text-sm text-center sm:text-left">
               Have questions or feedback?
             </p>
@@ -186,7 +201,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-         {/* Copyright */}
+        {/* Copyright */}
         <div className="mt-8 pt-5 border-t border-base-300">
           <p className="text-base-content/60 text-sm text-center">
             &copy; {new Date().getFullYear()} DashChat. All rights reserved.

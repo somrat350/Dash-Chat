@@ -1,4 +1,5 @@
 import AddPartnerModal from "../../components/dashboard/messages/AddPartnerModal";
+import InChatCallOverlay from "../../components/dashboard/messages/InChatCallOverlay";
 import MessagesSidebar from "../../components/dashboard/messages/MessagesSidebar";
 import MessagesView from "../../components/dashboard/messages/MessagesView";
 import NoPartnerSelected from "../../components/dashboard/messages/NoPartnerSelected";
@@ -16,6 +17,7 @@ const Chats = () => {
       <div className="flex h-full min-h-0 w-full overflow-hidden md:hidden">
         {selectedPartner ? <MessagesView /> : <MessagesSidebar />}
       </div>
+      <InChatCallOverlay />
     </>
   );
 };
