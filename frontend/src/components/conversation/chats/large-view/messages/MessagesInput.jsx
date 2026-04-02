@@ -4,6 +4,7 @@ import EmojiPicker from "emoji-picker-react";
 import AttachmentMenu from "../messages/AttachmentMenu";
 import { useMessageStore } from "../../../../../store/useMessageStore";
 import { useAuthStore } from "../../../../../store/useAuthStore";
+import { useAppearanceStore } from "../../../../../store/useAppearanceStore";
 
 export default function MessageInput() {
   const [message, setMessage] = useState("");
@@ -11,20 +12,22 @@ export default function MessageInput() {
   const [showAttachment, setShowAttachment] = useState(false);
   const textareaRef = useRef(null);
 
-  const { sendMessage, selectedPartner,replyMessage, clearReplyMessage} = useMessageStore();
+  const { sendMessage, selectedPartner, replyMessage, clearReplyMessage } = useMessageStore();
   const { authUser } = useAuthStore();
+  const enterToSend = useAppearanceStore((state) => state.enterToSend);
+  console.log("enterToSend:", enterToSend);
 
   const handleSend = () => {
     if (!message.trim()) return;
     const messageData = {
-        
+
       sender: authUser.email,
-       senderName: authUser.name,
+      senderName: authUser.name,
       receiver: selectedPartner.email,
       text: message,
-       replyTo: replyMessage?._id,
-         replyToSenderName: replyMessage?.senderName || replyMessage?.sender, 
-    replyToText: replyMessage?.text,   
+      replyTo: replyMessage?._id,
+      replyToSenderName: replyMessage?.senderName || replyMessage?.sender,
+      replyToText: replyMessage?.text,
     };
     sendMessage(messageData);
     setMessage("");
@@ -50,24 +53,24 @@ export default function MessageInput() {
 
   return (
     <div className="relative w-full bg-primary/40 p-3">
- {replyMessage && (
-    <div className="bg-gray-100 border-l-4 border-green-500 px-3 py-2 mb-2 rounded flex justify-between items-start text-sm max-w-full">
-      <div className="flex flex-col overflow-hidden">
-        <span className="font-semibold text-gray-700 truncate">
-          {replyMessage.sender}
-        </span>
-        <span className="text-gray-600 truncate">
-          {replyMessage.text}
-        </span>
-      </div>
-      <button
-        className="text-gray-500 font-bold ml-2"
-        onClick={clearReplyMessage}
-      >
-        ✕
-      </button>
-    </div>
-  )}
+      {replyMessage && (
+        <div className="bg-gray-100 border-l-4 border-green-500 px-3 py-2 mb-2 rounded flex justify-between items-start text-sm max-w-full">
+          <div className="flex flex-col overflow-hidden">
+            <span className="font-semibold text-gray-700 truncate">
+              {replyMessage.sender}
+            </span>
+            <span className="text-gray-600 truncate">
+              {replyMessage.text}
+            </span>
+          </div>
+          <button
+            className="text-gray-500 font-bold ml-2"
+            onClick={clearReplyMessage}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
 
       <div className="flex items-end gap-2 bg-white rounded-2xl px-3 py-2 shadow-sm relative">
@@ -81,7 +84,7 @@ export default function MessageInput() {
           className="cursor-pointer text-gray-500 hover:text-gray-700"
           onClick={() => setShowAttachment(!showAttachment)}
         />
-        
+
         <textarea
           ref={textareaRef}
           rows="1"
@@ -90,7 +93,7 @@ export default function MessageInput() {
           className="flex-1 resize-none overflow-auto bg-transparent outline-none text-sm max-h-40"
           onChange={handleInput}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && enterToSend && !e.shiftKey) {
               e.preventDefault();
               handleSend();
             }

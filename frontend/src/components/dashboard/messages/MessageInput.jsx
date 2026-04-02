@@ -293,6 +293,13 @@ const MessageInput = () => {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsMultiLine(false);
   }, [receiverId]);
+  // neww toooooooooooooooooooooo
+  const [enterToSend, setEnterToSend] = useState(false);
+
+  useEffect(() => {
+    const settings = JSON.parse(localStorage.getItem("notificationSettings")) || {};
+    setEnterToSend(settings.enterToSend || false);
+  }, []);
 
   return (
     <>
@@ -415,10 +422,25 @@ const MessageInput = () => {
             placeholder="Type your message..."
             className="flex-1 resize-none overflow-auto bg-transparent outline-none text-sm max-h-50"
             onChange={handleInput}
+            // onKeyDown={(e) => {
+            //   if (e.key === "Enter" && !e.shiftKey) {
+            //     e.preventDefault();
+            //     handleSend();
+            //   }
+            // }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
+              if (enterToSend) {
+                // Enter to send ON
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              } else {
+                // Enter to send OFF → Ctrl+Enter diye send (industry fallback)
+                if (e.key === "Enter" && e.ctrlKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
               }
             }}
           />
