@@ -1,29 +1,27 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import {
   BellIcon,
-  HomeIcon,
   LucidePhone,
   MessagesSquare,
-  PanelLeft,
   Settings,
-  ShipWheelIcon,
-  UserRoundPen,
   UsersIcon,
 } from "lucide-react";
-import ThemeSelector from "../components/ThemeSelector";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
+import { useMessageStore } from "../store/useMessageStore";
 import IncomingCallModal from "../components/dashboard/messages/IncomingCallModal";
 import { useEffect } from "react";
 import PageLoader from "../components/PageLoader";
 
 const DashboardLayout = () => {
   const { authUser, socket, connectSocket } = useAuthStore();
+  const { selectedPartner } = useMessageStore();
+  const location = useLocation();
 
   useEffect(() => {
     if (!authUser) return;
     connectSocket();
-  }, [connectSocket]);
+  }, [authUser, connectSocket]);
 
   if (!socket) return <PageLoader />;
 
@@ -60,33 +58,69 @@ const DashboardLayout = () => {
     },
   ];
 
+  const mobileMenus = sideMenus.slice(0, 5);
+  const isChatDetailView =
+    location.pathname.startsWith("/dashboard/chats/") ||
+    (location.pathname === "/dashboard" && Boolean(selectedPartner));
+
   return (
-    <div className="drawer lg:drawer-open">
+    <div className="lg:drawer lg:drawer-open">
       <Toaster />
       <IncomingCallModal />
-      <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-      <div className="drawer-content h-screen flex flex-col relative overflow-y-auto">
-        {/* Navbar */}
-        <nav className="navbar h-16 w-full bg-base-200 sticky top-0 z-40 pl-4 border-b border-base-content/20">
-          <label
-            htmlFor="my-drawer-4"
-            aria-label="open sidebar"
-            className="btn btn-circle btn-primary btn-sm"
-          >
-            {/* Sidebar toggle icon */}
-            <PanelLeft size={20} />
-          </label>
-          <div className="px-4 flex justify-end w-full">
-            <ThemeSelector />
-          </div>
-        </nav>
+      <input
+        id="my-drawer-4"
+        type="checkbox"
+        className="hidden lg:block drawer-toggle"
+      />
+      <div className="drawer-content h-screen flex flex-col relative overflow-hidden">
         {/* Page content here */}
-        <div className="h-full">
+        <div
+          className={`h-full min-h-0 ${isChatDetailView ? "pb-0" : "pb-20"} lg:pb-0`}
+        >
           <Outlet />
         </div>
       </div>
 
-      <div className="drawer-side is-drawer-close:overflow-visible z-50 border-r border-base-content/20">
+      {!isChatDetailView && (
+        <>
+          <Link
+            to="/"
+            aria-label="Go to home page"
+            className="fixed bottom-22 right-3 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-base-content/20 bg-base-100 shadow-lg transition hover:scale-105 active:scale-95 lg:hidden"
+          >
+            <img
+              src="/DashChat-logo.png"
+              alt="Home"
+              className="h-6 w-6 object-contain"
+            />
+          </Link>
+
+          <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-base-content/20 bg-base-200/95 backdrop-blur lg:hidden">
+            <ul className="grid grid-cols-5">
+              {mobileMenus.map((menu, i) => (
+                <li key={i}>
+                  <NavLink
+                    end
+                    to={menu.link}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${
+                        isActive
+                          ? "text-primary bg-primary/10"
+                          : "text-base-content/70 hover:text-base-content"
+                      }`
+                    }
+                  >
+                    {menu.icon}
+                    <span className="leading-none">{menu.title}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
+
+      <div className="hidden lg:block drawer-side is-drawer-close:overflow-visible z-50 border-r border-base-content/20">
         <label
           htmlFor="my-drawer-4"
           aria-label="close sidebar"
@@ -99,7 +133,7 @@ const DashboardLayout = () => {
               <img
                 src="/DashChat-logo.png"
                 alt="DashChat-logo"
-                className="h-14 w-14"
+                className="h-14 w-14 object-contain"
               />
               <span className="text-xl font-bold font-mono bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary tracking-wider is-drawer-close:hidden">
                 DashChat

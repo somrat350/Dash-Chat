@@ -9,12 +9,12 @@ const Chats = () => {
   const { selectedPartner } = useMessageStore();
   return (
     <>
-      <div className="hidden md:flex h-full max-h-[calc(100vh-64px)]">
+      <AddPartnerModal />
+      <div className="hidden h-full min-h-0 w-full overflow-hidden md:flex">
         <MessagesSidebar />
-        <AddPartnerModal />
         {selectedPartner ? <MessagesView /> : <NoPartnerSelected />}
       </div>
-      <div className="flex md:hidden h-full max-h-[calc(100vh-64px)]">
+      <div className="flex h-full min-h-0 w-full overflow-hidden md:hidden">
         {selectedPartner ? <MessagesView /> : <MessagesSidebar />}
       </div>
       <InChatCallOverlay />

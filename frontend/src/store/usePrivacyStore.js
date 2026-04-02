@@ -24,5 +24,6 @@ export const usePrivacyStore = create(
     {
       name: "privacy-storage",
     }
+    
   )
 );
