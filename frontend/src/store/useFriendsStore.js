@@ -1,20 +1,17 @@
 import { create } from "zustand";
 import { axiosSecure } from "../lib/axios";
 import { toast } from "react-hot-toast";
-import { useAuthStore } from "./useAuthStore";
 
 export const useFriendStore = create((set, get) => ({
   friends: [],
   suggestions: [],
-  notifications: [],
-  isFriendsLoading: false,
-  isSuggestionsLoading: false,
-  isNotificationsLoading: false,
+  friendsRequests: [],
 
   //  suggested friend
   getFriendSuggestions: async () => {
     try {
       const res = await axiosSecure.get("/api/friends/suggestions");
+      set({ suggestions: res.data });
       return res.data;
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to load users");
@@ -25,6 +22,7 @@ export const useFriendStore = create((set, get) => ({
   getFriendRequests: async () => {
     try {
       const res = await axiosSecure.get("/api/friends/requests");
+      set({ friendsRequests: res.data });
       return res.data;
     } catch (error) {
       console.log(error);
@@ -42,7 +40,6 @@ export const useFriendStore = create((set, get) => ({
       });
       if (action === "accepted") {
         await get().getMyFriends();
-        await useAuthStore.getState().checkAuth();
       }
       toast.success(`Friend request ${action}`);
       return res.data;
@@ -67,6 +64,7 @@ export const useFriendStore = create((set, get) => ({
   getMyFriends: async () => {
     try {
       const res = await axiosSecure.get("/api/friends");
+      set({ friends: res.data });
       return res.data;
     } catch (error) {
       console.log(error);
@@ -83,7 +81,6 @@ export const useFriendStore = create((set, get) => ({
         action: "unfriend",
       });
       await get().getMyFriends();
-      await useAuthStore.getState().checkAuth();
       return;
     } catch (error) {
       console.error("Unfriend failed", error);

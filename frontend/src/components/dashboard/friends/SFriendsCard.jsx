@@ -61,8 +61,11 @@ const SFriendsCard = ({ data }) => {
         </div>
       </div>
 
-      <div onClick={sendRequest} className="flex items-center gap-2">
-        <button className="cursor-pointer flex-1 h-10 px-4 bg-primary text-primary-content hover:shadow-lg hover:shadow-primary/20 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={sendRequest}
+          className="cursor-pointer flex-1 h-10 px-4 bg-primary text-primary-content hover:shadow-lg hover:shadow-primary/20 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+        >
           <UserPlus size={14} strokeWidth={2.5} /> Add Friend
         </button>
 

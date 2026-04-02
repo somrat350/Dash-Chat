@@ -2,12 +2,15 @@ import { create } from "zustand";
 import { axiosSecure } from "../lib/axios";
 import { toast } from "react-hot-toast";
 
-export const useNotificationStore = create(() => ({
+export const useNotificationStore = create((set) => ({
+  notifications: [],
+
   getNotifications: async (page = 1, limit = 5) => {
     try {
       const res = await axiosSecure.get(
         `/api/friends/notifications?limit=${limit}&page=${page}`,
       );
+      set({ notifications: res.data.notifications });
       return res.data.notifications;
     } catch (error) {
       console.log(error);

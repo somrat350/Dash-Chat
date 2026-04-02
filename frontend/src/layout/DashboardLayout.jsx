@@ -127,7 +127,7 @@ const DashboardLayout = () => {
           className="drawer-overlay"
         ></label>
         <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-15 is-drawer-open:w-50 lg:is-drawer-open:w-40">
-          <div className="px-2 py-2.5">
+          <div className="w-full">
             <Link to="/" className="flex items-center justify-center gap-1">
               {/* <ShipWheelIcon className="size-10 text-primary" /> */}
               <img
