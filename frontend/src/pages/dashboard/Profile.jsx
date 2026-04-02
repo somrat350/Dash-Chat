@@ -1,18 +1,9 @@
 import { useState } from "react";
-import { Copy, Check, UserRoundPen, User } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import ComponentsLoader from "../../components/ComponentsLoader";
 import toast from "react-hot-toast";
-import Breadcrumb from "../../components/dashboard/Breadcrumb";
 import { useForm } from "react-hook-form";
-
-const pageFlow = [
-  {
-    label: "Profile",
-    link: "/dashboard/profile",
-    icon: <UserRoundPen size={16} />,
-  },
-];
 
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
@@ -36,8 +27,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div>
-        <Breadcrumb items={pageFlow} />
+      <div className="p-4 md:p-6">
         <div className=" mx-auto space-y-10 w-full">
           {/* ---------- Preview Section ---------- */}
 

@@ -21,120 +21,152 @@ const Login = () => {
   const onSubmit = (data) => {
     loginWithEP(data);
   };
+
   return (
-    <div className="bg-primary/30 min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden">
-        {/* ===== Left Side (Form) ===== */}
-        <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center">
-          <div className="flex justify-center mb-4">
-            <Logo />
-          </div>
+    <div className="relative min-h-screen overflow-hidden bg-base-100 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <div className="pointer-events-none absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-secondary/15 blur-3xl" />
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 text-center">
-            Welcome Back! Please login
-          </h2>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
-            <div>
-              <input
-                type="email"
-                placeholder="Email"
-                {...register("email")}
-                required
-                className={`w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary`}
-              />
+      <div className="relative mx-auto flex w-full max-w-6xl overflow-hidden rounded-3xl border border-base-300/70 bg-base-200/80 shadow-2xl backdrop-blur-sm">
+        <div className="w-full lg:w-[52%] p-5 sm:p-8 lg:p-10">
+          <div className="mx-auto w-full max-w-md">
+            <div className="mb-5 flex justify-center lg:justify-start">
+              <Logo />
             </div>
 
-            {/* Password */}
-            <div>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Minimum 6 characters",
-                    },
-                    pattern: {
-                      value: /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
-                      message:
-                        "Password must contain at least 1 uppercase and 1 lowercase letter",
-                    },
-                  })}
-                  className={`w-full px-4 py-3 pr-12 rounded-lg border ${
-                    errors.password ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary`}
-                />
+            <h1 className="text-center text-2xl font-bold tracking-tight text-base-content sm:text-3xl lg:text-left">
+              Welcome back to DashChat
+            </h1>
+            <p className="mt-2 text-center text-sm text-base-content/70 lg:text-left">
+              Login and continue your real-time conversations.
+            </p>
 
-                {/* Eye Button */}
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-primary transition"
-                >
-                  {showPassword ? (
-                    <FaEye size={20} />
-                  ) : (
-                    <FaEyeSlash size={20} />
-                  )}
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4">
+              <label className="form-control w-full">
+                <span className="mb-1.5 text-sm font-medium text-base-content/80">
+                  Email address
                 </span>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  {...register("email", { required: "Email is required" })}
+                  className={`input input-bordered h-12 w-full bg-base-100/85 ${
+                    errors.email
+                      ? "input-error"
+                      : "border-base-300 focus:border-primary"
+                  }`}
+                />
+                {errors.email && (
+                  <span className="mt-1 text-sm text-error">
+                    {errors.email.message}
+                  </span>
+                )}
+              </label>
+
+              <label className="form-control w-full">
+                <span className="mb-1.5 text-sm font-medium text-base-content/80">
+                  Password
+                </span>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Minimum 6 characters",
+                      },
+                      pattern: {
+                        value: /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
+                        message:
+                          "Password must contain at least 1 uppercase and 1 lowercase letter",
+                      },
+                    })}
+                    className={`input input-bordered h-12 w-full pr-12 bg-base-100/85 ${
+                      errors.password
+                        ? "input-error"
+                        : "border-base-300 focus:border-primary"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/70 transition hover:text-primary"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <FaEye size={18} />
+                    ) : (
+                      <FaEyeSlash size={18} />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <span className="mt-1 text-sm text-error">
+                    {errors.password.message}
+                  </span>
+                )}
+              </label>
+
+              <div className="flex items-center justify-end">
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot Password?
+                </Link>
               </div>
 
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1 ml-1.5">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            <p className="text-right mt-2">
-              <Link
-                to="/auth/forgot-password"
-                className="text-primary text-sm hover:underline"
+              <button
+                type="submit"
+                className={`btn h-12 w-full rounded-xl border-0 bg-primary text-primary-content transition hover:bg-primary/90 ${
+                  userLoading ? "btn-disabled" : ""
+                }`}
+                disabled={userLoading}
               >
-                Forgot Password?
+                {userLoading && (
+                  <span className="loading loading-spinner loading-sm" />
+                )}
+                {userLoading ? "Logging in..." : "Login"}
+              </button>
+            </form>
+
+            <div className="divider my-6 text-xs uppercase tracking-wider text-base-content/50">
+              or continue with
+            </div>
+
+            <SocialLogin />
+
+            <p className="mt-6 text-center text-sm text-base-content/80">
+              New here?{" "}
+              <Link
+                to="/auth/register"
+                className="font-semibold text-primary hover:underline"
+              >
+                Create account
               </Link>
             </p>
-            <button
-              type="submit"
-              className={`w-full bg-primary/90 hover:bg-primary cursor-pointer text-white py-3 rounded-lg font-semibold transition flex justify-center items-center gap-2 ${userLoading && "btn btn-disabled py-3 bg-primary"}`}
-              disabled={userLoading}
-            >
-              {userLoading && (
-                <span className="loading loading-spinner loading-sm"></span>
-              )}
-              {userLoading ? "LoggingIn..." : "Login"}
-            </button>
-          </form>
-
-          {/* Social Login  */}
-          {/* or  */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-gray-500 text-sm font-medium">Or</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
           </div>
-          {/* sign up with social  */}
-          <SocialLogin />
-          <p className="text-gray-500 text-xs sm:text-sm mt-4 text-center">
-            Are you new to our website?{" "}
-            <Link
-              to="/auth/register"
-              className="text-primary font-medium hover:underline"
-            >
-              Register
-            </Link>
-          </p>
         </div>
 
-        {/* ===== Right Side (Image) ===== */}
-        <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-6">
-          <img
-            src={imageIllus}
-            alt="Chat Illustration"
-            className="max-h-100 object-contain"
-          />
+        <div className="hidden lg:flex lg:w-[48%] items-center justify-center border-l border-base-300/70 bg-linear-to-br from-base-200 to-base-300 p-10">
+          <div className="mx-auto max-w-md text-center">
+            <img
+              src={imageIllus}
+              alt="Chat Illustration"
+              className="mx-auto max-h-[320px] w-full object-contain"
+            />
+            <h3 className="mt-6 text-2xl font-semibold text-base-content">
+              Fast, secure, and personal chats
+            </h3>
+            <p className="mt-2 text-sm text-base-content/70">
+              Keep your conversations organized with real-time messaging, calls,
+              and a clean dashboard experience.
+            </p>
+          </div>
         </div>
       </div>
     </div>

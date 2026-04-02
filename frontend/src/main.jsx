@@ -1,4 +1,5 @@
 import "./index.css";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 import router from "./routes/Router";
 import { RouterProvider } from "react-router";
 import { createRoot } from "react-dom/client";

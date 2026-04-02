@@ -1,4 +1,4 @@
-import { getReceiverSocketId, io } from "../lib/socket.js";
+import { getReceiverSocketIds, getUserRoomName, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/User.js";
 
@@ -20,46 +20,118 @@ export const recentMessages = async (req, res) => {
 
 export const searchChatNewPartners = async (req, res) => {
   try {
-    const loggedInUserEmail = req.decoded_email;
-    const { query = "" } = req.query;
-    if (!query.trim()) {
+    const loggedInUserId = req.user._id;
+    const { searchText = "" } = req.query;
+    if (!searchText.trim()) {
       return res.status(200).json([]);
     }
-    const partners = await User.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { email: { $regex: query, $options: "i" } },
+    const users = await User.find({
+      _id: { $ne: loggedInUserId },
+      $and: [
+        {
+          $or: [
+            { name: { $regex: searchText, $options: "i" } },
+            { email: { $regex: searchText, $options: "i" } },
+            { bio: { $regex: searchText, $options: "i" } },
+          ],
+        },
       ],
     });
 
-    res.status(200).json(partners);
+    res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
+// optimized version
 export const getChatPartners = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const messages = await Message.find({
-      $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
-    });
+    const loggedInUserEmail = req.user.email;
 
-    const chatPartnersId = [
-      ...new Set(
-        messages.map((msg) =>
-          msg.senderId.toString() === loggedInUserId.toString()
-            ? msg.receiverId.toString()
-            : msg.senderId.toString(),
-        ),
-      ),
-    ];
+    const partners = await Message.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $or: [
+                { senderId: loggedInUserId },
+                { receiverId: loggedInUserId },
+              ],
+            },
+            {
+              status: { $ne: "hide" },
+            },
+            {
+              hiddenFor: { $nin: [loggedInUserEmail] },
+            },
+          ],
+        },
+      },
 
-    const chatPartners = await User.find({
-      _id: { $in: chatPartnersId },
-    }).select("-password");
-    res.status(200).json(chatPartners);
+      {
+        $addFields: {
+          partnerId: {
+            $cond: [
+              { $eq: ["$senderId", loggedInUserId] },
+              "$receiverId",
+              "$senderId",
+            ],
+          },
+        },
+      },
+
+      {
+        $sort: { createdAt: -1 },
+      },
+
+      {
+        $group: {
+          _id: "$partnerId",
+          lastMessage: { $first: "$text" },
+          lastImage: { $first: "$image" },
+          lastMessageSenderId: { $first: "$senderId" },
+          time: { $first: "$createdAt" },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+
+      { $unwind: "$user" },
+
+      {
+        $project: {
+          _id: 0,
+          user: {
+            _id: "$user._id",
+            name: "$user.name",
+            email: "$user.email",
+            photoURL: "$user.photoURL",
+            lastSeen: "$user.lastSeen",
+          },
+          lastMessageSenderId: 1,
+          lastMessage: {
+            $cond: [{ $ne: ["$lastImage", null] }, "📷 Image", "$lastMessage"],
+          },
+          time: 1,
+        },
+      },
+
+      {
+        $sort: { time: -1 },
+      },
+    ]);
+
+    res.status(200).json(partners);
   } catch (error) {
     console.error("Error fetching chat partners:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -69,11 +141,47 @@ export const getChatPartners = async (req, res) => {
 export const getMessagesByUserId = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
+    const loggedInUserEmail = req.user.email;
     const { userId } = req.params;
+
+    // Mark partner -> logged-in-user messages as seen when chat is opened.
+    const seenAt = new Date();
+    const seenMessages = await Message.find({
+      senderId: userId,
+      receiverId: loggedInUserId,
+      deliveryStatus: { $ne: "seen" },
+    }).select("_id senderId receiverId");
+
+    if (seenMessages.length > 0) {
+      await Message.updateMany(
+        { _id: { $in: seenMessages.map((message) => message._id) } },
+        { $set: { deliveryStatus: "seen", deliveredAt: seenAt, seenAt } },
+      );
+
+      seenMessages.forEach((message) => {
+        io.to(getUserRoomName(message.senderId)).emit("messageStatusUpdated", {
+          messageId: String(message._id),
+          deliveryStatus: "seen",
+          deliveredAt: seenAt,
+          seenAt,
+        });
+      });
+    }
+
     const messages = await Message.find({
-      $or: [
-        { senderId: loggedInUserId, receiverId: userId },
-        { senderId: userId, receiverId: loggedInUserId },
+      $and: [
+        {
+          $or: [
+            { senderId: loggedInUserId, receiverId: userId },
+            { senderId: userId, receiverId: loggedInUserId },
+          ],
+        },
+        {
+          status: { $ne: "hide" },
+        },
+        {
+          hiddenFor: { $nin: [loggedInUserEmail] },
+        },
       ],
     }).populate("replyTo");
     res.status(200).json(messages);
@@ -85,11 +193,26 @@ export const getMessagesByUserId = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo, forwarded, originalSender } = req.body;
+    const {
+      text,
+      image,
+      replyTo,
+      forwarded,
+      originalSender,
+      messageType,
+      callData,
+    } = req.body;
     const loggedInUserId = req.user._id;
     const { userId: receiverId } = req.params;
 
-    if (!text && !image) {
+    const isCallMessage = messageType === "call";
+    // Handle audio file
+    let audioPath = null;
+    if (req.file) {
+      audioPath = `/uploads/audio/${req.file.filename}`;
+    }
+
+    if (!text && !image && !audioPath && !isCallMessage) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
@@ -98,6 +221,9 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: text || null,
       image: image || null,
+      audio: audioPath,
+      messageType: isCallMessage ? "call" : audioPath ? "audio" : "text",
+      callData: isCallMessage ? callData || {} : undefined,
       replyTo: replyTo || null,
       forwarded: forwarded || false,
       originalSender: forwarded ? originalSender : "",
@@ -105,19 +231,24 @@ export const sendMessage = async (req, res) => {
     let savedMessage = await newMessage.save();
     savedMessage = await savedMessage.populate("replyTo");
 
-    //web socket
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    const senderSocketId = getReceiverSocketId(loggedInUserId);
+    // websocket delivery depends on whether receiver has any active socket.
+    const receiverSocketIds = getReceiverSocketIds(receiverId);
+    const hasActiveReceiverSocket = receiverSocketIds.length > 0;
 
-    // send to receiver
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", savedMessage);
+    const deliveryStatus = hasActiveReceiverSocket ? "delivered" : "sent";
+    const deliveredAt = hasActiveReceiverSocket ? new Date() : null;
+
+    if (savedMessage.deliveryStatus !== deliveryStatus) {
+      savedMessage = await Message.findByIdAndUpdate(
+        savedMessage._id,
+        { $set: { deliveryStatus, deliveredAt } },
+        { new: true },
+      ).populate("replyTo");
     }
 
-    // send to sender
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("newMessage", savedMessage);
-    }
+    // Send to all sockets of both users so every open tab/device stays in sync.
+    io.to(getUserRoomName(receiverId)).emit("newMessage", savedMessage);
+    io.to(getUserRoomName(loggedInUserId)).emit("newMessage", savedMessage);
 
     res.status(201).json(savedMessage);
   } catch (error) {
@@ -174,9 +305,10 @@ export const addReaction = async (req, res) => {
   try {
     const msgId = req.params.id;
     const { emoji } = req.body;
+    const userId = req.user?._id;
     const message = await Message.findByIdAndUpdate(
       msgId,
-      { reaction: emoji },
+      { reaction: emoji, reactionBy: userId },
       { new: true },
     );
 
@@ -184,19 +316,100 @@ export const addReaction = async (req, res) => {
       return res.status(404).json({ message: "Message not found" });
     }
 
-    // realtime emit
-    const receiverSocketId = getReceiverSocketId(message.receiverId);
-    const senderSocketId = getReceiverSocketId(message.senderId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("reactionUpdated", message);
-    }
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("reactionUpdated", message);
-    }
+    // Realtime emit to user rooms to support multiple sockets per user.
+    console.log(`📤 Emitting reactionUpdated for message ${msgId} to users:`, {
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+    });
+    io.to(getUserRoomName(message.receiverId)).emit("reactionUpdated", message);
+    io.to(getUserRoomName(message.senderId)).emit("reactionUpdated", message);
 
     res.status(200).json(message);
   } catch (error) {
     console.error("Reaction add error:", error);
     res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const removeReaction = async (req, res) => {
+  try {
+    const msgId = req.params.id;
+    const userId = req.user?._id;
+    const message = await Message.findById(msgId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (!message.reaction) {
+      return res.status(400).json({ message: "No reaction to remove" });
+    }
+
+    if (!message.reactionBy || String(message.reactionBy) !== String(userId)) {
+      return res
+        .status(403)
+        .json({ message: "Only the reacting user can remove this reaction" });
+    }
+
+    const updatedMessage = await Message.findByIdAndUpdate(
+      msgId,
+      { $unset: { reaction: 1, reactionBy: 1 } },
+      { new: true },
+    );
+
+    console.log(
+      `📤 Emitting reactionUpdated after removal for message ${msgId}`,
+    );
+
+    io.to(getUserRoomName(updatedMessage.receiverId)).emit(
+      "reactionUpdated",
+      updatedMessage,
+    );
+    io.to(getUserRoomName(updatedMessage.senderId)).emit(
+      "reactionUpdated",
+      updatedMessage,
+    );
+
+    return res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.error("Reaction remove error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const markMessagesAsSeen = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+    const { userId } = req.params;
+    const seenAt = new Date();
+
+    const messages = await Message.find({
+      senderId: userId,
+      receiverId: loggedInUserId,
+      deliveryStatus: { $ne: "seen" },
+    }).select("_id senderId");
+
+    if (messages.length === 0) {
+      return res.status(200).json({ updated: 0 });
+    }
+
+    await Message.updateMany(
+      { _id: { $in: messages.map((message) => message._id) } },
+      { $set: { deliveryStatus: "seen", deliveredAt: seenAt, seenAt } },
+    );
+
+    messages.forEach((message) => {
+      io.to(getUserRoomName(message.senderId)).emit("messageStatusUpdated", {
+        messageId: String(message._id),
+        deliveryStatus: "seen",
+        deliveredAt: seenAt,
+        seenAt,
+      });
+    });
+
+    return res.status(200).json({ updated: messages.length });
+  } catch (error) {
+    console.error("Error marking seen messages:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

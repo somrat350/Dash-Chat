@@ -1,33 +1,23 @@
-const DeleteMessageModal = ({
-  isSender,
-  onDeleteForMe,
-  onDeleteForEveryone,
-  onCancel,
-}) => {
+const DeleteMessageModal = ({ onConfirmUnsend, onCancel }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-      <div className="bg-white rounded-xl p-6 w-80 shadow-lg text-center pointer-events-auto">
-        <h3 className="text-lg font-semibold mb-4">Delete Message</h3>
+    <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+      <div className="bg-base-100 rounded-2xl p-5 w-full max-w-sm shadow-xl border border-base-300">
+        <h3 className="text-lg font-semibold mb-2">Unsend message?</h3>
+        <p className="text-sm text-base-content/70 mb-5">
+          This message will be removed from the chat.
+        </p>
 
-        {isSender && (
-          <button
-            className="px-12 py-2 mb-2  rounded-full bg-green-400 hover:bg-green-500"
-            onClick={onDeleteForEveryone}
-          >
-            Delete for everyone
+        <div className="flex justify-end gap-2">
+          <button className="btn btn-sm" onClick={onCancel}>
+            Cancel
           </button>
-        )}
-
-        <button
-          className="px-12 py-2 mb-2 rounded-full  bg-green-400  hover:bg-green-500"
-          onClick={onDeleteForMe}
-        >
-          Delete for me
-        </button>
-
-        <button className=" px-12 py-2 rounded-full" onClick={onCancel}>
-          Cancel
-        </button>
+          <button
+            className="btn btn-sm btn-error text-white"
+            onClick={onConfirmUnsend}
+          >
+            Unsend
+          </button>
+        </div>
       </div>
     </div>
   );

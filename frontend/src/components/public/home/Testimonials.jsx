@@ -1,4 +1,11 @@
+import { useEffect, useRef } from "react";
+import { Quote, Star } from "lucide-react";
+import gsap from "gsap";
+import Marquee from "react-fast-marquee";
+
 const Testimonials = () => {
+  const containerRef = useRef(null);
+
   const testimonials = [
     {
       id: 1,
@@ -30,44 +37,86 @@ const Testimonials = () => {
     },
   ];
 
+  useEffect(() => {
+    const cards = containerRef.current.querySelectorAll(".testimonial-card");
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 50, scale: 0.95 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power3.out",
+      },
+    );
+  }, []);
+
   return (
-    <section className="py-16 bg-base-100">
-  <div className="max-w-7xl mx-auto px-4">
-    <div>
-      {/* Section Heading */}
-      <h1 className="text-3xl font-bold text-center text-primary mb-10">Testimonials</h1>
+    <section className="relative bg-base-100 py-14 md:py-20 px-4 sm:px-6 lg:px-8">
+      {/* Header */}
+      <div className="text-center max-w-3xl mx-auto mb-12">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-primary">
+          Loved by Teams & Individuals
+        </h2>
 
-      
-      <div className="grid grid-cols-1 mt-5 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
-        {testimonials.map((item) => (
-          <div
-            key={item.id}
-            className="relative group bg-base-200 p-6 rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 w-72 text-center"
-          >
-           
-            <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        <p className="mt-3 text-sm md:text-base text-base-content/70">
+          Real users choose DashChat for speed and smooth communication.
+        </p>
 
-            
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-            />
-
-            
-            <p className="text-base-content/70 text-sm mb-4">"{item.text}"</p>
-
-           
-            <div className="flex justify-between text-xs font-bold text-base-content/50">
-              <h1>{item.name}</h1>
-              <p>{item.role}</p>
-            </div>
-          </div>
-        ))}
+        <div className="mt-5 inline-flex items-center gap-2 bg-base-200 px-3 py-1.5 rounded-full text-sm">
+          <Star size={14} className="text-amber-500" />
+          4.9/5 user satisfaction
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+
+      <div
+        ref={containerRef}
+        className="max-w-[100vw] rounded-2xl overflow-x-hidden"
+      >
+        <Marquee
+          pauseOnHover
+          pauseOnClick
+          autoFill
+          speed={50}
+          gradientWidth={50}
+          gradient={true}
+          gradientColor={"#2337"}
+        >
+          {testimonials.map((item) => (
+            <article
+              key={item.id}
+              className="testimonial-card shrink-0 w-3xs sm:w-full max-w-90 h-50 mx-3 rounded-2xl border border-base-300 bg-base-200 p-6 shadow-md hover:shadow-xl transition-shadow"
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="avatar">
+                    <div className="h-12 w-12 rounded-full overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base-content">{item.name}</h3>
+                    <p className="text-xs text-base-content/60">{item.role}</p>
+                  </div>
+                </div>
+                <Quote className="text-primary/40 shrink-0" size={24} />
+              </div>
+
+              <p className="mt-5 text-sm leading-relaxed text-base-content/80">
+                "{item.text}"
+              </p>
+            </article>
+          ))}
+        </Marquee>
+      </div>
+    </section>
   );
 };
 

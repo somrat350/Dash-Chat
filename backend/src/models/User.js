@@ -23,12 +23,31 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
+    },
+     blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+  
+    blockedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+    lastOnline: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );

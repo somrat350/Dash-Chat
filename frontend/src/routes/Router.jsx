@@ -10,6 +10,7 @@ import Privacy from "../pages/public/Privacy";
 import ProtectedRoute from "./ProtectedRoute";
 import Contact from "../pages/public/Contact";
 import Features from "../pages/public/Features";
+import FeatureDetails from "../pages/public/FeatureDetails";
 import DashboardLayout from "../layout/DashboardLayout";
 import DashHome from "../pages/dashboard/DashHome";
 import Friends from "../pages/dashboard/Friends";
@@ -19,6 +20,16 @@ import Profile from "../pages/dashboard/Profile";
 import Settings from "../pages/dashboard/Settings";
 import Messages from "../pages/dashboard/Messages";
 import Calls from "../pages/dashboard/Calls";
+// import HelpandFeadback from "../pages/dashboard/HelpandFeadback";
+import SettingsLayout from "../layout/SettingsLayout";
+import ProfileSettings from "../pages/dashboard/ProfileSettings";
+import AppearanceSettings from "../pages/dashboard/AppearanceSettings";
+
+import PrivacySettings from "../pages/dashboard/PrivacySettings";
+import DangerZone from "../pages/dashboard/DangerZone";
+import NotificationSettings from "../pages/dashboard/NotificationsSettings";
+import SettingsDefault from "../pages/dashboard/SettingsDefault";
+import GithubCallback from "../pages/auth/GithubCallback";
 
 const router = createBrowserRouter([
   {
@@ -45,8 +56,13 @@ const router = createBrowserRouter([
         path: "/features",
         Component: Features,
       },
+      {
+        path: "/features/:featureSlug",
+        Component: FeatureDetails,
+      },
     ],
   },
+
   {
     path: "/auth",
     Component: AuthLayout,
@@ -63,6 +79,10 @@ const router = createBrowserRouter([
         path: "forgot-password",
         Component: ForgotPassword,
       },
+       {
+      path: "github/callback",
+      Component: GithubCallback,
+    },
     ],
   },
   {
@@ -75,15 +95,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: DashHome,
+        Component: Chats,
       },
       {
         path: "friends",
         Component: Friends,
-      },
-      {
-        path: "chats",
-        Component: Chats,
       },
       {
         path: "chats/:id",
@@ -104,6 +120,36 @@ const router = createBrowserRouter([
       {
         path: "settings",
         Component: Settings,
+      },
+      {
+        path: "settings",
+        element: <SettingsLayout />,
+        children: [
+          {
+            index: true,
+            element: <SettingsDefault />,
+          },
+          {
+            path: "profile",
+            element: <ProfileSettings />,
+          },
+          {
+            path: "appearance",
+            element: <AppearanceSettings />,
+          },
+          {
+            path: "notifications",
+            element: <NotificationSettings />,
+          },
+          {
+            path: "privacy",
+            element: <PrivacySettings />,
+          },
+          {
+            path: "danger",
+            element: <DangerZone />,
+          },
+        ],
       },
     ],
   },

@@ -6,10 +6,13 @@ import {
   editMessage,
   getChatPartners,
   getMessagesByUserId,
+  markMessagesAsSeen,
   recentMessages,
+  removeReaction,
   searchChatNewPartners,
   sendMessage,
 } from "../controllers/message.controllers.js";
+import { uploadAudio } from "../middleware/audioUpload.js";
 
 const messageRouter = express.Router();
 
@@ -19,10 +22,12 @@ messageRouter.get("/recentMessages", recentMessages);
 messageRouter.get("/searchNewPartner", searchChatNewPartners);
 messageRouter.get("/messagePartners", getChatPartners);
 messageRouter.get("/chats/:userId", getMessagesByUserId);
-messageRouter.post("/send/:userId", sendMessage);
+messageRouter.patch("/chats/:userId/seen", markMessagesAsSeen);
+messageRouter.post("/send/:userId", uploadAudio.single("audio"), sendMessage);
 messageRouter.patch("/edit/:id", editMessage);
 messageRouter.patch("/delete/:id", deleteMessage);
 
 messageRouter.patch("/:id/addReaction", addReaction);
+messageRouter.patch("/:id/removeReaction", removeReaction);
 
 export default messageRouter;

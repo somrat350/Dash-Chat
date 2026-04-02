@@ -9,35 +9,35 @@ import Home from "../../../components/conversation/chats/mobile-view/Home";
 import { useMessageStore } from "../../../store/useMessageStore";
 
 const ChatHome = () => {
-  const { selectedPartner,clearReplyMessage } = useMessageStore();
+  const { selectedPartner, clearReplyMessage } = useMessageStore();
 
-  //  clear reply 
+  //  clear reply
   useEffect(() => {
-    clearReplyMessage(); 
-  }, [selectedPartner]);
+    clearReplyMessage();
+  }, [selectedPartner, clearReplyMessage]);
 
   return (
     <>
       {/* Large view */}
-      <div className=" hidden md:grid grid-cols-3 border-l border-primary/30 h-full w-full ">
+      <div className="hidden h-full min-h-0 w-full grid-cols-3 border-l border-primary/30 md:grid">
         {/* Chat sidebar */}
-        <div className="col-span-1 border-r border-primary/30 ">
+        <div className="col-span-1 min-h-0 border-r border-primary/30">
           <Sidebar />
         </div>
         {/* Message portion */}
 
-        <div className="col-span-2 flex flex-col h-screen relative">
+        <div className="relative col-span-2 flex min-h-0 flex-col">
           <div className="absolute top-0 left-0 z-0 w-full h-full flex text-center items-center justify-center opacity-30  pointer-events-none">
             <img src="/DashChat-logo.png" alt="DashChat Logo" />
           </div>
           {selectedPartner ? (
             <>
               <ChatHeader />
-              <div className="flex-1 overflow-y-auto px-4">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4">
                 {/*  MessageList  */}
                 <MessageContainer />
               </div>
-              <div className="border-t border-primary/20 relative">
+              <div className="relative shrink-0 border-t border-primary/20">
                 <MessageInput />
               </div>
             </>
@@ -48,18 +48,18 @@ const ChatHome = () => {
       </div>
 
       {/* Mobile view */}
-      <div className="flex flex-col h-screen relative md:hidden">
+      <div className="relative flex h-full min-h-0 flex-col md:hidden">
         <div className="absolute top-0 left-0 z-0 w-full h-full flex text-center items-center justify-center opacity-30  pointer-events-none">
           <img src="/DashChat-logo.png" alt="DashChat Logo" />
         </div>
         {selectedPartner ? (
           <>
             <ChatHeader />
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4">
               {/*  MessageList  */}
               <MessageContainer />
             </div>
-            <div className="border-t border-primary/20">
+            <div className="shrink-0 border-t border-primary/20">
               <MessageInput />
             </div>
           </>
