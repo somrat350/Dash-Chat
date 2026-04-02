@@ -1,6 +1,6 @@
 import { Plus, Search, User } from "lucide-react";
 import { useMessageStore } from "../../../store/useMessageStore";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PartnerLoadingSkeleton from "./PartnerLoadingSkeleton";
 import NoPartnerFound from "./NoPartnerFound";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -16,6 +16,7 @@ const MessagesSidebar = () => {
     getMessagePartners,
   } = useMessageStore();
   const { onlineUsers } = useAuthStore();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     // getMessagePartners();
@@ -72,8 +73,27 @@ const MessagesSidebar = () => {
     document.getElementById("add_partner_modal").showModal();
   };
 
+  const filteredMessagePartners = useMemo(() => {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+    if (!normalizedSearchTerm) return messagePartners;
+
+    return messagePartners.filter((partner) => {
+      const searchableText = [
+        partner?.user?.name,
+        partner?.user?.email,
+        partner?.lastMessage,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearchTerm);
+    });
+  }, [messagePartners, searchTerm]);
+
   return (
-    <div className="w-full md:max-w-70 lg:max-w-80 flex flex-col max-h-full overflow-hidden border-r border-base-content/20">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden border-r border-base-content/20 md:max-w-70 lg:max-w-80">
       {/* Header Section */}
       <div className="pb-4 sticky top-0 bg-base-100 z-10 px-2 pt-1">
         <div className="flex justify-between items-center">
@@ -92,6 +112,8 @@ const MessagesSidebar = () => {
           <input
             type="text"
             placeholder="Search..."
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
             className="input w-full pl-10 rounded-full bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/50" />
@@ -99,13 +121,13 @@ const MessagesSidebar = () => {
       </div>
 
       {/* Chat List Section */}
-      <div className="mb-3 grid overflow-y-auto scroll-thin">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-thin">
         {messagePartnersLoading ? (
           <PartnerLoadingSkeleton />
-        ) : messagePartners.length === 0 ? (
+        ) : filteredMessagePartners.length === 0 ? (
           <NoPartnerFound />
         ) : (
-          messagePartners.map((partner, i) => (
+          filteredMessagePartners.map((partner, i) => (
             <div
               onClick={() => setSelectedPartner(partner.user)}
               key={i + 1}

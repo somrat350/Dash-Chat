@@ -5,21 +5,25 @@ import { useMessageStore } from "../../store/useMessageStore";
 
 const NotificationSettings = () => {
   // Load saved settings or default
-  const savedSettings = JSON.parse(localStorage.getItem("notificationSettings")) || {
+  const savedSettings = JSON.parse(
+    localStorage.getItem("notificationSettings"),
+  ) || {
     sound: true,
     browserNotification: false,
+    enterToSend: false, // new toggle
   };
 
   const [sound, setSound] = useState(savedSettings.sound);
   const [browserNotification, setBrowserNotification] = useState(savedSettings.browserNotification);
+  const [enterToSend, setEnterToSend] = useState(savedSettings.enterToSend);
 
   // Save to localStorage whenever toggles change
   useEffect(() => {
     localStorage.setItem(
       "notificationSettings",
-      JSON.stringify({ sound, browserNotification })
+      JSON.stringify({ sound, browserNotification, enterToSend })
     );
-  }, [sound, browserNotification]);
+  }, [sound, browserNotification, enterToSend]);
 
   // Audio ref
   const messageSound = useRef(null);
@@ -28,26 +32,29 @@ const NotificationSettings = () => {
   }, []);
 
   const playSound = () => {
+     console.log("Playing sound...");
     if (!sound || !messageSound.current) return;
     messageSound.current.currentTime = 0;
-    messageSound.current.play().catch((err) => console.log("Audio blocked:", err));
+    messageSound.current
+      .play()
+      .catch((err) => console.log("Audio blocked:", err));
   };
 
   const showDesktopNotification = (message) => {
     if (!browserNotification || !("Notification" in window)) return;
-    if (Notification.permission === "granted") {
+
+    const notify = () => {
       new Notification("New Message", {
         body: message.text || "You received a new message",
         icon: "/favicon.ico",
       });
+    };
+
+    if (Notification.permission === "granted") {
+      notify();
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          new Notification("New Message", {
-            body: message.text || "You received a new message",
-            icon: "/favicon.ico",
-          });
-        }
+        if (permission === "granted") notify();
       });
     }
   };
@@ -69,17 +76,36 @@ const NotificationSettings = () => {
     }
   }, [messages, sound, browserNotification]);
 
+  // Breadcrumb
   const pageFlow = [
-    { label: "Settings", link: "/dashboard/settings", icon: <Settings size={16} /> },
-    { label: "Notification", link: "/dashboard/settings/notifications", icon: <BellRing size={16} /> },
+    {
+      label: "Settings",
+      link: "/dashboard/settings",
+      icon: <Settings size={16} />,
+    },
+    {
+      label: "Notification",
+      link: "/dashboard/notifications",
+      icon: <BellRing size={16} />,
+    },
   ];
+
+  // Browser notification toggle with permission handling
+  const toggleBrowserNotification = () => {
+    if (!browserNotification && Notification.permission !== "granted") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") setBrowserNotification(true);
+      });
+    } else {
+      setBrowserNotification(!browserNotification);
+    }
+  };
 
   return (
     <div className="w-full space-y-8">
       <Breadcrumb items={pageFlow} />
 
       <div className="mt-10 dark:bg-zinc-900 border rounded-xl p-6 space-y-10">
-
         {/* Message Sound */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -108,7 +134,8 @@ const NotificationSettings = () => {
             <div>
               <p className="font-medium">Browser Notifications</p>
               <p className="text-sm text-gray-500">
-                Receive desktop notifications even when the app is in background.
+                Receive desktop notifications even when the app is in
+                background.
               </p>
             </div>
           </div>
@@ -116,12 +143,32 @@ const NotificationSettings = () => {
             <input
               type="checkbox"
               checked={browserNotification}
-              onChange={() => setBrowserNotification(!browserNotification)}
+              onChange={toggleBrowserNotification}
               className="toggle toggle-primary"
             />
           </label>
         </div>
 
+        {/* Enter to Send */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <i className="text-gray-500">⌨️</i>
+            <div>
+              <p className="font-medium">Enter to Send</p>
+              <p className="text-sm text-gray-500">
+                Press Enter to send a message. Shift + Enter for a new line.
+              </p>
+            </div>
+          </div>
+          <label className="cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enterToSend}
+              onChange={() => setEnterToSend(!enterToSend)}
+              className="toggle toggle-primary"
+            />
+          </label>
+        </div>
       </div>
     </div>
   );

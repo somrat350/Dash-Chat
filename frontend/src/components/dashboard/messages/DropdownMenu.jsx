@@ -26,23 +26,26 @@ const DropdownMenu = ({ msg, isMe, onClose, isDeleted, onForward }) => {
     <>
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`z-50 absolute bottom-full mb-2 w-40 rounded-2xl bg-base-300 border border-white/10 p-2 shadow-2xl space-y-1 ${isMe ? "right-0" : "left-0"}`}
+        className={`z-50 absolute top-full mt-2 w-40 overflow-hidden rounded-xl border border-base-content/10 bg-base-100/95 shadow-2xl backdrop-blur-sm ${isMe ? "right-0" : "left-0"}`}
       >
         {isDeleted ? (
           <>
             {/* Remove Button */}
-            <button className="btn rounded-lg w-full justify-start text-error hover:bg-error/10">
-              <BrushCleaning size={16} /> Remove
+            <button className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-error transition-colors hover:bg-base-200">
+              <BrushCleaning size={15} /> Remove
             </button>
           </>
         ) : (
-          <>
+          <div className="divide-y divide-base-content/10">
             {/* Reply Button */}
             <button
-              onClick={() => setReplyMessage(msg)}
-              className="btn rounded-lg w-full justify-start"
+              onClick={() => {
+                setReplyMessage(msg);
+                onClose();
+              }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200"
             >
-              <Reply size={16} /> Reply
+              <Reply size={15} /> Reply
             </button>
 
             {/* Copy Button */}
@@ -53,9 +56,9 @@ const DropdownMenu = ({ msg, isMe, onClose, isDeleted, onForward }) => {
                 onClose();
                 toast.success("Message copied.");
               }}
-              className="btn rounded-lg w-full justify-start"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200"
             >
-              <Copy size={16} /> Copy
+              <Copy size={15} /> Copy
             </button>
 
             {/* Forward Button */}
@@ -65,34 +68,33 @@ const DropdownMenu = ({ msg, isMe, onClose, isDeleted, onForward }) => {
                 onForward?.(msg);
                 onClose();
               }}
-              className="btn rounded-lg w-full justify-start"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200"
             >
-              <Share2 size={16} /> Forward
+              <Share2 size={15} /> Forward
             </button>
 
             {/* Edit Button */}
             {isMe && (
               <button
                 onClick={() => document.getElementById(modalId).showModal()}
-                className="btn rounded-lg w-full justify-start"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-base-200"
               >
-                <Edit size={16} /> Edit
+                <Edit size={15} /> Edit
               </button>
             )}
 
             {/* Delete Button */}
             {isMe && (
               <>
-                <div className="divider my-0 opacity-10"></div>
                 <button
                   onClick={handleMessageDelete}
-                  className="btn rounded-lg w-full justify-start text-error hover:bg-error/10"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-error transition-colors hover:bg-error/10"
                 >
-                  <Trash2 size={16} /> Delete
+                  <Trash2 size={15} /> Delete
                 </button>
               </>
             )}
-          </>
+          </div>
         )}
 
         {/* Message Edit Modal */}

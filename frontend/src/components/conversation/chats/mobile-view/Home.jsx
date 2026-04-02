@@ -5,10 +5,12 @@ import {
   PhoneCall,
   Radio,
   Users,
+  Search,
 } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import { useMessageStore } from "../../../../store/useMessageStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import NewChatSearch from "../large-view/sidebar/NewChatSearch";
 
 const Home = () => {
   const {
@@ -18,10 +20,15 @@ const Home = () => {
     setSelectedPartner,
     messagePartnersLoading,
   } = useMessageStore();
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchMessagePartners();
   }, [fetchMessagePartners]);
+
+  const openAddPartnerModal = () => {
+    document.getElementById("new_chat_search_modal").showModal();
+  };
 
   return (
     <div className="min-h-screen  bg-gray-100 flex flex-col">
@@ -33,46 +40,81 @@ const Home = () => {
             <Link to="/">DashChat</Link>{" "}
           </h2>
           <div className="flex items-center gap-2">
-            <CameraIcon></CameraIcon>
-            <MoreVertical></MoreVertical>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openAddPartnerModal();
+              }}
+              className="hover:opacity-80 transition p-1"
+              title="Add new chat"
+            >
+              <CameraIcon size={22} />
+            </button>
+            <button
+              type="button"
+              className="hover:opacity-80 transition p-1"
+              title="More options"
+            >
+              <MoreVertical size={22} />
+            </button>
           </div>
         </div>
       </div>
 
       {/**   Search */}
-      <div className="p-3 bg-white">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full p-2 rounded-full bg-gray-100 outline-none"
-        />
+      <div className="p-3 bg-white sticky top-0 z-10">
+        <div className="flex items-center bg-gray-100 rounded-full px-4 gap-2">
+          <Search size={18} className="text-gray-500 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full py-2 px-2 bg-gray-100 outline-none text-sm"
+          />
+        </div>
       </div>
       {/** chat  */}
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-white pb-20">
         {messagePartnersLoading ? (
           <p className="text-center p-5 text-gray-400">Loading chats...</p>
+        ) : messagePartners.filter((partner) =>
+            partner.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ).length === 0 ? (
+          <div className="text-center p-8 text-gray-400">
+            {searchQuery.trim()
+              ? "No chats found"
+              : "No chats yet. Add a partner to start."}
+          </div>
         ) : (
-          messagePartners.map((partner) => (
-            <div
-              key={partner._id} // ব্যাকেন্ডের আইডি
-              onClick={() => setSelectedPartner(partner)}
-              className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-50"
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  src={partner.photoURL || "https://via.placeholder.com/150"}
-                  alt={partner.name}
-                  className="w-12 h-12 rounded-full object-cover border"
-                />
-                <div>
-                  <h2 className="font-semibold text-gray-800">
-                    {partner.name}
-                  </h2>
+          messagePartners
+            .filter((partner) =>
+              partner.name.toLowerCase().includes(searchQuery.toLowerCase()),
+            )
+            .map((partner) => (
+              <button
+                key={partner._id}
+                type="button"
+                onClick={() => setSelectedPartner(partner)}
+                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 border-b border-gray-50 transition text-left bg-white"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={partner.photoURL || "https://via.placeholder.com/150"}
+                    alt={partner.name}
+                    className="w-12 h-12 rounded-full object-cover border"
+                  />
+                  <div className="min-w-0">
+                    <h2 className="font-semibold text-gray-800 truncate">
+                      {partner.name}
+                    </h2>
+                  </div>
                 </div>
-              </div>
-              <span className="text-[10px] text-gray-400">Now</span>
-            </div>
-          ))
+                <span className="text-[10px] text-gray-400 shrink-0">Now</span>
+              </button>
+            ))
         )}
       </div>
 
@@ -116,6 +158,9 @@ const Home = () => {
           <span className="text-xs font-semibold">Community</span>
         </NavLink>
       </div>
+
+      {/* Add Partner Modal */}
+      <NewChatSearch />
     </div>
   );
 };
